@@ -3,6 +3,9 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
+
 -- stylua: ignore start
 local FlavorCompat = ns.FlavorCompat or require("WhisperMessenger.Core.FlavorCompat")
 local ChatPrefill = ns.ChatPrefill or require("WhisperMessenger.Util.ChatPrefill")
@@ -189,7 +192,7 @@ function Poller.Install(runtime, hooks, deps)
       return
     end
 
-    timer.After(0, function()
+    WrathTimer.AfterOn(timer, 0, function()
       -- This callback may run after restricted content begins. Bail before
       -- finding the focused edit box, which reads Blizzard edit-box state.
       if deps.isSuspended() then

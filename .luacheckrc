@@ -207,6 +207,7 @@ read_globals = {
 
   -- UI constants
   "RAID_CLASS_COLORS",
+  "CLASS_ICON_TCOORDS",
 
   -- Standard globals
   "_G",

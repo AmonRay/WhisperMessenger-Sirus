@@ -46,7 +46,7 @@ return function()
     assert(entry ~= nil, "an entry comes back")
     assert(#frame.entries == 1, "one entry, got " .. #frame.entries)
     assert(frame.entries[1].text == "Whisper Messenger", "got " .. tostring(frame.entries[1].text))
-    assert(frame.entries[1].icon == "Interface\\AddOns\\WhisperMessenger\\Media\\icon.png", "minimap icon art")
+    assert(frame.entries[1].icon == "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga", "minimap icon art")
   end)
 
   -- test_no_compartment_registers_nothing

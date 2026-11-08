@@ -22,6 +22,23 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))).repla
 SETUP_LUA = """
     package.path = "{root}/?.lua;{root}/?/init.lua;" .. package.path
 
+    -- TOC entries use backslashes for the 3.3.5a client; the filesystem in CI and
+    -- on Linux does not, so normalize separators when a test loads such a path.
+    local rawLoadfile, rawDofile = loadfile, dofile
+    local function portablePath(path)
+        if type(path) == "string" then
+            return (path:gsub("\\\\", "/"))
+        end
+        return path
+    end
+    loadfile = function(path, ...)
+        return rawLoadfile(portablePath(path), ...)
+    end
+    dofile = function(path)
+        return rawDofile(portablePath(path))
+    end
+    _G.loadfile, _G.dofile = loadfile, dofile
+
     local rawRequire = require
     require = function(name)
         if type(name) == "string" and name:find("WhisperMessenger.", 1, true) == 1 then

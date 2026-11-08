@@ -23,29 +23,26 @@ function BubbleIcon.CreateIcon(factory, parent, bubbleFrame, message, direction,
   end
 
   local iconPath
+  local classTag
   if direction == "out" then
     -- Stored class of the character that actually sent this message. Prefer
     -- this over the live UnitClass so relogging to another char doesn't
     -- rewrite history bubbles with the new char's class icon.
-    if message.senderClassTag then
-      iconPath = Theme.ClassIcon(message.senderClassTag)
+    classTag = message.senderClassTag
+    if not classTag and type(_G.UnitClass) == "function" then
+      local _, englishClass, _, playerTag = _G.UnitClass("player")
+      classTag = playerTag or englishClass
     end
-    if not iconPath and type(_G.UnitClass) == "function" then
-      local _, classTag = _G.UnitClass("player")
-      iconPath = Theme.ClassIcon(classTag)
-    end
-    if not iconPath then
-      iconPath = "Interface\\CHATFRAME\\UI-ChatIcon-ArmoryChat"
-    end
+    iconPath = "Interface\\CHATFRAME\\UI-ChatIcon-ArmoryChat"
   else
-    iconPath = Theme.ClassIcon(message.classTag or message.senderClassTag or options.fallbackClassTag)
-    if not iconPath then
-      iconPath = Theme.TEXTURES.bnet_icon
-    end
+    classTag = message.classTag or message.senderClassTag or options.fallbackClassTag
+    iconPath = Theme.TEXTURES.bnet_icon
   end
 
-  if icon.SetTexture then
-    icon:SetTexture(iconPath)
+  if not (classTag and Theme.ApplyClassIcon and Theme.ApplyClassIcon(icon, classTag)) then
+    if icon.SetTexture then
+      icon:SetTexture(iconPath)
+    end
   end
 
   if direction == "in" then

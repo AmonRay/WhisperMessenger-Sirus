@@ -49,8 +49,8 @@ return function()
   -- test_textures_point_at_the_shipped_art
   do
     local name = "test_textures_point_at_the_shipped_art"
-    assert(IconBorder.RING_TEXTURE == "Interface\\AddOns\\WhisperMessenger\\Media\\ring_gold.png", name .. ": ring art")
-    assert(IconBorder.SQUARE_FRAME_TEXTURE == "Interface\\AddOns\\WhisperMessenger\\Media\\frame_gold_square.png", name .. ": square frame art")
+    assert(IconBorder.RING_TEXTURE == "Interface\\AddOns\\WhisperMessenger\\Media\\ring_gold.tga", name .. ": ring art")
+    assert(IconBorder.SQUARE_FRAME_TEXTURE == "Interface\\AddOns\\WhisperMessenger\\Media\\frame_gold_square.tga", name .. ": square frame art")
   end
 
   -- test_look_for_maps_each_state_to_one_look

@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local ContactEnricher = ns.ContactEnricher or require("WhisperMessenger.Model.ContactEnricher")
 local WhisperGateway = ns.WhisperGateway or require("WhisperMessenger.Transport.WhisperGateway")
 local BadgeFilter = ns.ToggleIconBadgeFilter or require("WhisperMessenger.UI.ToggleIcon.BadgeFilter")
@@ -121,7 +123,7 @@ function WindowCoordinator.Create(options)
     if statusTicker or cTimer == nil or type(cTimer.NewTicker) ~= "function" then
       return
     end
-    statusTicker = cTimer.NewTicker(STATUS_REFRESH_INTERVAL, function()
+    statusTicker = WrathTimer.TickerOn(cTimer, STATUS_REFRESH_INTERVAL, function()
       if not coordinator.isWindowVisible() then
         return
       end

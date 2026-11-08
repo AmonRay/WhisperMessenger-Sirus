@@ -5,6 +5,14 @@ end
 
 local WindowResize = {}
 
+local function paint(texture, color, alpha)
+  if texture.SetColorTexture then
+    texture:SetColorTexture(color[1], color[2], color[3], alpha)
+  elseif texture.SetTexture then
+    texture:SetTexture(color[1], color[2], color[3], alpha)
+  end
+end
+
 local function effectiveScaleOrOne(target)
   if target and type(target.GetEffectiveScale) == "function" then
     local scale = target:GetEffectiveScale()
@@ -39,11 +47,11 @@ function WindowResize.New(options)
       right = windowResizePreviewHost:CreateTexture(nil, "OVERLAY"),
     }
 
-    windowResizePreview.bg:SetColorTexture(fillColor[1], fillColor[2], fillColor[3], options.previewFillAlpha)
-    windowResizePreview.top:SetColorTexture(dividerColor[1], dividerColor[2], dividerColor[3], options.previewBorderAlpha)
-    windowResizePreview.bottom:SetColorTexture(dividerColor[1], dividerColor[2], dividerColor[3], options.previewBorderAlpha)
-    windowResizePreview.left:SetColorTexture(dividerColor[1], dividerColor[2], dividerColor[3], options.previewBorderAlpha)
-    windowResizePreview.right:SetColorTexture(dividerColor[1], dividerColor[2], dividerColor[3], options.previewBorderAlpha)
+    paint(windowResizePreview.bg, fillColor, options.previewFillAlpha)
+    paint(windowResizePreview.top, dividerColor, options.previewBorderAlpha)
+    paint(windowResizePreview.bottom, dividerColor, options.previewBorderAlpha)
+    paint(windowResizePreview.left, dividerColor, options.previewBorderAlpha)
+    paint(windowResizePreview.right, dividerColor, options.previewBorderAlpha)
 
     if resizeGrip then
       resizeGrip.preview = windowResizePreview

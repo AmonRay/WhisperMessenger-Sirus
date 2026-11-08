@@ -115,11 +115,13 @@ local function createRowFrame(factory, strip, index)
     showRowTooltip(self)
   end)
   local enterLink = rowFrame:GetScript("OnHyperlinkEnter")
-  rowFrame:SetScript("OnHyperlinkEnter", function(self, ...)
+  Hyperlinks.SetScriptIfSupported(rowFrame, "OnHyperlinkEnter", function(self, ...)
     self.linkHovered = true
     -- The item tooltip keeps the game's own width.
     setTooltipMinWidth(0)
-    enterLink(self, ...)
+    if enterLink then
+      enterLink(self, ...)
+    end
   end)
   rowFrame:SetScript("OnLeave", function(self)
     hovered = false
@@ -129,7 +131,7 @@ local function createRowFrame(factory, strip, index)
       hideRowTooltip()
     end
   end)
-  rowFrame:SetScript("OnHyperlinkLeave", function(self)
+  Hyperlinks.SetScriptIfSupported(rowFrame, "OnHyperlinkLeave", function(self)
     self.linkHovered = false
     hideRowTooltip()
     if hovered then

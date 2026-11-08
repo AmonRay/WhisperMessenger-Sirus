@@ -112,8 +112,9 @@ function SettingsTabs.Wire(options)
     -- a follow-up tick that lands after layout settles. C_Timer is
     -- absent in fake_ui — the synchronous attempt above is the only
     -- path the tests exercise.
-    if _G.C_Timer and type(_G.C_Timer.After) == "function" then
-      _G.C_Timer.After(0, function()
+    local wrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+    if type(wrathTimer) == "table" and type(wrathTimer.Schedule) == "function" then
+      wrathTimer.Schedule(0, function()
         applyVisibleTabContentHeight(visiblePanel)
       end)
     end
@@ -204,8 +205,12 @@ function SettingsTabs.Wire(options)
             return
           end
           local paintColor = hovered and hoverBg or color
-          if bg and bg.SetColorTexture then
-            bg:SetColorTexture(paintColor[1], paintColor[2], paintColor[3], paintColor[4] or 1)
+          if bg then
+            if bg.SetColorTexture then
+              bg:SetColorTexture(paintColor[1], paintColor[2], paintColor[3], paintColor[4] or 1)
+            elseif bg.SetTexture then
+              bg:SetTexture(paintColor[1], paintColor[2], paintColor[3], paintColor[4] or 1)
+            end
           end
           if tab.label and tab.label.SetTextColor then
             local paintText = hovered and hoverText or textColor

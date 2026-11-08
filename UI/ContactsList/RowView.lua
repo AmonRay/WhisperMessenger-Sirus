@@ -43,7 +43,8 @@ local function playerClassTag()
   if type(unitClass) ~= "function" then
     return nil
   end
-  local ok, _, tag = pcall(unitClass, "player")
+  local ok, englishClass, _, _, playerTag = pcall(unitClass, "player")
+  local tag = playerTag or englishClass
   if ok and type(tag) == "string" and tag ~= "" then
     cachedPlayerClassTag = tag
     return cachedPlayerClassTag
@@ -114,7 +115,15 @@ local function bindRow(factory, parent, row, index, item, options)
     RowElements.createClassIcon(factory, row, item)
   end
   if row.classIcon and row.classIcon.SetTexture then
-    row.classIcon:SetTexture(RowView.IconPath(item))
+    local groupIcon = GroupLabel.IsGroupItem(item) and Theme.ChannelIcon and Theme.ChannelIcon(item.channel, item.conversationKey) or nil
+    if groupIcon then
+      row.classIcon:SetTexture(groupIcon)
+      if row.classIcon.SetTexCoord then
+        row.classIcon:SetTexCoord(0, 1, 0, 1)
+      end
+    elseif not (Theme.ApplyClassIcon and Theme.ApplyClassIcon(row.classIcon, item.classTag)) then
+      row.classIcon:SetTexture(Theme.TEXTURES.bnet_icon)
+    end
   end
 
   -- Status dot (create once, update color every bind)

@@ -37,6 +37,7 @@ local UIHelpers = {
   createTemplatedFrame = Base.createTemplatedFrame,
   applyColor = Base.applyColor,
   applyColorTexture = Base.applyColorTexture,
+  paintSolid = Base.paintSolid,
   applyBorderBoxColor = Base.applyBorderBoxColor,
   applyVertexColor = Base.applyVertexColor,
   colorEscape = Base.colorEscape,

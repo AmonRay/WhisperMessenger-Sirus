@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local Protocol = ns.MessageReactionProtocol or require("WhisperMessenger.Model.MessageReactionProtocol")
 
 -- The local player's own reaction while its send is in flight: shown in
@@ -52,7 +54,7 @@ function PendingReaction.BeginPending(message, token, operation, key, actorName,
     return
   end
   local scheduling = true
-  timer.After(TTL_SECONDS, function()
+  WrathTimer.AfterOn(timer, TTL_SECONDS, function()
     if not scheduling and PendingReaction.ClearPending(message, token) and type(onTimeout) == "function" then
       onTimeout()
     end

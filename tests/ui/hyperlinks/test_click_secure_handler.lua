@@ -104,4 +104,19 @@ return function()
       assert(calls[2] == "callback" and #calls == 2, "the callback should still run once, got " .. table.concat(calls, ", "))
     end)
   end
+  -- test_widget_without_hyperlink_scripts_does_not_break_enable
+  do
+    local frame = factory.CreateFrame("Frame", nil, nil)
+    local setScript = frame.SetScript
+    frame.SetScript = function(self, name, handler)
+      if name == "OnHyperlinkEnter" or name == "OnHyperlinkLeave" or name == "OnHyperlinkClick" then
+        error('Frame does not have a "' .. name .. '" script', 2)
+      end
+      return setScript(self, name, handler)
+    end
+    local ok, err = pcall(Hyperlinks.EnableOn, frame)
+    assert(ok, "a widget without hyperlink scripts must not break EnableOn: " .. tostring(err))
+    local okGet, clickHandler = pcall(frame.GetScript, frame, "OnHyperlinkClick")
+    assert(not okGet or clickHandler == nil, "no click handler should be registered on such a widget")
+  end
 end

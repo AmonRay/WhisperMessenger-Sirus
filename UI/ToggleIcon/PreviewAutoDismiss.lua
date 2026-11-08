@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 -- Hides the own message preview after the player's chosen delay.
 -- options: getSeconds, isShown, onExpire.
 local PreviewAutoDismiss = {}
@@ -46,7 +48,7 @@ function PreviewAutoDismiss.New(options)
       return
     end
     local scheduledGeneration = generation
-    timer = cTimer.NewTimer(seconds, function()
+    timer = WrathTimer.TimerOn(cTimer, seconds, function()
       if scheduledGeneration ~= generation then
         return
       end

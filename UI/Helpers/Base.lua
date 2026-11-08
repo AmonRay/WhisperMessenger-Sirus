@@ -29,13 +29,26 @@ function Base.applyColor(fontString, colorTable)
   end
 end
 
+function Base.paintSolid(region, r, g, b, a)
+  if not region then
+    return false
+  end
+  if type(region.SetColorTexture) == "function" then
+    region:SetColorTexture(r, g, b, a or 1)
+    return true
+  end
+  if type(region.SetTexture) == "function" then
+    region:SetTexture(r, g, b, a or 1)
+    return true
+  end
+  return false
+end
+
 function Base.applyColorTexture(region, colorTable)
   if not region or not colorTable then
     return
   end
-  if region.SetColorTexture then
-    region:SetColorTexture(colorTable[1], colorTable[2], colorTable[3], colorTable[4] or 1)
-  end
+  Base.paintSolid(region, colorTable[1], colorTable[2], colorTable[3], colorTable[4] or 1)
 end
 
 function Base.applyBorderBoxColor(border, colorTable)
@@ -54,16 +67,24 @@ end
 -- (vertex colours multiply the base), so if the gradient is unsupported or
 -- dropped the worst case is the flat intended colour, never opaque white.
 local function applyAlphaGradient(texture, orientation, color, minAlpha, maxAlpha)
-  if not texture or not texture.SetColorTexture then
+  if not texture then
     return
   end
   local peak = math.max(minAlpha, maxAlpha)
-  texture:SetColorTexture(color[1], color[2], color[3], peak)
-  local createColor = _G.CreateColor
-  if peak <= 0 or not texture.SetGradient or type(createColor) ~= "function" then
+  if not Base.paintSolid(texture, color[1], color[2], color[3], peak) then
     return
   end
-  pcall(texture.SetGradient, texture, orientation, createColor(1, 1, 1, minAlpha / peak), createColor(1, 1, 1, maxAlpha / peak))
+  if peak <= 0 then
+    return
+  end
+  local createColor = _G.CreateColor
+  if type(texture.SetGradient) == "function" and type(createColor) == "function" then
+    pcall(texture.SetGradient, texture, orientation, createColor(1, 1, 1, minAlpha / peak), createColor(1, 1, 1, maxAlpha / peak))
+    return
+  end
+  if type(texture.SetGradientAlpha) == "function" then
+    pcall(texture.SetGradientAlpha, texture, orientation, 1, 1, 1, minAlpha / peak, 1, 1, 1, maxAlpha / peak)
+  end
 end
 
 -- Left edge at the color's alpha, fading to transparent on the right.

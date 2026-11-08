@@ -42,7 +42,7 @@ function DataBroker.Register(options)
     -- happen by assigning ldb.text directly from refreshContacts.
     local dataobj = ldb:NewDataObject("WhisperMessenger", {
       type = "launcher",
-      icon = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.png",
+      icon = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga",
       label = "Whisper Messenger",
       text = "Whisper Messenger",
       OnClick = function(_)

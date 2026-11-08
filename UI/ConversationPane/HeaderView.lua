@@ -154,15 +154,20 @@ function HeaderView.Refresh(view, selectedContact, conversation, status)
     local vm = GroupHeaderViewModel.Build(selectedContact, conversation)
 
     if view.headerClassIcon then
-      local iconPath
+      local applied = false
       if vm and vm.isGroup then
-        iconPath = Theme.ChannelIcon and Theme.ChannelIcon(selectedContact.channel, selectedContact.conversationKey) or nil
-      else
-        iconPath = Theme.ClassIcon(selectedContact and selectedContact.classTag)
+        local groupIcon = Theme.ChannelIcon and Theme.ChannelIcon(selectedContact.channel, selectedContact.conversationKey) or nil
+        if groupIcon then
+          view.headerClassIcon:SetTexture(groupIcon)
+          if view.headerClassIcon.SetTexCoord then
+            view.headerClassIcon:SetTexCoord(0, 1, 0, 1)
+          end
+          applied = true
+        end
+      elseif Theme.ApplyClassIcon then
+        applied = Theme.ApplyClassIcon(view.headerClassIcon, selectedContact and selectedContact.classTag)
       end
-      if iconPath then
-        view.headerClassIcon:SetTexture(iconPath)
-      else
+      if not applied then
         view.headerClassIcon:SetTexture(Theme.TEXTURES.bnet_icon)
       end
     end

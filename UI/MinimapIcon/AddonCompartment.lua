@@ -13,7 +13,7 @@ local UnreadSummary = ns.UnreadSummary or require("WhisperMessenger.UI.Shared.Un
 local AddonCompartment = {}
 
 local TITLE = "Whisper Messenger"
-local ICON_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.png"
+local ICON_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga"
 local ANCHOR = "ANCHOR_LEFT"
 
 --- Adds the entry through AddonCompartmentFrame:RegisterAddon.

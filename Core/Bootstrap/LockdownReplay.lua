@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local EventBridge = ns.BootstrapEventBridge or require("WhisperMessenger.Core.Bootstrap.EventBridge")
 local BNetResolver = ns.BNetResolver or require("WhisperMessenger.Transport.BNetResolver")
 local AlertPolicy = ns.AlertPolicy or require("WhisperMessenger.Model.AlertPolicy")
@@ -243,7 +245,7 @@ function LockdownReplay.Kick(runtime)
   if state.ticker or type(timer) ~= "table" or type(timer.NewTicker) ~= "function" then
     return
   end
-  state.ticker = timer.NewTicker(LockdownReplay.TICK_SECONDS, function()
+  state.ticker = WrathTimer.TickerOn(timer, LockdownReplay.TICK_SECONDS, function()
     LockdownReplay.Tick(runtime)
   end)
 end

@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local Identity = ns.Identity or require("WhisperMessenger.Model.Identity")
 local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 local TextLimits = ns.TextLimits or require("WhisperMessenger.Util.TextLimits")
@@ -42,7 +44,7 @@ local function focusComposerInput(window, timer)
   -- focus away between this synchronous SetFocus and the first rendered
   -- frame. Reissuing once the layout settles keeps the input focused.
   if type(timer) == "table" and type(timer.After) == "function" then
-    timer.After(0, function()
+    WrathTimer.AfterOn(timer, 0, function()
       if input and input.SetFocus then
         input:SetFocus()
       end

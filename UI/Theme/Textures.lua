@@ -3,35 +3,37 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local FlavorCompat = ns.FlavorCompat or require("WhisperMessenger.Core.FlavorCompat")
+
 local Textures = {
   class_icon_prefix = "Interface\\ICONS\\ClassIcon_",
   faction_alliance = "Interface\\ICONS\\PVPCurrency-Honor-Alliance",
   faction_horde = "Interface\\ICONS\\PVPCurrency-Honor-Horde",
   bnet_icon = "Interface\\FriendsFrame\\UI-Toast-ChatInviteIcon",
-  addon_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.png",
+  addon_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga",
   -- Pin glyphs (bundled, white on transparent; tinted at runtime).
-  pin_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\pin.png",
-  unpin_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\unpin.png",
-  pinned_marker = "Interface\\AddOns\\WhisperMessenger\\Media\\pinned.png",
-  trash_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\remove.png",
+  pin_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\pin.tga",
+  unpin_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\unpin.tga",
+  pinned_marker = "Interface\\AddOns\\WhisperMessenger\\Media\\pinned.tga",
+  trash_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\remove.tga",
   -- Title-bar line icons (white on transparent; tinted at runtime).
-  title_close_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\close.png",
-  title_settings_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\settings.png",
-  title_back_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\back.png",
-  title_new_whisper_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\new_whisper.png",
-  title_whats_new_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\whats_new.png",
-  title_mark_read_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\mark_read.png",
-  quick_reply_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\quick_reply.png",
-  muted_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\muted.png",
+  title_close_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\close.tga",
+  title_settings_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\settings.tga",
+  title_back_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\back.tga",
+  title_new_whisper_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\new_whisper.tga",
+  title_whats_new_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\whats_new.tga",
+  title_mark_read_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\mark_read.tga",
+  quick_reply_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\quick_reply.tga",
+  muted_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\muted.tga",
   -- Settings-nav page icons (white on transparent; tinted like the label).
-  nav_general_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_general.png",
-  nav_appearance_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_appearance.png",
-  nav_behavior_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_behavior.png",
-  nav_whispers_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_whispers.png",
-  nav_chats_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_chats.png",
-  nav_filters_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_filters.png",
-  nav_notifications_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_notifications.png",
-  nav_icons_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_icons.png",
+  nav_general_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_general.tga",
+  nav_appearance_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_appearance.tga",
+  nav_behavior_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_behavior.tga",
+  nav_whispers_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_whispers.tga",
+  nav_chats_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_chats.tga",
+  nav_filters_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_filters.tga",
+  nav_notifications_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_notifications.tga",
+  nav_icons_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\nav_icons.tga",
 }
 
 -- Class tokens with a matching ClassIcon_* texture. Unknown tags must
@@ -53,12 +55,68 @@ local KNOWN_CLASS_TAGS = {
   EVOKER = true,
 }
 
---- Map classTag to atlas icon path
-local function ClassIcon(classTag)
-  if not classTag or not KNOWN_CLASS_TAGS[classTag] then
+local WRATH_CLASS_ICON_SHEET = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes"
+
+local CLASS_ID_TAGS = {
+  [1] = "WARRIOR",
+  [2] = "PALADIN",
+  [3] = "HUNTER",
+  [4] = "ROGUE",
+  [5] = "PRIEST",
+  [6] = "DEATHKNIGHT",
+  [7] = "SHAMAN",
+  [8] = "MAGE",
+  [9] = "WARLOCK",
+  [11] = "DRUID",
+}
+
+local function NormalizeClassTag(value)
+  if type(value) == "number" then
+    return CLASS_ID_TAGS[value]
+  end
+  if type(value) ~= "string" or value == "" then
     return nil
   end
-  return Textures.class_icon_prefix .. classTag
+  local tag = string.upper((string.gsub(value, "[%s%-]", "")))
+  if KNOWN_CLASS_TAGS[tag] then
+    return tag
+  end
+  return nil
+end
+
+local function ClassIcon(classTag)
+  local tag = NormalizeClassTag(classTag)
+  if tag == nil then
+    return nil
+  end
+  if FlavorCompat.isWrath335 then
+    return nil
+  end
+  return Textures.class_icon_prefix .. tag
+end
+
+local function ApplyClassIcon(texture, classTag)
+  local tag = NormalizeClassTag(classTag)
+  if texture == nil or tag == nil then
+    return false
+  end
+  local coords = FlavorCompat.isWrath335 and _G.CLASS_ICON_TCOORDS and _G.CLASS_ICON_TCOORDS[tag]
+  if coords and type(texture.SetTexture) == "function" then
+    texture:SetTexture(WRATH_CLASS_ICON_SHEET)
+    if type(texture.SetTexCoord) == "function" then
+      texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
+    end
+    return true
+  end
+  local path = ClassIcon(tag)
+  if path == nil or type(texture.SetTexture) ~= "function" then
+    return false
+  end
+  texture:SetTexture(path)
+  if type(texture.SetTexCoord) == "function" then
+    texture:SetTexCoord(0, 1, 0, 1)
+  end
+  return true
 end
 
 --- Map factionName to atlas icon path
@@ -114,6 +172,8 @@ end
 local ThemeTextures = {
   TEXTURES = Textures,
   ClassIcon = ClassIcon,
+  ApplyClassIcon = ApplyClassIcon,
+  NormalizeClassTag = NormalizeClassTag,
   FactionIcon = FactionIcon,
   ChannelIcon = ChannelIcon,
 }

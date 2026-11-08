@@ -94,7 +94,7 @@ Rules:
 
 ## Adding a File
 
-- **Add it to `WhisperMessenger.toc`, after everything it depends on.** TOC order is load order. WoW: Forever has a global `require` that throws "Invalid import", so a module's `ns.X or require(...)` fallback must never be reached in game. `tests/integration/test_toc_load_order.lua` guards this.
+- **Add it to `WhisperMessenger.toc`, after everything it depends on.** TOC entries use backslashes (`Core\Loader.lua`): the 3.3.5a client silently skips a path written with forward slashes, so the addon would load only its root-level files. TOC order is load order. WoW: Forever has a global `require` that throws "Invalid import", so a module's `ns.X or require(...)` fallback must never be reached in game. `tests/integration/test_toc_load_order.lua` guards this.
 - **Folder modules** (`UI/Theme/`, `UI/Composer/`, …) have an `init.lua` that only exists so tests can `require` the folder. It is not in the TOC; add any new one to the `ignore:` list in `.pkgmeta`.
 - **New top-level files that aren't addon code** (docs, configs) go in `.pkgmeta` `ignore:` so they don't ship in the zip.
 

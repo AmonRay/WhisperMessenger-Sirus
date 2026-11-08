@@ -14,10 +14,10 @@ local applyVertexColor = UIHelpers.applyVertexColor
 -- "square" (square frame) and "none".
 local IconBorder = {}
 
-IconBorder.RING_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\ring_gold.png"
-IconBorder.SQUARE_FRAME_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\frame_gold_square.png"
+IconBorder.RING_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\ring_gold.tga"
+IconBorder.SQUARE_FRAME_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\frame_gold_square.tga"
 -- The same band with rounded outer corners, for a square under SquareLook's corner mask.
-IconBorder.SQUARE_FRAME_ROUNDED_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\frame_gold_square_rounded.png"
+IconBorder.SQUARE_FRAME_ROUNDED_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\frame_gold_square_rounded.tga"
 IconBorder.RIM_SCALE = 1.15
 IconBorder.FULL_RING_GLYPH_RATIO = 0.7
 -- The ring's hole edge is 0.78 of its radius; the face edge sits mid-band.

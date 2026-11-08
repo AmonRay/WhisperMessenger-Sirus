@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 -- ReplyToLast: taint-safe /r replacement.
 -- Routes through the messenger instead of Blizzard's chatEditLastTell.
 --
@@ -31,8 +33,8 @@ local function afterReplyKeySettles(fn)
     fn()
     return
   end
-  timer.After(0, function()
-    timer.After(REPLY_KEY_SETTLE_SECONDS, fn)
+  WrathTimer.AfterOn(timer, 0, function()
+    WrathTimer.AfterOn(timer, REPLY_KEY_SETTLE_SECONDS, fn)
   end)
 end
 
@@ -64,7 +66,7 @@ function ReplyToLast.Create(deps)
 
     local timer = _G.C_Timer
     if type(timer) == "table" and type(timer.After) == "function" then
-      timer.After(0, function()
+      WrathTimer.AfterOn(timer, 0, function()
         if input and input.SetFocus then
           input:SetFocus()
         end

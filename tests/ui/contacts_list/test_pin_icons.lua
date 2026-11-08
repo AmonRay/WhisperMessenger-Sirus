@@ -37,9 +37,9 @@ end
 
 return function()
   local previousPreset = Theme.GetPreset()
-  assert(Theme.TEXTURES.pin_icon == "Interface\\AddOns\\WhisperMessenger\\Media\\pin.png", "pin icon path in Theme.TEXTURES")
-  assert(Theme.TEXTURES.unpin_icon == "Interface\\AddOns\\WhisperMessenger\\Media\\unpin.png", "unpin icon path in Theme.TEXTURES")
-  assert(Theme.TEXTURES.pinned_marker == "Interface\\AddOns\\WhisperMessenger\\Media\\pinned.png", "pinned marker path in Theme.TEXTURES")
+  assert(Theme.TEXTURES.pin_icon == "Interface\\AddOns\\WhisperMessenger\\Media\\pin.tga", "pin icon path in Theme.TEXTURES")
+  assert(Theme.TEXTURES.unpin_icon == "Interface\\AddOns\\WhisperMessenger\\Media\\unpin.tga", "unpin icon path in Theme.TEXTURES")
+  assert(Theme.TEXTURES.pinned_marker == "Interface\\AddOns\\WhisperMessenger\\Media\\pinned.tga", "pinned marker path in Theme.TEXTURES")
 
   -- test_modern_pinned_row_shows_marker_not_chevron
   Theme.SetPreset("wow_default")

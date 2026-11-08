@@ -12,6 +12,8 @@ end
 -- The faded region therefore carries its colour at full alpha (paintColor /
 -- paintVertex) and the fade itself runs 0 <-> peak, where peak is the
 -- colour's intended alpha. Correct whether or not the channels are shared.
+local Base = ns.UIHelpersBase or require("WhisperMessenger.UI.Helpers.Base")
+
 local HoverFade = {}
 
 HoverFade.DURATION = 0.1
@@ -24,16 +26,23 @@ function HoverFade.Attach(region)
   if type(region.CreateAnimationGroup) == "function" then
     group = region:CreateAnimationGroup()
     anim = group:CreateAnimation("Alpha")
-    anim:SetDuration(HoverFade.DURATION)
-    if group.SetToFinalAlpha then
-      group:SetToFinalAlpha(true)
-    end
-    group:SetScript("OnFinished", function()
-      region:SetAlpha(visible and peak or 0)
-      if not visible then
-        region:Hide()
+    local hasFromTo = type(anim) == "table" and type(anim.SetFromAlpha) == "function" and type(anim.SetToAlpha) == "function"
+    if hasFromTo or (type(anim) == "table" and type(anim.SetChange) == "function") then
+      anim:SetDuration(HoverFade.DURATION)
+      if group.SetToFinalAlpha then
+        group:SetToFinalAlpha(true)
       end
-    end)
+      if type(group.SetScript) == "function" then
+        group:SetScript("OnFinished", function()
+          region:SetAlpha(visible and peak or 0)
+          if not visible then
+            region:Hide()
+          end
+        end)
+      end
+    else
+      group, anim = nil, nil
+    end
   end
 
   local controller = {}
@@ -46,10 +55,10 @@ function HoverFade.Attach(region)
   -- the alpha back: the settled peak when fully shown, otherwise whatever it
   -- was (mid-fade or hidden). Without this, a repaint during a fade (hover
   -- handlers repaint before set()) left the next fade starting at 1.
-  local function repaint(write, color)
+  local function repaint(paint, color)
     local alpha = region:GetAlpha()
     peak = color[4] or 1
-    write(region, color[1], color[2], color[3], 1)
+    paint(color[1], color[2], color[3], 1)
     if visible and region:IsShown() and not isAnimating() then
       alpha = peak
     end
@@ -57,11 +66,17 @@ function HoverFade.Attach(region)
   end
 
   function controller.paintColor(color)
-    repaint(region.SetColorTexture, color)
+    repaint(function(r, g, b, a)
+      Base.paintSolid(region, r, g, b, a)
+    end, color)
   end
 
   function controller.paintVertex(color)
-    repaint(region.SetVertexColor, color)
+    repaint(function(r, g, b, a)
+      if region.SetVertexColor then
+        region:SetVertexColor(r, g, b, a)
+      end
+    end, color)
   end
 
   function controller.set(shown)
@@ -82,11 +97,16 @@ function HoverFade.Attach(region)
     end
 
     local from = region:IsShown() and region:GetAlpha() or 0
+    local target = shown and peak or 0
     group:Stop()
     region:SetAlpha(from)
     region:Show()
-    anim:SetFromAlpha(from)
-    anim:SetToAlpha(shown and peak or 0)
+    if type(anim.SetFromAlpha) == "function" then
+      anim:SetFromAlpha(from)
+      anim:SetToAlpha(target)
+    else
+      anim:SetChange(target - from)
+    end
     group:Play()
   end
 

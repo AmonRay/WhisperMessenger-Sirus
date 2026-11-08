@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
 local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
@@ -76,7 +78,7 @@ local function adjustActionHoverCount(row, delta)
   -- Row OnEnter can fire first, preventing bg flash and re-entrant events.
   local CTimer = _G.C_Timer
   if CTimer and CTimer.After then
-    CTimer.After(0, function()
+    WrathTimer.AfterOn(CTimer, 0, function()
       if not isPointerInsideRow(row) and effectiveActionHoverCount(row) == 0 then
         row._wmRowHover = false
         restoreRowVisualState(row)

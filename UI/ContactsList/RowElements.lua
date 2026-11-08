@@ -90,10 +90,7 @@ function RowElements.createClassIcon(factory, row, item)
   row.classIcon = icon.texture
   row.classIconFrame:SetPoint("LEFT", row, "LEFT", Theme.LAYOUT.CONTACT_PADDING, 0)
 
-  local iconPath = Theme.ClassIcon(item.classTag)
-  if iconPath then
-    row.classIcon:SetTexture(iconPath)
-  else
+  if not (Theme.ApplyClassIcon and Theme.ApplyClassIcon(row.classIcon, item.classTag)) then
     row.classIcon:SetTexture(Theme.TEXTURES.bnet_icon)
   end
 

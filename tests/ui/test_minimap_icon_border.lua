@@ -5,7 +5,7 @@ local Theme = require("WhisperMessenger.UI.Theme")
 local MinimapIcon = require("WhisperMessenger.UI.MinimapIcon.MinimapIcon")
 local IconBorder = require("WhisperMessenger.UI.ToggleIcon.IconBorder")
 
-local RING_PATH = "Interface\\AddOns\\WhisperMessenger\\Media\\ring_gold.png"
+local RING_PATH = "Interface\\AddOns\\WhisperMessenger\\Media\\ring_gold.tga"
 local WHITE = { 1, 1, 1, 1 }
 
 local function createIcon(options)

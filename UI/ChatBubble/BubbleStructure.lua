@@ -62,10 +62,10 @@ function BubbleStructure.createStructure(frame, factory)
     frame:SetHyperlinksEnabled(true)
   end
   if frame.SetScript then
-    frame:SetScript("OnHyperlinkEnter", function(self, link, _text)
+    Hyperlinks.SetScriptIfSupported(frame, "OnHyperlinkEnter", function(self, link, _text)
       Hyperlinks.HandleEnter(self, link)
     end)
-    frame:SetScript("OnHyperlinkLeave", function(self)
+    Hyperlinks.SetScriptIfSupported(frame, "OnHyperlinkLeave", function(self)
       Hyperlinks.HandleLeave()
     end)
     Hyperlinks.BindClick(frame)

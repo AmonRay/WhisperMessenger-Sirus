@@ -6,6 +6,11 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+- Fixed: On the original Wrath client (3.3.5a) the addon could fail to start because the client only opened its entry file - it now loads all of its files.
+- Fixed: Whisper Messenger no longer interferes with windows other addons create (for example the copy window in Details).
+- Fixed: On the original Wrath client (3.3.5a) the addon no longer stops with an error when the game will not let it attach link hover and click handling to a window.
+- Fixed: On the original Wrath client (3.3.5a) delayed actions such as re-checking a settings page no longer raise an error.
+- Whisper Messenger now runs on the original Wrath of the Lich King client (3.3.5a) used by servers such as Sirus: the messenger window, contact list, whisper history, settings and floating button all load and work there, and every bundled icon was converted to the picture format that client can show.
 - Behavior settings now list every addon that uses Whisper Messenger under "Allow addon integration", each with its own checkbox. Untick one and it stops adding pages, previews and notes right away, with no reload. Addons that aren't loaded this session are greyed out and can be removed from the list with Forget.
 
 ## [2.1.5] - 2026-11-08

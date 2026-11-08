@@ -59,6 +59,7 @@ Theme.FONTS = Fonts
 Theme.LAYOUT = Layout
 Theme.TEXTURES = ThemeTextures.TEXTURES
 Theme.ClassIcon = ThemeTextures.ClassIcon
+Theme.ApplyClassIcon = ThemeTextures.ApplyClassIcon
 Theme.FactionIcon = ThemeTextures.FactionIcon
 Theme.ChannelIcon = ThemeTextures.ChannelIcon
 

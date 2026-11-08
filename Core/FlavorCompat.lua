@@ -21,6 +21,8 @@ if type(_G["GetBuildInfo"]) == "function" then
 end
 FlavorCompat.isForever = type(tocVersion) == "number" and tocVersion >= FOREVER_TOC_MIN and tocVersion < FOREVER_TOC_MAX
 
+FlavorCompat.isWrath335 = projectId == nil and type(tocVersion) == "number" and tocVersion <= 30300
+
 -- Region id of the current game client; nil without the API.
 function FlavorCompat.CurrentRegion()
   local getCurrentRegion = _G["GetCurrentRegion"]

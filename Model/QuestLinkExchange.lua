@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 -- Side-channel for quest links over character whispers.
 --
 -- Background: WoW Classic's character-whisper protocol strips both the
@@ -141,7 +143,7 @@ local function scheduleCleanup(state, recordedAt)
   end
 
   state.questLinkCleanupScheduled = true
-  timer.After(INBOX_TTL_SECONDS + 1, function()
+  WrathTimer.AfterOn(timer, INBOX_TTL_SECONDS + 1, function()
     state.questLinkCleanupScheduled = nil
     local now = cleanupNow(state, recordedAt + INBOX_TTL_SECONDS + 1)
     purgeExpiredInbox(state, now)

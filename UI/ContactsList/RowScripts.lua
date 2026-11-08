@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local ContextMenu = ns.ContactsListContextMenu or require("WhisperMessenger.UI.ContactsList.ContextMenu")
 local HoverPointer = ns.ContactsListHoverPointer or require("WhisperMessenger.UI.ContactsList.HoverPointer")
@@ -53,7 +55,7 @@ end
 local function deferHideActions(row)
   local CTimer = _G.C_Timer
   if CTimer and CTimer.After then
-    CTimer.After(0, function()
+    WrathTimer.AfterOn(CTimer, 0, function()
       local AB = getActionButtons()
       local pointerInside = (row._wmIsPointerInside and row._wmIsPointerInside()) or isPointerInsideRow(row)
       if not pointerInside and effectiveActionHoverCount(row) == 0 then

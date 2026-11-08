@@ -1,253 +1,53 @@
-<p align="center">
-  <a href="https://mod.curseforge.com/modding-contests/wow_midnight-addon_contest/">
-    <img src=".github/assets/contest.png" alt="Winner of The Addon Trials 2026, a CurseForge WoW addon contest">
-  </a>
-</p>
+# Whisper Messenger — Sirus 3.3.5a
 
-<h1 align="center">Whisper Messenger</h1>
+**Whisper Messenger** — мессенджер для шёпота в World of Warcraft: каждая переписка в одном окне, с историей, статусом в сети и счётчиками непрочитанного — как привычный мессенджер, только внутри игры.
 
-<p align="center">
-  <a href="https://github.com/F0rty-Tw0/WhisperMessenger/releases/latest"><img src="https://img.shields.io/github/v/release/F0rty-Tw0/WhisperMessenger" alt="Latest Release"></a>
-  <a href="https://github.com/F0rty-Tw0/WhisperMessenger/releases/latest"><img src="https://img.shields.io/github/release-date/F0rty-Tw0/WhisperMessenger" alt="Release Date"></a>
-  <a href="https://github.com/F0rty-Tw0/WhisperMessenger/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/F0rty-Tw0/WhisperMessenger/ci.yml?label=CI" alt="CI"></a>
-</p>
+> [!IMPORTANT]
+>
+> ### Только Sirus + 3.3.5a
+>
+> Эта версия предназначена **ИСКЛЮЧИТЕЛЬНО для клиента Sirus 3.3.5a** с интерфейсом **DF UI** (патч `patch-ruRU-i`, `Interface` **30300**).
+>
+> Розничный клиент (Retail), Classic всех версий, WoW: Forever и другие приватные серверы **не поддерживаются**.
+>
+> Обычный клиент Sirus **без DF UI** не проверялся и отдельно не поддерживается.
 
-[![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/f0rty_tw0)
+### Установка
 
-<p align="center">
-  <b>Never lose a whisper again.</b><br>
-  Every conversation lands in one messenger window with history, online status and unread badges, like the messenger you already use, inside World of Warcraft.
-</p>
+Скопируйте папку `WhisperMessenger` в `Interface/AddOns/` клиента Sirus и перезагрузите интерфейс командой `/reload`.
 
-<p align="center">
-  🏆 5th place in <a href="https://mod.curseforge.com/modding-contests/wow_midnight-addon_contest/">The Addon Trials</a>, CurseForge's 2026 WoW addon contest.
-</p>
+Папка должна называться ровно `WhisperMessenger` — от этого зависят пути к иконкам и звукам внутри аддона.
 
-![Whisper Messenger in the Native WoW HUD Modern style, showing a whisper over 700 characters long as one message](.github/assets/hud-modern-long-whisper.png)
+### Возможности
 
-## Why players install it
+- **Шёпот больше не тонет в чате.** У каждого собеседника своя переписка, счётчик непрочитанного и история, которая сохраняется между заходами.
+- **Длинные сообщения.** Шёпот до ~800 символов вместо 255 уходит частями и показывается одним сообщением, если у собеседника тоже стоит Whisper Messenger.
+- **Статус до отправки.** Класс, фракция, зона и статус Battle.net видны прямо в списке контактов.
+- **Battle.net и персонажи в одном списке.** Не нужно угадывать, в какую вкладку писал друг.
+- **Ответы, быстрые фразы, черновики и реакции** на сообщения.
+- **Защита от спама.** Блокировка игроков и готовые фильтры для Trade, General и других каналов.
+- **Оформление под клиент.** Тема Native WoW HUD повторяет окно и вкладки самой игры, есть ещё пять цветовых тем.
 
-- **Whispers stop drowning in raid, trade and guild spam.** Each person gets their own conversation with an unread badge, so you always know who is waiting on you.
-- **Say it in one message.** Whispers can run to about 800 characters instead of the game's 255.
-- **Trade and General without the spam.** Follow world channels in their own tab, with ready-made filters for gold sellers, boosting ads and link spam.
-- **Looks like it shipped with the game.** The Native WoW HUD style uses Blizzard's own window frame and tabs.
-- **Yesterday's conversation is still there.** History survives logout and is shared across your characters.
-- **See who is online and where before you whisper.** Class, faction, zone and Battle.net status sit right in the contact list.
-- **Battle.net and character whispers, side by side.** No more guessing which tab a friend wrote in.
+### Настройка
 
-## "Can't I just make a Whispers chat tab?"
+Открыть или закрыть окно мессенджера — **CTRL-O** (меняется в меню игры «Назначение клавиш»).
 
-You can, and it helps. A tab still mixes everyone into one scrolling stream, forgets everything on logout, has no unread count per person and no online status. Whisper Messenger gives every person their own thread with all of that.
-
-## Features
-
-### Messenger-Style Conversations
-
-Chat bubbles with timestamps, date separators and sender labels. Right-click any message to reply, copy it or add a reaction. An emoji picker sits next to the message box.
-
-- **Long whispers** run to about 800 characters. They go out in up to four parts and show as one message when your friend also uses Whisper Messenger. Group chats keep the game's normal length.
-- **Reply** quotes the original line above your message.
-- **Quick replies** drop in a saved line like "On my way" (up to 10, edit them under Options > Behavior).
-- **Drafts** stay with each chat, even after a reload.
-- **Queued messages** wait safely when whispers are paused, and nothing is sent until you click.
-- **Filtered messages** that the game flags as inappropriate stay hidden until you click to reveal them.
-
-<p align="center">
-  <img src=".github/assets/chat-reactions-seen.png" width="80%" alt="Whisper Messenger window with replies, reactions and a Seen receipt">
-</p>
-
-<p align="center">
-  <img src=".github/assets/chat-reply-quote.png" width="49%" alt="A reply quoting an earlier message">
-  <img src=".github/assets/message-menu-reactions.png" width="49%" alt="Right-click menu with reactions, Reply and Copy text">
-</p>
-
-<p align="center">
-  <img src=".github/assets/quick-replies.png" width="60%" alt="Quick replies menu next to the message box">
-</p>
-
-<p align="center">
-  <img src=".github/assets/censored-message.png" width="80%" alt="A filtered message hidden behind Show Message, with click to reveal">
-</p>
-
-### Contact List
-
-Online status dots, unread badges, last-message previews, and the zone or dungeon a friend is in. Pin and drag contacts to reorder them. Search across names, nicknames, notes and message history.
-
-Right-click a contact to **mute** them, set a **nickname**, add a private **note**, or get told when they come **online** or **change zone**.
-
-<p align="center">
-  <img src=".github/assets/contact-menu.png" width="60%" alt="Contact right-click menu with Mute, Set nickname, Edit note and Notify when online">
-</p>
-
-### Whispers, Groups, Channels and Requests
-
-- **Whispers** holds your private conversations.
-- **Groups** collects party, raid, instance and guild chat, with reactions and @mention highlights.
-- **Channels** (optional) turns Trade, General, Local Defense, LFG and your custom channels into chats of their own. Pick them under Options > Chats.
-- **Requests** (optional) holds whispers from strangers until you accept or delete them. Turn it on under Options > Behavior.
-
-<p align="center">
-  <img src=".github/assets/group-raid-chat.png" width="49%" alt="Raid chat in the Groups tab with a New messages line">
-  <img src=".github/assets/requests-tab.png" width="49%" alt="Requests tab with Accept and Delete buttons for a stranger's whisper">
-</p>
-
-### Global Channels
-
-Trade, General, Local Defense, World Defense, LFG and Trade (Services) each get their own chat and icon in the Channels tab. A busy channel only counts as unread when someone says your name, so Trade never buries a friend's whisper.
-
-<p align="center">
-  <img src=".github/assets/channels-trade.png" width="80%" alt="Trade channel open in the Channels tab, next to General and Trade (Services)">
-</p>
-
-### Spam Protection
-
-- **Block players** for a day, a week or forever, with an optional note. Their whispers, group and channel messages disappear, in the messenger and in the game's chat.
-- **Keyword rules** hide matching lines. Ready-made rules cover "Anal" link spam, Thunderfury links, Mythic+ and raid sellers, profession sellers, power-leveling sellers, guild and community recruitment, and WTS / WTB / LFW.
-- Ready-made rules only touch channels such as Trade, never your guild, party or raid, and never whispers.
-- Nothing is hidden from the game's chat in Mythic+, boss fights or PvP.
-
-<p align="center">
-  <img src=".github/assets/settings-filters.png" width="60%" alt="Filters settings: how filters work, blocked players and ready-made keyword rules">
-</p>
-
-### Battle.net Integration
-
-Character whispers and Battle.net friend whispers live in one list. Contact details stay in sync with your friends list in real time.
-
-### Friends Who Also Use It
-
-When a friend also runs Whisper Messenger you get typing indicators, "Seen" receipts and reactions attached to the original message. Both can be switched off in Behavior settings. Players without the addon still receive a readable plain-text fallback.
-
-The chat header shows **(Uses WM)** for friends who have it, and an **(Invite to WM)** link for those who don't.
-
-<p align="center">
-  <img src=".github/assets/typing-indicator.png" width="40%" alt="Contact list showing typing… under a friend's name">
-  <img src=".github/assets/seen-receipt.png" width="58%" alt="A Seen receipt above a sent message">
-</p>
-
-### Themes
-
-A modern, clean look with five color themes: **Midnight**, **Shadowlands**, **Draenor**, **Pandaria** and **Azeroth**. Themes apply instantly, no reload.
-
-Prefer the game's own style? Set **Native WoW HUD** under Options > Appearance to **Modern** for the current Blizzard window with its round portrait and bottom tabs, or **Classic** for the older frame.
-
-<p align="center">
-  <img src=".github/assets/hud-modern-guild-chat.png" width="70%" alt="Guild chat in the Native WoW HUD Modern style with the narrow contact list and Whispers, Groups and Channels tabs">
-</p>
-
-### Fonts and Scale
-
-Pick the default font or any font from SharedMedia addons like ElvUI. Resize the whole window from 75% to 150%.
-
-### Notifications
-
-Choose a notification sound from one dropdown: 16 built-in game sounds (Whisper, Ping, Chime, Bell, Raid Warning and more), plus any sound shared by SharedMedia addons like ElvUI. It plays even when in-game sound effects are muted.
-
-The floating button shows an unread badge and a short preview of the newest message.
-
-<p align="center">
-  <img src=".github/assets/widget-preview.png" alt="Floating button with an unread badge and a message preview">
-</p>
-
-### Auto-Open Window
-
-Opens the messenger when you receive a whisper, pick "Whisper" on a player, or click a name. Configurable in Behavior settings, and never during combat.
-
-### Linking
-
-Shift-click items, quests, achievements, spells and professions to link them straight into your message.
-
-### Settings
-
-Pages for **General**, **Appearance**, **Behavior**, **Whispers**, **Chats**, **Filters**, **Notifications**, **Icons** and **What's New**. Includes history limits and retention, privacy options, 12 interface languages, a profanity filter toggle, a hide-from-default-chat option and auto-focus control.
-
-<p align="center">
-  <img src=".github/assets/settings-general.png" width="49%" alt="General settings: history limits, privacy, time format and interface language">
-  <img src=".github/assets/settings-appearance.png" width="49%" alt="Appearance settings: themes, scale, fonts and bubble colors">
-</p>
-
-<p align="center">
-  <img src=".github/assets/settings-behavior.png" width="49%" alt="Behavior settings: auto-open, combat, requests, typing status and read receipts">
-  <img src=".github/assets/settings-icons.png" width="49%" alt="Icons settings: size, badge, widget preview and icon mode">
-</p>
-
-## Good to know
-
-Blizzard blocks all addon whisper communication during Mythic+ dungeons, rated Battlegrounds and raid boss encounters. This is a game-level restriction, not a limitation of Whisper Messenger. The addon detects these situations, steps aside so whispers fall through to the default chat, and resumes when you're done.
-
-## Compatibility
-
-Whisper Messenger works on **all WoW flavors**:
-
-| Flavor                    | Status    |
-| ------------------------- | --------- |
-| Retail (Mainline)         | Supported |
-| Classic Era               | Supported |
-| Season of Discovery       | Supported |
-| TBC Classic Anniversary   | Supported |
-| Cataclysm Classic         | Supported |
-| Mists of Pandaria Classic | Supported |
-| WoW: Forever              | Beta      |
-
-A single install covers every client. WoW loads the correct version automatically.
-
-## Download
-
-### CurseForge (Recommended)
-
-Install via the [CurseForge App](https://www.curseforge.com/wow/addons/whisper-messenger) for automatic updates.
-
-### Wago
-
-Also available on [Wago Addons](https://addons.wago.io/addons/whispermessenger).
-
-### GitHub Releases
-
-Download the latest ZIP from [GitHub Releases](https://github.com/F0rty-Tw0/WhisperMessenger/releases/latest) and extract it into your `Interface/AddOns/` folder.
-
-## Configuration
-
-Open or close the messenger with **CTRL-O** (change it in the game's Key Bindings menu).
-
-Open settings with the gear icon in the messenger window, or type:
+Настройки — шестерёнка в окне мессенджера или команда:
 
 ```
 /wmsg
 ```
 
-## Contributing
+Полная история изменений: [CHANGELOG.md](CHANGELOG.md).
 
-Pull requests are welcome! The project uses Lua 5.1 with StyLua for formatting and Luacheck for static analysis.
+### Совместимость
 
-### Lint
+| Клиент | Статус |
+| --- | --- |
+| Sirus 3.3.5a + DF UI (`Interface` 30300) | Поддерживается |
+| Sirus 3.3.5a без DF UI | Не проверялся |
+| Retail, Classic, WoW: Forever, другие приватные серверы | Не поддерживается |
 
-```bash
-bash scripts/lint.sh          # check
-bash scripts/lint.sh --fix    # auto-format + check
-```
+### Благодарности
 
-#### Windows local setup
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/setup-lint-tools.ps1
-bash scripts/lint.sh
-```
-
-### Tests
-
-```bash
-# Run a single test file
-lua tests/run.lua tests/path/to/test_file.lua
-
-# No Lua on Windows? Use the Python + lupa harness
-python scripts/run_test.py tests/path/to/test_file.lua
-
-# Run all tests
-find tests -type f -name 'test_*.lua' | sort | while read -r f; do lua tests/run.lua "$f"; done
-```
-
-Both lint and tests must pass before merging.
-
-## License
-
-All rights reserved. See the [LICENSE](LICENSE) file for details.
+Порт оригинального [Whisper Messenger](https://github.com/F0rty-Tw0/WhisperMessenger) для клиента Sirus. Все права на оригинальный аддон принадлежат его авторам.

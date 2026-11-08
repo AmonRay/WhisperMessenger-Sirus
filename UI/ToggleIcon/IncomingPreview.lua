@@ -151,10 +151,7 @@ function IncomingPreview.Create(factory, frame, options)
     previewMessageLabel:SetText(ReactionAssets.FormatTextForDisplay(messageText))
     detailRow.render(detail)
 
-    local classIconPath = theme.ClassIcon(classTag)
-    if classIconPath then
-      previewClassIcon:SetTexture(classIconPath)
-    else
+    if not (theme.ApplyClassIcon and theme.ApplyClassIcon(previewClassIcon, classTag)) then
       previewClassIcon:SetTexture(theme.TEXTURES.bnet_icon)
     end
     previewClassIconFrame:Show()

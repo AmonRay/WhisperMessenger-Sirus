@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
 local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local sizeValue = UIHelpers.sizeValue
@@ -178,7 +180,7 @@ local function scheduleSnapToEndRetry(view, Navigation, targetOffset, generation
   end
 
   view._snapToEndRetryPendingGeneration = generation
-  timer.After(0, function()
+  WrathTimer.AfterOn(timer, 0, function()
     if view._snapToEndRetryPendingGeneration == generation then
       view._snapToEndRetryPendingGeneration = nil
     end

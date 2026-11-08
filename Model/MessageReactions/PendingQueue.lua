@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local Protocol = ns.MessageReactionProtocol or require("WhisperMessenger.Model.MessageReactionProtocol")
 
 -- Per-sender queues of reaction side messages waiting for their partner
@@ -191,7 +193,7 @@ local function scheduleCleanup(state, deadline)
   state.messageReactionCleanupDueAt = deadline
   local now = currentTime(state, deadline - TTL_SECONDS)
   local scheduling = true
-  timer.After(math.max(0, deadline - now), function()
+  WrathTimer.AfterOn(timer, math.max(0, deadline - now), function()
     if state.messageReactionCleanupDueAt ~= deadline then
       return
     end

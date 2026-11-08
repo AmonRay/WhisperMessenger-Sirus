@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local ContactSearch = ns.MessengerWindowContactSearch or require("WhisperMessenger.UI.MessengerWindow.MessengerWindow.ContactSearch")
 
 local ContactsSearchController = {}
@@ -87,7 +89,7 @@ function ContactsSearchController.Create(options)
       return
     end
     local scheduled
-    scheduled = timer.NewTimer(SEARCH_DEBOUNCE_SECONDS, function()
+    scheduled = WrathTimer.TimerOn(timer, SEARCH_DEBOUNCE_SECONDS, function()
       if pendingRefreshTimer ~= scheduled then
         return
       end

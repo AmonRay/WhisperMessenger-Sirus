@@ -5,7 +5,7 @@ local Hud = require("WhisperMessenger.UI.Theme.Hud")
 local Localization = require("WhisperMessenger.Locale.Localization")
 local ChromeBuilder = require("WhisperMessenger.UI.MessengerWindow.ChromeBuilder")
 
-local ADDON_ICON = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.png"
+local ADDON_ICON = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga"
 
 local function build(factory)
   factory = factory or FakeUI.NewFactory()

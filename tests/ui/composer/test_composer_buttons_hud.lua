@@ -6,7 +6,7 @@ local Composer = require("WhisperMessenger.UI.Composer")
 
 local ICON_GLOW = "Interface\\Buttons\\UI-Common-MouseHilight"
 local HOVER_CIRCLE = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
-local SEND_ICON = "Interface\\AddOns\\WhisperMessenger\\Media\\send.png"
+local SEND_ICON = "Interface\\AddOns\\WhisperMessenger\\Media\\send.tga"
 local CONTACT = { conversationKey = "me::WOW::a", displayName = "A", channel = "WOW" }
 
 local function create()

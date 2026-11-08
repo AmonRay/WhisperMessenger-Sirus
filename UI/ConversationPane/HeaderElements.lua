@@ -41,10 +41,7 @@ function HeaderElements.createClassIcon(factory, headerFrame, selectedContact)
   local classIcon = headerIcon.texture
   classIconFrame:SetPoint("LEFT", headerFrame, "LEFT", Theme.LAYOUT.TRANSCRIPT_LEFT_GUTTER, 0)
 
-  local iconPath = Theme.ClassIcon(selectedContact and selectedContact.classTag)
-  if iconPath then
-    classIcon:SetTexture(iconPath)
-  else
+  if not (Theme.ApplyClassIcon and Theme.ApplyClassIcon(classIcon, selectedContact and selectedContact.classTag)) then
     classIcon:SetTexture(Theme.TEXTURES.bnet_icon)
   end
 
@@ -160,7 +157,7 @@ function HeaderElements.applyDividerTheme(primary)
 end
 
 -- Empty-state layout (shown when no conversation is selected).
-local EMPTY_LOGO_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.png"
+local EMPTY_LOGO_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga"
 local EMPTY_WIDTH = 280
 local EMPTY_HEIGHT = 170
 local EMPTY_LOGO_SIZE = 48

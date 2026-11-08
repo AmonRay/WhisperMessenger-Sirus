@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local PanelBadge = ns.PanelBadge or require("WhisperMessenger.UI.Shared.PanelBadge")
 
 -- Keeps the panels other addons register before the window exists (it is
@@ -175,7 +177,7 @@ function PanelRegistry.New(options)
       return
     end
     pending = true
-    timer.After(0, notifyUnread)
+    WrathTimer.AfterOn(timer, 0, notifyUnread)
   end
 
   -- Runs on every icon refresh. The first call only records a baseline; after

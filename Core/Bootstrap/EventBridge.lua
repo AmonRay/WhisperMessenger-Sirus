@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local EventRouter = ns.EventRouter or require("WhisperMessenger.Core.EventRouter")
 local AlertPolicy = ns.AlertPolicy or require("WhisperMessenger.Model.AlertPolicy")
 local LivePresence = ns.LivePresence or require("WhisperMessenger.Model.LivePresence")
@@ -59,7 +61,7 @@ local function scheduleTypingExpiry(runtime, refreshWindow, conversationKey)
     local now = runtime.now and runtime.now() or 0
     local remaining = LivePresence.TypingRemaining(runtime, conversationKey, now)
     if remaining > 0 then
-      timer.After(remaining + TYPING_EXPIRY_GRACE, fire)
+      WrathTimer.AfterOn(timer, remaining + TYPING_EXPIRY_GRACE, fire)
     else
       runtime.typingExpiryPending[conversationKey] = nil
       if runtime.typingByConversation and runtime.typingByConversation[conversationKey] ~= nil then
@@ -69,7 +71,7 @@ local function scheduleTypingExpiry(runtime, refreshWindow, conversationKey)
     end
   end
   runtime.typingExpiryPending[conversationKey] = true
-  timer.After(LivePresence.TYPING_TTL + TYPING_EXPIRY_GRACE, fire)
+  WrathTimer.AfterOn(timer, LivePresence.TYPING_TTL + TYPING_EXPIRY_GRACE, fire)
 end
 
 local function applyIncomingEffects(runtime, result)

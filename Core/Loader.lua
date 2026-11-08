@@ -21,5 +21,6 @@ function Loader.LoadModule(name, key)
 end
 
 ns.Loader = Loader
+rawset(_G, "WhisperMessengerLoader", Loader)
 
 return Loader

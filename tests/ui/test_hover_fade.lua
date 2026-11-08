@@ -97,6 +97,53 @@ return function()
     assert(stub.created == 1, "no new animation groups per hover")
   end
 
+  -- test_fade_uses_set_change_on_wotlk_alpha_animations
+  do
+    local region = frame:CreateTexture(nil, "ARTWORK")
+    region:Hide()
+    local stub = { plays = 0 }
+    function region:CreateAnimationGroup()
+      local group = { scripts = {}, playing = false }
+      function group:CreateAnimation(kind)
+        assert(kind == "Alpha", "expected an Alpha animation")
+        local anim = {}
+        function anim:SetDuration() end
+        function anim:SetChange(value)
+          stub.change = value
+        end
+        return anim
+      end
+      function group:SetToFinalAlpha() end
+      function group:SetScript(name, fn)
+        self.scripts[name] = fn
+      end
+      function group:Play()
+        self.playing = true
+        stub.plays = stub.plays + 1
+      end
+      function group:Stop()
+        self.playing = false
+      end
+      function group:IsPlaying()
+        return self.playing
+      end
+      stub.finish = function()
+        group.playing = false
+        group.scripts.OnFinished(group)
+      end
+      return group
+    end
+
+    local fade = HoverFade.Attach(region)
+    fade.set(true)
+    assert(stub.change == 1, "fade-in should change alpha by +1, got " .. tostring(stub.change))
+    stub.finish()
+    fade.set(false)
+    assert(stub.change == -1, "fade-out should change alpha by -1, got " .. tostring(stub.change))
+    stub.finish()
+    assert(region:IsShown() == false, "fallback animation still hides on fade-out")
+  end
+
   -- Hover handlers repaint (paintVertex) and then call set(). A repaint while
   -- a fade is still running must not raise the shared alpha channel to the
   -- colour's full alpha: the next fade would start from a solid disc.

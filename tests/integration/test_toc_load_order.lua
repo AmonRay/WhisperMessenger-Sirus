@@ -16,6 +16,9 @@ return function()
   local ns = {}
   local ok, err = pcall(function()
     for line in io.lines("WhisperMessenger.toc") do
+      if line ~= "" and string.sub(line, 1, 2) ~= "##" then
+        assert(not string.find(line, "/", 1, true), "TOC entries must use backslashes: " .. line)
+      end
       if line ~= "" and string.sub(line, 1, 2) ~= "##" and not string.match(line, "%.xml$") then
         local chunk = assert(loadfile(line))
         local loaded, loadErr = pcall(chunk, "WhisperMessenger", ns)

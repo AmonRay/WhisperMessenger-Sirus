@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local DisplayName = ns.DisplayName or require("WhisperMessenger.Util.DisplayName")
 local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 local SeenLevel = ns.SeenLevel or require("WhisperMessenger.Model.SeenLevel")
@@ -82,7 +84,7 @@ end
 local function startTimer(seconds, callback)
   local timers = _G.C_Timer
   if timers and timers.NewTimer then
-    windowTimer = timers.NewTimer(seconds, callback)
+    windowTimer = WrathTimer.TimerOn(timers, seconds, callback)
   end
 end
 
@@ -126,7 +128,7 @@ function WhoLookup.OnWhoListUpdate()
   inFlight = false
   local timers = _G.C_Timer
   if timers and timers.After then
-    timers.After(0, cleanup)
+    WrathTimer.AfterOn(timers, 0, cleanup)
   else
     cleanup()
   end

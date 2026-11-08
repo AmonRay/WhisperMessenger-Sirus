@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local EscapeOrder = ns.MessengerWindowWindowScriptsFrameEscapeOrder or require("WhisperMessenger.UI.MessengerWindow.WindowScripts.Frame.EscapeOrder")
 local EscapeKey = ns.MessengerWindowWindowScriptsFrameEscapeKey or require("WhisperMessenger.UI.MessengerWindow.WindowScripts.Frame.EscapeKey")
 local WindowStrata = ns.MessengerWindowWindowScriptsFrameWindowStrata
@@ -48,7 +50,7 @@ function ScriptBindings.Bind(options)
     if alphaTicker ~= nil or type(timer) ~= "table" or type(timer.NewTicker) ~= "function" then
       return
     end
-    alphaTicker = timer.NewTicker(options.frameTheme.WINDOW_ALPHA_UPDATE_INTERVAL, function()
+    alphaTicker = WrathTimer.TickerOn(timer, options.frameTheme.WINDOW_ALPHA_UPDATE_INTERVAL, function()
       if not windowResize.isResizing() then
         options.refreshWindowAlpha()
       end

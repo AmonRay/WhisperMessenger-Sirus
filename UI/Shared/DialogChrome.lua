@@ -60,8 +60,7 @@ function DialogChrome.CreateBackground(factory, frame)
     local fill = frame:CreateTexture(nil, "BACKGROUND")
     fill:SetPoint("TOPLEFT", frame, "TOPLEFT", NATIVE_FILL_INSET, -NATIVE_FILL_INSET)
     fill:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -NATIVE_FILL_INSET, NATIVE_FILL_INSET)
-    local c = NATIVE_FILL_COLOR
-    fill:SetColorTexture(c[1], c[2], c[3], c[4])
+    UIHelpers.applyColorTexture(fill, NATIVE_FILL_COLOR)
     frame.nativeFill = fill
     return nil
   end

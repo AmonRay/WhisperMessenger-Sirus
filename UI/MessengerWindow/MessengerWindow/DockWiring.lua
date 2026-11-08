@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
 local CompactDock = ns.MessengerWindowCompactDock or require("WhisperMessenger.UI.MessengerWindow.MessengerWindow.CompactDock")
 local CompactDockFlow = ns.MessengerWindowCompactDockFlow or require("WhisperMessenger.UI.MessengerWindow.MessengerWindow.CompactDockFlow")
@@ -100,7 +102,7 @@ function DockWiring.Attach(window, parts)
     end
     local timer = _G.C_Timer
     if type(timer) == "table" and type(timer.After) == "function" then
-      timer.After(0, function()
+      WrathTimer.AfterOn(timer, 0, function()
         CompactDock.ClampToSpot(window, flow.spot())
       end)
     end

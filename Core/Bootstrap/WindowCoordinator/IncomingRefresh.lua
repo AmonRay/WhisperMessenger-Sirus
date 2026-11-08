@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local PerfCounters = ns.PerfCounters or require("WhisperMessenger.Util.PerfCounters")
 
 -- Coalesced window refreshes. Busy chats deliver several lines a second;
@@ -39,7 +41,7 @@ function IncomingRefresh.Debounce(cTimer, delay, isWindowVisible, onFlush)
     end
     armed = true
     if cTimer and type(cTimer.After) == "function" then
-      cTimer.After(delay, flush)
+      WrathTimer.AfterOn(cTimer, delay, flush)
     else
       flush()
     end

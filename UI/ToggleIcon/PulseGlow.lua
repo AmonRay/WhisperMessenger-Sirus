@@ -11,14 +11,29 @@ local applyVertexColor = UIHelpers.applyVertexColor
 -- edge and back to zero at the rim. Pinned to the host's edges and never
 -- scaled, so the glow stays inside the host (no outer halo). Shared by the widget,
 -- minimap icon and What's New button.
-local INNER_GLOW_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\inner-glow.png"
+local INNER_GLOW_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\inner-glow.tga"
 local PULSE_FADE_IN = 0.5
 local PULSE_PEAK_HOLD = 0.25 -- keeps the original 1.75s cycle (0.75s + 1.0s)
 local PULSE_FADE_OUT = 1.0
+local PULSE_PEAK_ALPHA = 0.8
+local PULSE_CYCLE = PULSE_FADE_IN + PULSE_PEAK_HOLD + PULSE_FADE_OUT
 
 local PulseGlow = {}
 
 PulseGlow.TEXTURE = INNER_GLOW_TEXTURE
+
+local function pulseAlphaAt(elapsed)
+  local t = elapsed % PULSE_CYCLE
+  if t < PULSE_FADE_IN then
+    return PULSE_PEAK_ALPHA * (t / PULSE_FADE_IN)
+  end
+  t = t - PULSE_FADE_IN
+  if t < PULSE_PEAK_HOLD then
+    return PULSE_PEAK_ALPHA
+  end
+  t = t - PULSE_PEAK_HOLD
+  return PULSE_PEAK_ALPHA * (1 - t / PULSE_FADE_OUT)
+end
 
 function PulseGlow.Create(factory, frame, options)
   options = options or {}
@@ -42,52 +57,89 @@ function PulseGlow.Create(factory, frame, options)
   glowFrame:Hide()
 
   local pulseAnim = nil
-  if glowFrame.CreateAnimationGroup then
+  if type(glowFrame.CreateAnimationGroup) == "function" then
     local ag = glowFrame:CreateAnimationGroup()
-    ag:SetLooping("REPEAT")
+    if type(ag) == "table" and type(ag.CreateAnimation) == "function" then
+      ag:SetLooping("REPEAT")
 
-    -- Fade in 0→0.8 over 0.5s, hold, then fade out 0.8→0 over 1s. Alpha only:
-    -- a scale step would push the glow past the host's edge.
-    local fadeIn = ag:CreateAnimation("Alpha")
-    fadeIn:SetFromAlpha(0)
-    fadeIn:SetToAlpha(0.8)
-    fadeIn:SetDuration(PULSE_FADE_IN)
-    fadeIn:SetEndDelay(PULSE_PEAK_HOLD)
-    fadeIn:SetOrder(1)
+      local fadeIn = ag:CreateAnimation("Alpha")
+      local fadeOut = ag:CreateAnimation("Alpha")
+      if type(fadeIn) == "table" and type(fadeIn.SetFromAlpha) == "function" and type(fadeOut) == "table" then
+        fadeIn:SetFromAlpha(0)
+        fadeIn:SetToAlpha(PULSE_PEAK_ALPHA)
+        fadeIn:SetDuration(PULSE_FADE_IN)
+        fadeIn:SetEndDelay(PULSE_PEAK_HOLD)
+        fadeIn:SetOrder(1)
 
-    local fadeOut = ag:CreateAnimation("Alpha")
-    fadeOut:SetFromAlpha(0.8)
-    fadeOut:SetToAlpha(0)
-    fadeOut:SetDuration(PULSE_FADE_OUT)
-    fadeOut:SetOrder(2)
+        fadeOut:SetFromAlpha(PULSE_PEAK_ALPHA)
+        fadeOut:SetToAlpha(0)
+        fadeOut:SetDuration(PULSE_FADE_OUT)
+        fadeOut:SetOrder(2)
 
-    if ag.SetScript then
-      ag:SetScript("OnPlay", function()
-        glowFrame:Show()
-        glowFrame:SetAlpha(0)
-      end)
-      ag:SetScript("OnStop", function()
-        glowFrame:SetAlpha(0)
-        glowFrame:Hide()
-      end)
+        if ag.SetScript then
+          ag:SetScript("OnPlay", function()
+            glowFrame:Show()
+            glowFrame:SetAlpha(0)
+          end)
+          ag:SetScript("OnStop", function()
+            glowFrame:SetAlpha(0)
+            glowFrame:Hide()
+          end)
+        end
+
+        pulseAnim = ag
+      end
     end
+  end
 
-    pulseAnim = ag
+  local pulseElapsed = 0
+  local fallbackActive = false
+
+  local function startFallbackPulse()
+    if fallbackActive then
+      return
+    end
+    fallbackActive = true
+    pulseElapsed = 0
+    glowFrame:Show()
+    glowFrame:SetAlpha(0)
+    glowFrame:SetScript("OnUpdate", function(_, elapsed)
+      pulseElapsed = pulseElapsed + (tonumber(elapsed) or 0)
+      glowFrame:SetAlpha(pulseAlphaAt(pulseElapsed))
+    end)
+  end
+
+  local function stopFallbackPulse()
+    if not fallbackActive then
+      return
+    end
+    fallbackActive = false
+    glowFrame:SetScript("OnUpdate", nil)
+    glowFrame:SetAlpha(0)
+    glowFrame:Hide()
   end
 
   local pulseActive = false
   local function startPulse()
-    if pulseAnim and not pulseActive then
-      pulseActive = true
-      pulseAnim:Play()
+    if pulseAnim then
+      if not pulseActive then
+        pulseActive = true
+        pulseAnim:Play()
+      end
+      return
     end
+    startFallbackPulse()
   end
 
   local function stopPulse()
-    if pulseAnim and pulseActive then
-      pulseActive = false
-      pulseAnim:Stop()
+    if pulseAnim then
+      if pulseActive then
+        pulseActive = false
+        pulseAnim:Stop()
+      end
+      return
     end
+    stopFallbackPulse()
   end
 
   local function applyTheme(activeTheme)

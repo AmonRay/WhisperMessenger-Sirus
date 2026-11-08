@@ -20,25 +20,25 @@ local isOn = UIHelpers.isOn
 local SquareLook = {}
 
 SquareLook.SQUARE_TEXTURE = "Interface\\Buttons\\WHITE8X8"
-SquareLook.GLYPH_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_front.png"
-SquareLook.ACCENT_GLYPH_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_back.png"
+SquareLook.GLYPH_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_front.tga"
+SquareLook.ACCENT_GLYPH_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_back.tga"
 
 -- Halo around the two bubbles' outline (clear inside them), for the glyph
 -- drawn without the background. Its canvas is BUBBLE_GLOW_SCALE times the
 -- glyph's, glyph centred, so the halo has room past the glyph's edges.
-SquareLook.BUBBLE_GLOW_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_glow.png"
+SquareLook.BUBBLE_GLOW_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_glow.tga"
 SquareLook.BUBBLE_GLOW_SCALE = 1.5
 
 -- The unread pulse's art on the square look: a glow fading inward from the
 -- square's edge, stretched over the whole button.
-SquareLook.SQUARE_GLOW_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\inner-glow-square.png"
+SquareLook.SQUARE_GLOW_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\inner-glow-square.tga"
 
 -- Thin outline around both bubbles (filling the gap between them), so the
 -- gray back bubble still reads over bright ground without the background.
-SquareLook.OUTLINE_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_outline.png"
+SquareLook.OUTLINE_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\chat_glyph_outline.tga"
 
 -- White rounded square: the mask that rounds the square's corners.
-SquareLook.MASK_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\mask_rounded_square.png"
+SquareLook.MASK_TEXTURE = "Interface\\AddOns\\WhisperMessenger\\Media\\mask_rounded_square.tga"
 local MASK_WRAP = "CLAMPTOBLACKADDITIVE"
 
 local OUTLINE_COLOR = { 0, 0, 0, 0.85 }

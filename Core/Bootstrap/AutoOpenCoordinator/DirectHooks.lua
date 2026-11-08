@@ -3,6 +3,9 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
+
 -- stylua: ignore start
 local ConversationOps = ns.BootstrapAutoOpenConversationOps or require("WhisperMessenger.Core.Bootstrap.AutoOpenCoordinator.ConversationOps")
 local EditBoxInterop = ns.BootstrapAutoOpenEditBoxInterop or require("WhisperMessenger.Core.Bootstrap.AutoOpenCoordinator.EditBoxInterop")
@@ -120,7 +123,7 @@ function DirectHooks.Install(runtime, hooks, deps)
       -- callback can taint them, causing WoW to fail on subsequent calls.
       local timer = _G.C_Timer
       if type(timer) == "table" and type(timer.After) == "function" then
-        timer.After(0, function()
+        WrathTimer.AfterOn(timer, 0, function()
           -- Re-check at fire time: ENCOUNTER_START may have activated between
           -- schedule and dispatch. Any edit-box cleanup now runs inside
           -- lockdown and taints Blizzard's secure reply path.

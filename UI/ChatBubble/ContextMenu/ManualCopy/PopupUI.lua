@@ -39,8 +39,13 @@ local function isFrameShown(frame)
   return true
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local function scheduleManualCopyRefocus(dialog, text, delaySeconds)
-  _G.C_Timer.After(delaySeconds, function()
+  if type(WrathTimer) ~= "table" or type(WrathTimer.Schedule) ~= "function" then
+    return false
+  end
+  return WrathTimer.Schedule(delaySeconds, function()
     if isFrameShown(dialog) then
       Resolvers.primePopupEditBox(dialog, text, MANUAL_COPY_DIALOG_NAME)
     end
@@ -102,10 +107,8 @@ function PopupUI.ShowManualCopyDialog(text, options)
     minInputWidth = 260,
   })
 
-  if type(_G.C_Timer) == "table" and type(_G.C_Timer.After) == "function" then
-    scheduleManualCopyRefocus(dialog, text, 0)
-    scheduleManualCopyRefocus(dialog, text, 0.05)
-  end
+  scheduleManualCopyRefocus(dialog, text, 0)
+  scheduleManualCopyRefocus(dialog, text, 0.05)
 
   return true
 end

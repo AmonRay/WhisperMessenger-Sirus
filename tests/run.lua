@@ -4,6 +4,21 @@ package.path = table.concat({
   package.path,
 }, ";")
 
+local rawLoadfile, rawDofile = loadfile, dofile
+local function portablePath(path)
+  if type(path) == "string" then
+    return (string.gsub(path, "\\", "/"))
+  end
+  return path
+end
+loadfile = function(path, ...)
+  return rawLoadfile(portablePath(path), ...)
+end
+dofile = function(path)
+  return rawDofile(portablePath(path))
+end
+_G.loadfile, _G.dofile = loadfile, dofile
+
 local rawRequire = require
 
 local function normalizeModuleName(name)

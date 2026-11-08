@@ -3,6 +3,8 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
 local PointerFocus = ns.MessengerWindowWindowScriptsFramePointerFocus
   or require("WhisperMessenger.UI.MessengerWindow.WindowScripts.Frame.PointerFocus")
 local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.PickerPopup")
@@ -161,7 +163,7 @@ function EscapeOrder.New(frame, escapeKey)
       order.claim()
       return
     end
-    timer.After(0, function()
+    WrathTimer.AfterOn(timer, 0, function()
       if yieldedTo == nil then
         order.claim()
       end
@@ -185,7 +187,7 @@ function EscapeOrder.New(frame, escapeKey)
     end
     local timer = _G.C_Timer
     if timer ~= nil and type(timer.After) == "function" then
-      timer.After(MENU_CHECK_SECONDS, function()
+      WrathTimer.AfterOn(timer, MENU_CHECK_SECONDS, function()
         watchMenu(menu)
       end)
     end

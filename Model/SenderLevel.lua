@@ -55,7 +55,11 @@ end
 -- A multi-account friend's game account may be another character, so the
 -- level counts only when it belongs to this GUID.
 local function bnetLevel(guid)
-  local account = _G.C_BattleNet.GetAccountInfoByGUID(guid)
+  local bnetApi = _G.C_BattleNet
+  if type(bnetApi) ~= "table" or type(bnetApi.GetAccountInfoByGUID) ~= "function" then
+    return nil
+  end
+  local account = bnetApi.GetAccountInfoByGUID(guid)
   local game = account and account.gameAccountInfo
   if game == nil or game.playerGuid ~= guid then
     return nil

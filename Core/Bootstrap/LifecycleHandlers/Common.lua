@@ -8,6 +8,7 @@ local function L(key)
   return Localization and Localization.Text(key) or key
 end
 local QueuedSends = ns.BootstrapQueuedSends or require("WhisperMessenger.Core.Bootstrap.QueuedSends")
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
 local Common = {}
 
 Common.COMPETITIVE_NOTICE = "Messages are paused in competitive content and will resume when you leave."
@@ -19,9 +20,8 @@ function Common.refreshRuntimeWindow(Bootstrap)
 end
 
 function Common.scheduleAfter(delay, callback)
-  if type(_G.C_Timer) == "table" and type(_G.C_Timer.After) == "function" then
-    _G.C_Timer.After(delay, callback)
-    return true
+  if type(WrathTimer) == "table" and type(WrathTimer.Schedule) == "function" then
+    return WrathTimer.Schedule(delay, callback) == true
   end
 
   return false

@@ -190,25 +190,40 @@ local function blizzardChatClickHandler()
   return mixin.OnHyperlinkClick
 end
 
+local function setScriptIfSupported(widget, scriptName, handler)
+  if widget == nil or type(widget.SetScript) ~= "function" then
+    return false
+  end
+  return (pcall(widget.SetScript, widget, scriptName, handler))
+end
+
+Hyperlinks.SetScriptIfSupported = setScriptIfSupported
+
 -- Link clicks on frame. The script is Blizzard's own chat-frame click handler,
 -- so the click starts in Blizzard code and protected follow-ups (opening
 -- another player's profession) are expected not to be blamed on the addon. The
 -- URL copy and onLinkClick are hooked to run after it. Without that handler
 -- (or HookScript), the click goes through HandleClick.
 function Hyperlinks.BindClick(frame, onLinkClick)
+  local fallbackHandler = function(self, link, text, button)
+    Hyperlinks.HandleClick(link, text, button, self)
+    if onLinkClick then
+      onLinkClick()
+    end
+  end
+
   local chatClickHandler = blizzardChatClickHandler()
   if chatClickHandler == nil or type(frame.HookScript) ~= "function" then
-    frame:SetScript("OnHyperlinkClick", function(self, link, text, button)
-      Hyperlinks.HandleClick(link, text, button, self)
-      if onLinkClick then
-        onLinkClick()
-      end
-    end)
+    setScriptIfSupported(frame, "OnHyperlinkClick", fallbackHandler)
     return
   end
 
-  frame:SetScript("OnHyperlinkClick", chatClickHandler)
-  frame:HookScript("OnHyperlinkClick", function(_self, link)
+  if not setScriptIfSupported(frame, "OnHyperlinkClick", chatClickHandler) then
+    setScriptIfSupported(frame, "OnHyperlinkClick", fallbackHandler)
+    return
+  end
+
+  pcall(frame.HookScript, frame, "OnHyperlinkClick", function(_self, link)
     local externalUrl = UrlFormatter.ExtractExternalUrlFromLink(link)
     if externalUrl ~= nil then
       copyExternalUrl(externalUrl)
@@ -227,10 +242,10 @@ function Hyperlinks.EnableOn(frame, onLinkClick)
   if frame.SetHyperlinksEnabled then
     frame:SetHyperlinksEnabled(true)
   end
-  frame:SetScript("OnHyperlinkEnter", function(self, link)
+  setScriptIfSupported(frame, "OnHyperlinkEnter", function(self, link)
     Hyperlinks.HandleEnter(self, link)
   end)
-  frame:SetScript("OnHyperlinkLeave", function()
+  setScriptIfSupported(frame, "OnHyperlinkLeave", function()
     Hyperlinks.HandleLeave()
   end)
   Hyperlinks.BindClick(frame, onLinkClick)

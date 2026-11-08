@@ -3,6 +3,9 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
+local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+
+
 -- stylua: ignore start
 local AutoOpenHooks = ns.BootstrapAutoOpenHooks or require("WhisperMessenger.Core.Bootstrap.AutoOpenHooks")
 local Identity = ns.Identity or require("WhisperMessenger.Model.Identity")
@@ -27,7 +30,7 @@ local function focusComposer(runtime)
   -- layout settles makes the reply flow land on the input consistently.
   local timer = _G.C_Timer
   if type(timer) == "table" and type(timer.After) == "function" then
-    timer.After(0, function()
+    WrathTimer.AfterOn(timer, 0, function()
       if input and input.SetFocus then
         input:SetFocus()
       end
@@ -134,7 +137,7 @@ function AutoOpenCoordinator.Attach(options)
       return
     end
 
-    timer.After(0, function()
+    WrathTimer.AfterOn(timer, 0, function()
       controller.installPoller()
     end)
   end

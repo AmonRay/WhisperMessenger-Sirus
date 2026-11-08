@@ -42,9 +42,7 @@ local function applyBubbleColor(frame, colorTable, alphaScale)
   local r, g, b = colorTable[1], colorTable[2], colorTable[3]
   local a = (colorTable[4] or 1) * (alphaScale or 1)
   for _, part in ipairs(frame._bgFills) do
-    if part.SetColorTexture then
-      part:SetColorTexture(r, g, b, a)
-    end
+    UIHelpers.paintSolid(part, r, g, b, a)
   end
   for _, part in ipairs(frame._bgCorners) do
     if part.SetVertexColor then

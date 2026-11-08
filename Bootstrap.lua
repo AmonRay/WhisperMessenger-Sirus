@@ -3,8 +3,30 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local Loader = ns.Loader or require("WhisperMessenger.Core.Loader")
-local loadModule = Loader.LoadModule
+local loadModule
+
+local function sharedLoader()
+  local globalLoader = _G.WhisperMessengerLoader
+  if type(globalLoader) == "table" and type(globalLoader.LoadModule) == "function" then
+    return globalLoader
+  end
+  return nil
+end
+
+local function resolveLoader()
+  local loader = ns.Loader or sharedLoader()
+  if loader == nil and type(require) == "function" then
+    local ok, loaded = pcall(require, "WhisperMessenger.Core.Loader")
+    loader = ok and loaded or nil
+  end
+  if loader == nil or type(loader.LoadModule) ~= "function" then
+    return nil
+  end
+  loadModule = loader.LoadModule
+  return loader
+end
+
+resolveLoader()
 
 local Bootstrap = {}
 ns.Bootstrap = Bootstrap
@@ -35,6 +57,10 @@ function Bootstrap.Initialize(factory, options)
   local WindowScale = loadModule("WhisperMessenger.UI.MessengerWindow.WindowScale", "MessengerWindowWindowScale")
 
   local uiFactory = factory or _G
+  local WrathCompatWidgets = ns.WrathCompatWidgets
+  if type(WrathCompatWidgets) == "table" and type(WrathCompatWidgets.WrapFactory) == "function" then
+    uiFactory = WrathCompatWidgets.WrapFactory(uiFactory)
+  end
   local localProfileId = RuntimeFactory.ResolveLocalProfileId(options)
   local accountState, characterState = SavedState.Initialize(options.accountState, options.characterState, localProfileId)
   local freshInstall = FirstRunTip.IsFreshInstall(accountState)
@@ -283,7 +309,10 @@ local function initializeRuntime()
   return Bootstrap.runtime
 end
 
-if type(_G.CreateFrame) == "function" then
+local function installEventFrame()
+  if type(_G.CreateFrame) ~= "function" or resolveLoader() == nil then
+    return false
+  end
   local AddonEventFrame = loadModule("WhisperMessenger.Core.Bootstrap.AddonEventFrame", "BootstrapAddonEventFrame")
   AddonEventFrame.Install({
     addonName = addonName,
@@ -291,6 +320,63 @@ if type(_G.CreateFrame) == "function" then
     initializeRuntime = initializeRuntime,
     loadModule = loadModule,
   })
+  return true
+end
+
+local function loaderDiagnostics()
+  local keys = 0
+  for _ in pairs(ns) do
+    keys = keys + 1
+  end
+  local version = "?"
+  if type(_G.GetAddOnMetadata) == "function" then
+    local ok, value = pcall(_G.GetAddOnMetadata, addonName, "Version")
+    if ok and type(value) == "string" then
+      version = value
+    end
+  end
+  local parts = {
+    "modules=" .. keys,
+    "announced=" .. tostring(sharedLoader() ~= nil),
+    "version=" .. version,
+    "loadfile=" .. type(loadfile),
+    "require=" .. type(require),
+  }
+  return table.concat(parts, ", ")
+end
+
+local function waitForModules()
+  local createFrame = _G.CreateFrame
+  if type(createFrame) ~= "function" then
+    return
+  end
+  local waiter = createFrame("Frame")
+  if waiter == nil or waiter.RegisterEvent == nil or waiter.SetScript == nil then
+    return
+  end
+  waiter:RegisterEvent("ADDON_LOADED")
+  waiter:SetScript("OnEvent", function(self, _event, loadedAddon)
+    if loadedAddon ~= addonName then
+      return
+    end
+    if self.UnregisterAllEvents ~= nil then
+      self:UnregisterAllEvents()
+    end
+    if not installEventFrame() then
+      local handler = _G.geterrorhandler
+      if type(handler) == "function" then
+        pcall(handler(), "WhisperMessenger: module loader is missing (" .. loaderDiagnostics() .. ")")
+      end
+      return
+    end
+    if Bootstrap.runtime == nil then
+      initializeRuntime()
+    end
+  end)
+end
+
+if not installEventFrame() then
+  waitForModules()
 end
 
 return Bootstrap

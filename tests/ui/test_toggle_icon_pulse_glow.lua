@@ -46,7 +46,7 @@ return function()
   -- test_glow_uses_inner_glow_texture_with_additive_blend
   local tex = pulse.glowTexture
   assert(
-    tex.texturePath == "Interface\\AddOns\\WhisperMessenger\\Media\\inner-glow.png",
+    tex.texturePath == "Interface\\AddOns\\WhisperMessenger\\Media\\inner-glow.tga",
     "expected inner-glow texture, got " .. tostring(tex.texturePath)
   )
   assert(tex.atlas == nil, "outer halo atlas must not be used")
@@ -64,4 +64,86 @@ return function()
 
   -- test_pulse_cadence_unchanged: previous cycle was 0.75s + 1.0s
   assert(math.abs(cycle[1] + cycle[2] - 1.75) < 1e-6, "pulse cycle should stay 1.75s, got " .. tostring(cycle[1] + cycle[2]))
+
+  do
+    local function plainFrame()
+      local f = { shown = true, alpha = 0 }
+      function f:SetAllPoints() end
+      function f:SetAlpha(value)
+        self.alpha = value
+      end
+
+      function f:GetAlpha()
+        return self.alpha
+      end
+
+      function f:Show()
+        self.shown = true
+      end
+
+      function f:Hide()
+        self.shown = false
+      end
+
+      function f:GetFrameLevel()
+        return 0
+      end
+
+      function f:SetFrameLevel() end
+      function f:SetScript(name, fn)
+        self.scripts = self.scripts or {}
+        self.scripts[name] = fn
+      end
+
+      function f:CreateTexture()
+        return {
+          SetAllPoints = function() end,
+          SetTexture = function() end,
+          SetBlendMode = function() end,
+          SetVertexColor = function() end,
+          SetAlpha = function() end,
+        }
+      end
+
+      function f:CreateAnimationGroup()
+        return {
+          SetLooping = function() end,
+          CreateAnimation = function()
+            return {}
+          end,
+        }
+      end
+
+      return f
+    end
+
+    local host = plainFrame()
+    local glow = plainFrame()
+    local plainPulse = PulseGlow.Create({
+      CreateFrame = function()
+        return glow
+      end,
+    }, host, { accent = { 1, 1, 1, 1 } })
+
+    assert(plainPulse.animation == nil, "3.3.5a cannot drive alpha animations")
+
+    plainPulse.start()
+    assert(glow.shown == true, "fallback pulse should show the glow")
+    local onUpdate = glow.scripts and glow.scripts.OnUpdate
+    assert(type(onUpdate) == "function", "fallback pulse should drive OnUpdate")
+
+    onUpdate(glow, 0.25)
+    assert(math.abs(glow.alpha - 0.4) < 1e-6, "expected half of the peak, got " .. tostring(glow.alpha))
+    onUpdate(glow, 0.4)
+    assert(math.abs(glow.alpha - 0.8) < 1e-6, "expected the peak, got " .. tostring(glow.alpha))
+    onUpdate(glow, 0.8)
+    assert(glow.alpha > 0 and glow.alpha < 0.8, "expected a fade out, got " .. tostring(glow.alpha))
+    onUpdate(glow, 0.5)
+    assert(glow.alpha < 0.8, "expected the cycle to restart")
+
+    plainPulse.stop()
+    assert(glow.shown == false, "stop should hide the glow")
+    assert(glow.alpha == 0, "stop should clear the alpha")
+    assert(glow.scripts.OnUpdate == nil, "stop should remove OnUpdate")
+  end
 end
