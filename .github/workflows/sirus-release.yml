@@ -1,0 +1,91 @@
+name: Sirus release
+
+# Every change of "## Version:" in WhisperMessenger.toc pushed to master =
+# a new GitHub Release v<version> with WhisperMessenger-<version>-sirus.zip.
+# The archive holds a single WhisperMessenger/ folder for Interface/AddOns.
+# Self-contained: no tests, no lint, no secrets, no third-party actions
+# (only actions/checkout, the preinstalled zip and the gh CLI).
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - WhisperMessenger.toc
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sirus-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version from TOC
+        id: ver
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n 's/^## Version:[[:space:]]*//p' WhisperMessenger.toc | tr -d '\r' | head -n 1)"
+          if [ -z "$VERSION" ]; then
+            echo "::error file=WhisperMessenger.toc::No '## Version:' line"
+            exit 1
+          fi
+          TAG="v${VERSION#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::notice::Release ${TAG} already exists - nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build archive
+        id: pkg
+        if: steps.ver.outputs.skip == 'false'
+        run: bash scripts/package-sirus.sh "${{ steps.ver.outputs.version }}"
+
+      - name: Check archive layout
+        if: steps.ver.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          ZIP="${{ steps.pkg.outputs.zip_path }}"
+          ROOTS="$(unzip -Z1 "$ZIP" | cut -d/ -f1 | sort -u)"
+          echo "Top-level entries: ${ROOTS}"
+          [ "${ROOTS}" = "WhisperMessenger" ]
+          unzip -Z1 "$ZIP" | grep -qx 'WhisperMessenger/WhisperMessenger.toc'
+
+      - name: Publish GitHub Release
+        if: steps.ver.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.ver.outputs.tag }}"
+          NUM="${TAG#v}"
+          # Notes: the "## [NUM]" section of CHANGELOG.md, if there is one.
+          if [ -f CHANGELOG.md ]; then
+            tr -d '\r' < CHANGELOG.md | awk -v v="$NUM" '
+              index($0, "## [" v "]") == 1 { on = 1; next }
+              on && /^## \[/ { exit }
+              on { print }
+            ' > release-notes.md
+          else
+            : > release-notes.md
+          fi
+          {
+            echo
+            echo "Unpack into \`World of Warcraft/Interface/AddOns\` - the archive contains a single \`WhisperMessenger\` folder."
+          } >> release-notes.md
+          gh release create "$TAG" "${{ steps.pkg.outputs.zip_path }}" \
+            --target "${{ github.sha }}" \
+            --title "WhisperMessenger ${TAG} (Sirus)" \
+            --notes-file release-notes.md \
+            --latest

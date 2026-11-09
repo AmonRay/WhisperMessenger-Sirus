@@ -97,8 +97,10 @@ return function()
   assert(_G.Ambiguate("Arthas-Deathwing", "none") == "Arthas", "expected own-realm names to be shortened")
   assert(_G.GetNormalizedRealmName() == "Deathwing", "expected the normalized realm shim")
 
-  local _, _, classID, classTag = _G.UnitClass("player")
-  assert(classTag == "WARRIOR" and classID == 1, "expected UnitClass to expose the class token")
+  local _, englishClass, globalClassID = _G.UnitClass("player")
+  assert(englishClass == "Warrior" and globalClassID == nil, "the global UnitClass must stay untouched")
+  local _, _, classID, classTag = ns.WrathCompatWidgets.UnitClass("player")
+  assert(classTag == "WARRIOR" and classID == 1, "expected Widgets.UnitClass to expose the class token")
 
   local eventFrame = nil
   for _, frame in ipairs(createdFrames) do

@@ -1,16 +1,17 @@
+-- Regression for ADDON_ACTION_FORBIDDEN "CastSpell()": LinkHooks must never
+-- assign Blizzard's chat globals, not at load and not on composer focus.
+-- Links reach the focused composer through post-hooks only.
 return function()
-  -- Stub the globals LinkHooks snapshots so we can detect install / restore.
   local savedHook = _G.hooksecurefunc
   local savedSetItemRef = _G.SetItemRef
   local savedChatEditGetActiveWindow = _G.ChatEdit_GetActiveWindow
   local savedChatEditInsertLink = _G.ChatEdit_InsertLink
-  local savedChatFrameUtil = _G.ChatFrameUtil
+  local savedGetTime = _G.GetTime
+  local savedSuspended = _G._wmSuspended
 
-  local setItemRefHooks = {}
+  local hooks = {}
   _G.hooksecurefunc = function(name, fn)
-    if name == "SetItemRef" then
-      table.insert(setItemRefHooks, fn)
-    end
+    hooks[name] = fn
   end
 
   local originalGetActiveWindow = function()
@@ -19,11 +20,13 @@ return function()
   local originalInsertLink = function(_link)
     return false
   end
+  local originalSetItemRef = function() end
   _G.ChatEdit_GetActiveWindow = originalGetActiveWindow
   _G.ChatEdit_InsertLink = originalInsertLink
-  _G.ChatFrameUtil = nil
+  _G.SetItemRef = originalSetItemRef
+  _G.GetTime = nil
+  _G._wmSuspended = nil
 
-  -- Force a fresh require so the module captures our stubs as originals.
   package.loaded["WhisperMessenger.UI.Composer.LinkHooks"] = nil
   local LinkHooks = require("WhisperMessenger.UI.Composer.LinkHooks")
 
@@ -31,7 +34,6 @@ return function()
     focused = false,
     shown = true,
     lastInsert = nil,
-    scripts = {},
     IsVisible = function(self)
       return self.shown
     end,
@@ -44,133 +46,94 @@ return function()
     Insert = function(self, link)
       self.lastInsert = link
     end,
-    HookScript = function(self, event, fn)
-      self.scripts[event] = self.scripts[event] or {}
-      table.insert(self.scripts[event], fn)
-    end,
   }
   LinkHooks.RegisterInput(input)
 
-  local function fire(event)
-    for _, fn in ipairs(input.scripts[event] or {}) do
-      fn(input)
-    end
-  end
-
   local function reset()
     input.focused = false
+    input.shown = true
     input.lastInsert = nil
-    fire("OnEditFocusLost")
   end
 
-  -- test_overrides_not_installed_at_module_load
-  -- (critical — Blizzard's OPENCHAT / UpdateHeader must see Blizzard's own
-  --  function while composer is unfocused, otherwise our taint attribution
-  --  crashes arithmetic in ChatFrameEditBox.UpdateHeader.)
-
-  do
-    reset()
-    assert(_G.ChatEdit_GetActiveWindow == originalGetActiveWindow, "ChatEdit_GetActiveWindow must NOT be overridden at module load")
-    assert(_G.ChatEdit_InsertLink == originalInsertLink, "ChatEdit_InsertLink must NOT be overridden at module load")
+  local function assertGlobalsUntouched(context)
+    assert(_G.ChatEdit_GetActiveWindow == originalGetActiveWindow, "ChatEdit_GetActiveWindow must never be replaced (" .. context .. ")")
+    assert(_G.ChatEdit_InsertLink == originalInsertLink, "ChatEdit_InsertLink must never be replaced (" .. context .. ")")
+    assert(_G.SetItemRef == originalSetItemRef, "SetItemRef must never be replaced (" .. context .. ")")
   end
 
-  -- test_focus_gained_installs_overrides
+  -- test_globals_untouched_at_load
+  assertGlobalsUntouched("load")
+  assert(type(hooks.ChatEdit_InsertLink) == "function", "expected a ChatEdit_InsertLink post-hook")
+  assert(type(hooks.SetItemRef) == "function", "expected a SetItemRef post-hook")
 
-  do
-    reset()
-    input.focused = true
-    fire("OnEditFocusGained")
-    assert(_G.ChatEdit_GetActiveWindow ~= originalGetActiveWindow, "ChatEdit_GetActiveWindow should route through our wrapper while focused")
-    assert(_G.ChatEdit_InsertLink ~= originalInsertLink, "ChatEdit_InsertLink should route through our wrapper while focused")
-  end
-
-  -- test_focus_lost_restores_originals
-
+  -- test_globals_untouched_while_focused
   do
     reset()
     input.focused = true
-    fire("OnEditFocusGained")
-    input.focused = false
-    fire("OnEditFocusLost")
-    assert(_G.ChatEdit_GetActiveWindow == originalGetActiveWindow, "ChatEdit_GetActiveWindow must be restored to Blizzard's original on focus-lost")
-    assert(_G.ChatEdit_InsertLink == originalInsertLink, "ChatEdit_InsertLink must be restored to Blizzard's original on focus-lost")
+    hooks.ChatEdit_InsertLink("|Hitem:1|h[A]|h")
+    assertGlobalsUntouched("focused")
   end
 
-  -- test_wrapped_get_active_window_returns_input_when_focused
-
+  -- test_insert_link_hook_routes_into_focused_composer
   do
     reset()
     input.focused = true
-    fire("OnEditFocusGained")
-    local active = _G.ChatEdit_GetActiveWindow()
-    assert(active == input, "GetActiveWindow should return our input when focused")
+    hooks.ChatEdit_InsertLink("|Hitem:12345|h[Test Item]|h")
+    assert(input.lastInsert == "|Hitem:12345|h[Test Item]|h", "focused input should receive the link, got: " .. tostring(input.lastInsert))
   end
 
-  -- test_wrapped_insert_link_routes_into_composer_when_focused
+  -- test_insert_link_hook_ignores_unfocused_or_hidden
+  do
+    reset()
+    hooks.ChatEdit_InsertLink("|Hitem:12345|h[Test Item]|h")
+    assert(input.lastInsert == nil, "unfocused input must not receive the link")
 
+    reset()
+    input.focused = true
+    input.shown = false
+    hooks.ChatEdit_InsertLink("|Hitem:12345|h[Test Item]|h")
+    assert(input.lastInsert == nil, "hidden input must not receive the link")
+  end
+
+  -- test_suspended_addon_inserts_nothing
   do
     reset()
     input.focused = true
-    fire("OnEditFocusGained")
-    local handled = _G.ChatEdit_InsertLink("|Hitem:12345|h[Test Item]|h")
-    assert(handled == true, "InsertLink should be handled when our input is focused")
-    assert(input.lastInsert == "|Hitem:12345|h[Test Item]|h", "Input should receive link when focused, got: " .. tostring(input.lastInsert))
+    _G._wmSuspended = true
+    hooks.ChatEdit_InsertLink("|Hitem:12345|h[Test Item]|h")
+    _G._wmSuspended = nil
+    assert(input.lastInsert == nil, "suspended addon must not insert")
   end
 
   -- test_set_item_ref_hook_does_nothing_when_unfocused
-
   do
     reset()
-    assert(#setItemRefHooks > 0, "SetItemRef hook should have been installed")
-    for _, fn in ipairs(setItemRefHooks) do
-      fn("quest:12345", "[Some Quest]")
-    end
+    hooks.SetItemRef("quest:12345", "[Some Quest]")
     assert(input.lastInsert == nil, "SetItemRef hook should not insert quest link when unfocused")
   end
 
   -- test_set_item_ref_hook_inserts_when_focused
-
   do
     reset()
     input.focused = true
-    for _, fn in ipairs(setItemRefHooks) do
-      fn("|Hitem:12345|h[Test Item]|h", "|Hitem:12345|h[Test Item]|h")
-    end
+    hooks.SetItemRef("|Hitem:12345|h[Test Item]|h", "|Hitem:12345|h[Test Item]|h")
     assert(input.lastInsert ~= nil, "SetItemRef hook should insert when focused")
   end
 
   -- test_set_item_ref_hook_skips_our_url_links_when_focused
-  -- (a URL click copies the address; it must not also drop the link into the
-  --  composer now that URL clicks pass through SetItemRef)
-
   do
     reset()
     input.focused = true
     local urlText = "|cff71d5ff|Haddon:WhisperMessenger:url:https://example.com|hhttps://example.com|h|r"
-    for _, fn in ipairs(setItemRefHooks) do
-      fn("addon:WhisperMessenger:url:https://example.com", urlText)
-    end
+    hooks.SetItemRef("addon:WhisperMessenger:url:https://example.com", urlText)
     assert(input.lastInsert == nil, "SetItemRef hook should not insert our URL links, got: " .. tostring(input.lastInsert))
   end
 
-  -- test_refused_focus_does_not_install_overrides
-  -- (an input whose own OnEditFocusGained script calls ClearFocus — a disabled
-  --  or locked preview reply row — has lost focus by the time this post-hook
-  --  runs; installing then would strand the overrides with nothing focused.)
-
-  do
-    reset()
-    input.focused = false
-    fire("OnEditFocusGained")
-    assert(_G.ChatEdit_GetActiveWindow == originalGetActiveWindow, "a refused focus must not override ChatEdit_GetActiveWindow")
-    assert(_G.ChatEdit_InsertLink == originalInsertLink, "a refused focus must not override ChatEdit_InsertLink")
-  end
-
-  -- Cleanup global state
   _G.hooksecurefunc = savedHook
   _G.SetItemRef = savedSetItemRef
   _G.ChatEdit_GetActiveWindow = savedChatEditGetActiveWindow
   _G.ChatEdit_InsertLink = savedChatEditInsertLink
-  _G.ChatFrameUtil = savedChatFrameUtil
+  _G.GetTime = savedGetTime
+  _G._wmSuspended = savedSuspended
   package.loaded["WhisperMessenger.UI.Composer.LinkHooks"] = nil
 end

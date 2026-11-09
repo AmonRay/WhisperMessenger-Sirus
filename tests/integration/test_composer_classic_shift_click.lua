@@ -1,32 +1,23 @@
 local Composer = require("WhisperMessenger.UI.Composer")
 local FakeUI = require("tests.helpers.fake_ui")
 
--- Regression: in WoW Classic, Blizzard's `ChatEdit_InsertLink` exists at module
--- load and routes inserts through `ChatEdit_GetActiveWindow()`. When our
--- composer is focused, our `wmGetActiveWindow` returns our editbox, and the
--- original `ChatEdit_InsertLink` directly inserts the plain `[Name (id)]`
--- text via `editbox:Insert(text)` — bypassing our rewrite. The rewrite must
--- happen before delegating to the original so the editbox sees a real link.
+-- Regression: vanilla-style shift-click of a quest passes plain
+-- `[Name (id)]` text to ChatEdit_InsertLink. Our post-hook must rewrite it to
+-- a real quest hyperlink before it lands in the focused composer.
 return function()
   local savedHooksecurefunc = _G.hooksecurefunc
   local savedChatEditGetActiveWindow = _G.ChatEdit_GetActiveWindow
   local savedChatEditInsertLink = _G.ChatEdit_InsertLink
 
-  rawset(_G, "hooksecurefunc", function() end)
+  local hooks = {}
+  rawset(_G, "hooksecurefunc", function(target, fn)
+    if type(target) == "string" and type(fn) == "function" then
+      hooks[target] = fn
+    end
+  end)
 
-  -- Simulate Blizzard's real ChatEdit_InsertLink: looks up the global
-  -- ChatEdit_GetActiveWindow at call time, and inserts directly when an
-  -- active window is found.
-  _G.ChatEdit_InsertLink = function(text)
-    if text == nil then
-      return false
-    end
-    local getActive = _G.ChatEdit_GetActiveWindow
-    local activeWindow = getActive and getActive()
-    if activeWindow ~= nil then
-      activeWindow:Insert(text)
-      return true
-    end
+  -- Blizzard's ChatEdit_InsertLink with no Blizzard editbox open.
+  _G.ChatEdit_InsertLink = function()
     return false
   end
   _G.ChatEdit_GetActiveWindow = function()
@@ -79,6 +70,8 @@ return function()
     channel = "WOW",
   }, function() end)
 
+  assert(type(hooks.ChatEdit_InsertLink) == "function", "expected a ChatEdit_InsertLink post-hook")
+
   parent:Show()
   composer.frame:Show()
   composer.input:Show()
@@ -86,8 +79,8 @@ return function()
 
   composer.input:SetText("")
   local plainText = "[Apprentice's Duties (471)]"
-  local handled = _G.ChatEdit_InsertLink(plainText)
-  assert(handled == true, "expected ChatEdit_InsertLink to return true")
+  _G.ChatEdit_InsertLink(plainText)
+  hooks.ChatEdit_InsertLink(plainText)
   local expected = "|cffffff00|Hquest:471:0|h[Apprentice's Duties]|h|r"
   assert(
     composer.input:GetText() == expected,

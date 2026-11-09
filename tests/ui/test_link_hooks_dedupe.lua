@@ -1,43 +1,32 @@
+-- LinkHooks only post-hooks ChatEdit_InsertLink / SetItemRef. It never
+-- replaces them: assigning those globals from addon code tainted secure
+-- callers such as the spellbook (ADDON_ACTION_FORBIDDEN CastSpell()).
+-- A single shift-click fans out into several insert paths; only one insert per
+-- frame may land in the composer.
 return function()
-  -- Stub the globals LinkHooks snapshots so we can detect install / restore.
   local savedHook = _G.hooksecurefunc
   local savedSetItemRef = _G.SetItemRef
   local savedChatEditGetActiveWindow = _G.ChatEdit_GetActiveWindow
   local savedChatEditInsertLink = _G.ChatEdit_InsertLink
-  local savedChatFrameUtil = _G.ChatFrameUtil
   local savedGetTime = _G.GetTime
 
-  local setItemRefHooks = {}
-  local function hooksecurefuncStub(name, fn)
-    if name == "SetItemRef" then
-      table.insert(setItemRefHooks, fn)
-    end
+  local hooks = {}
+  _G.hooksecurefunc = function(name, fn)
+    hooks[name] = fn
   end
-  _G.hooksecurefunc = hooksecurefuncStub
-
-  -- Simulate Blizzard's real ChatEdit_InsertLink: it asks for the active
-  -- window and, if one exists, inserts the raw text into it.
-  local originalGetActiveWindow = function()
+  _G.SetItemRef = function() end
+  _G.ChatEdit_GetActiveWindow = function()
     return nil
   end
-  local originalInsertLink = function(text)
-    local active = _G.ChatEdit_GetActiveWindow()
-    if active ~= nil then
-      active:Insert(text)
-      return true
-    end
+  _G.ChatEdit_InsertLink = function()
     return false
   end
-  _G.ChatEdit_GetActiveWindow = originalGetActiveWindow
-  _G.ChatEdit_InsertLink = originalInsertLink
-  _G.ChatFrameUtil = nil
 
   local frameTime = 100
   _G.GetTime = function()
     return frameTime
   end
 
-  -- Force a fresh require so the module captures our stubs as originals.
   package.loaded["WhisperMessenger.UI.Composer.LinkHooks"] = nil
   local LinkHooks = require("WhisperMessenger.UI.Composer.LinkHooks")
 
@@ -45,7 +34,6 @@ return function()
   local input = {
     focused = false,
     shown = true,
-    scripts = {},
     IsVisible = function(self)
       return self.shown
     end,
@@ -58,74 +46,66 @@ return function()
     Insert = function(_self, link)
       table.insert(inserts, link)
     end,
-    HookScript = function(self, event, fn)
-      self.scripts[event] = self.scripts[event] or {}
-      table.insert(self.scripts[event], fn)
-    end,
   }
   LinkHooks.RegisterInput(input)
 
-  local function fire(event)
-    for _, fn in ipairs(input.scripts[event] or {}) do
-      fn(input)
-    end
-  end
+  assert(type(hooks.ChatEdit_InsertLink) == "function", "expected a ChatEdit_InsertLink post-hook")
+  assert(type(hooks.SetItemRef) == "function", "expected a SetItemRef post-hook")
+  local insertLink = hooks.ChatEdit_InsertLink
+  local setItemRef = hooks.SetItemRef
 
   local function reset()
     input.focused = false
     inserts = {}
-    fire("OnEditFocusLost")
   end
 
   -- test_shift_click_fanout_inserts_once
   do
     reset()
     input.focused = true
-    fire("OnEditFocusGained")
     frameTime = 200
 
-    _G.ChatEdit_InsertLink("Gæmmer-Kazzak")
-    _G.ChatEdit_InsertLink("|Hplayer:Gæmmer-Kazzak:1:WHISPER|h[Gæmmer]|h")
-    for _, fn in ipairs(setItemRefHooks) do
-      fn("player:Gæmmer-Kazzak:1:WHISPER", "|cff3fc7eb|Hplayer:Gæmmer-Kazzak:1:WHISPER|hGæmmer|h|r")
-    end
+    insertLink("Gammer-Kazzak")
+    insertLink("|Hplayer:Gammer-Kazzak:1:WHISPER|h[Gammer]|h")
+    setItemRef("player:Gammer-Kazzak:1:WHISPER", "|cff3fc7eb|Hplayer:Gammer-Kazzak:1:WHISPER|hGammer|h|r")
 
     assert(#inserts == 1, "expected exactly one insert from the shift-click fanout, got " .. #inserts)
-    assert(inserts[1] == "Gæmmer-Kazzak", "expected the plain name to land, got: " .. tostring(inserts[1]))
+    assert(inserts[1] == "Gammer-Kazzak", "expected the plain name to land, got: " .. tostring(inserts[1]))
   end
 
   -- test_next_frame_inserts_again
   do
     frameTime = 201
-    _G.ChatEdit_InsertLink("|Hitem:1|h[Item]|h")
+    insertLink("|Hitem:1|h[Item]|h")
     assert(#inserts == 2, "expected a second insert on the next frame, got " .. #inserts)
     assert(inserts[2] == "|Hitem:1|h[Item]|h", "expected the item link to land, got: " .. tostring(inserts[2]))
   end
 
-  -- test_dedupe_still_reports_handled
+  -- test_unfocused_composer_gets_nothing
   do
     reset()
-    input.focused = true
-    fire("OnEditFocusGained")
-    frameTime = 300
-
-    local first = _G.ChatEdit_InsertLink("Gæmmer-Kazzak")
-    local second = _G.ChatEdit_InsertLink("|Hplayer:Gæmmer-Kazzak:1:WHISPER|h[Gæmmer]|h")
-    assert(first == true, "first insert of the frame should report handled")
-    assert(second == true, "deduped second insert of the same frame should still report handled")
+    frameTime = 400
+    insertLink("x")
+    assert(#inserts == 0, "unfocused composer should not receive an insert, got " .. #inserts)
   end
 
-  -- test_original_used_when_composer_unfocused_but_override_installed
+  -- test_blizzard_editbox_focused_wins
   do
     reset()
     input.focused = true
-    fire("OnEditFocusGained")
-    input.focused = false
-    frameTime = 400
-
-    local handled = _G.ChatEdit_InsertLink("x")
-    assert(handled == false, "unfocused composer should not claim the insert")
-    assert(#inserts == 0, "unfocused composer should not receive an insert, got " .. #inserts)
+    frameTime = 450
+    _G.ChatEdit_GetActiveWindow = function()
+      return {
+        HasFocus = function()
+          return true
+        end,
+      }
+    end
+    insertLink("|Hitem:2|h[Other]|h")
+    assert(#inserts == 0, "a focused Blizzard editbox already got the link, got " .. #inserts)
+    _G.ChatEdit_GetActiveWindow = function()
+      return nil
+    end
   end
 
   -- test_no_gettime_keeps_legacy_behavior
@@ -133,19 +113,15 @@ return function()
     reset()
     _G.GetTime = nil
     input.focused = true
-    fire("OnEditFocusGained")
-
-    _G.ChatEdit_InsertLink("Gæmmer-Kazzak")
-    _G.ChatEdit_InsertLink("|Hplayer:Gæmmer-Kazzak:1:WHISPER|h[Gæmmer]|h")
+    insertLink("Gammer-Kazzak")
+    insertLink("|Hplayer:Gammer-Kazzak:1:WHISPER|h[Gammer]|h")
     assert(#inserts == 2, "without GetTime both same-frame inserts should land, got " .. #inserts)
   end
 
-  -- Cleanup global state
   _G.hooksecurefunc = savedHook
   _G.SetItemRef = savedSetItemRef
   _G.ChatEdit_GetActiveWindow = savedChatEditGetActiveWindow
   _G.ChatEdit_InsertLink = savedChatEditInsertLink
-  _G.ChatFrameUtil = savedChatFrameUtil
   _G.GetTime = savedGetTime
   package.loaded["WhisperMessenger.UI.Composer.LinkHooks"] = nil
 end

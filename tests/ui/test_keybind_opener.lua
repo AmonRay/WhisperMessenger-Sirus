@@ -60,19 +60,25 @@ return function()
   -- test_open_falls_back_to_legacy_key_binding_frame
   do
     local shown = nil
-    local frame = {}
+    local usedPanelManager = false
+    local frame = {
+      Show = function(self)
+        shown = self
+      end,
+    }
     local values = {
       KeyBindingFrame_LoadUI = function()
         rawset(_G, "KeyBindingFrame", frame)
       end,
-      ShowUIPanel = function(target)
-        shown = target
+      ShowUIPanel = function()
+        usedPanelManager = true
       end,
     }
     withGlobals(values, function()
       assert(KeybindOpener.Open() == true, "legacy open should report success")
     end)
     assert(shown == frame, "legacy path should show KeyBindingFrame")
+    assert(usedPanelManager == false, "legacy path must not go through ShowUIPanel (taint)")
   end
 
   -- test_open_refused_in_combat
