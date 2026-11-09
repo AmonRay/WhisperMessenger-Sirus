@@ -30,7 +30,7 @@ local function settingsPanel()
 end
 
 local function hasLegacyFrame()
-  return type(_G["KeyBindingFrame_LoadUI"]) == "function" and type(_G["ShowUIPanel"]) == "function"
+  return type(_G["KeyBindingFrame_LoadUI"]) == "function"
 end
 
 -- Returns enabled, reasonKey (an English Localization key, nil when enabled).
@@ -62,7 +62,15 @@ function KeybindOpener.Open(closeWindow)
   if _G.KeyBindingFrame == nil then
     return false
   end
-  _G["ShowUIPanel"](_G.KeyBindingFrame)
+  -- ShowUIPanel from addon code taints UIParent's panel layout
+  -- (UIParent_ManageFramePositions / panel attributes); the next panel the
+  -- player opens (spellbook, talents) then updates its buttons tainted and
+  -- clicks die with ADDON_ACTION_FORBIDDEN. KeyBindingFrame is a plain
+  -- dialog on 3.3.5, so a direct Show() is enough and stays untainted.
+  local frame = _G.KeyBindingFrame
+  if type(frame.Show) == "function" then
+    frame:Show()
+  end
   return true
 end
 

@@ -37,7 +37,10 @@ local function confirmReset(onAccept)
   if type(_G.StaticPopup_Show) ~= "function" then
     return
   end
-  _G.StaticPopupDialogs = _G.StaticPopupDialogs or {}
+  -- Never reassign the live StaticPopupDialogs table (taint); create it only in test stubs.
+  if _G.StaticPopupDialogs == nil then
+    _G.StaticPopupDialogs = {}
+  end
   _G.StaticPopupDialogs[RESET_DIALOG] = {
     text = text(RESET_PROMPT),
     button1 = text("Reset to Defaults"),

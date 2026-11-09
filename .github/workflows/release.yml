@@ -1,10 +1,8 @@
-name: Package and release
+name: Package and release (upstream CurseForge/Wago)
 
+# Upstream pipeline, kept for reference. The tag-push trigger is disabled:
+# Sirus builds are released by sirus-release.yml when the TOC version is bumped.
 on:
-  push:
-    tags:
-      - "**"
-
   workflow_dispatch:
     inputs:
       version:

@@ -66,7 +66,10 @@ function PickerPopup.RegisterEscape(frameName, frame)
   if not known then
     table.insert(escapeFrameNames, frameName)
   end
-  _G.UISpecialFrames = _G.UISpecialFrames or {}
+  -- Never reassign the live UISpecialFrames table (taint); create it only in test stubs.
+  if _G.UISpecialFrames == nil then
+    _G.UISpecialFrames = {}
+  end
   for _, name in ipairs(_G.UISpecialFrames) do
     if name == frameName then
       return

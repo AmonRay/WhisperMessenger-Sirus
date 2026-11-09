@@ -103,6 +103,21 @@ function Widgets.CreateColor(r, g, b, a)
   }
 end
 
+-- Retail-shaped UnitClass (localized, english, classID, classTag) without
+-- touching _G.UnitClass.
+function Widgets.UnitClass(unit)
+  local unitClass = _G.UnitClass
+  if type(unitClass) ~= "function" then
+    return nil
+  end
+  local localized, english, classID, classTag = unitClass(unit)
+  if classTag == nil and type(english) == "string" then
+    classTag = string.upper((string.gsub(english, "%s+", "")))
+    classID = classID or CLASS_IDS[classTag]
+  end
+  return localized, english, classID, classTag
+end
+
 function Widgets.CreateFrame(frameType, name, parent, template, id)
   if type(nativeCreateFrame) ~= "function" then
     return nil
@@ -130,18 +145,11 @@ function Widgets.Install(env)
     nativeCreateFrame = env.CreateFrame
   end
 
-  local unitClass = env.UnitClass
-  if type(unitClass) == "function" and env._wmWrathUnitClass ~= true then
-    env._wmWrathUnitClass = true
-    env.UnitClass = function(unit)
-      local localized, english, classID, classTag = unitClass(unit)
-      if classTag == nil and type(english) == "string" then
-        classTag = string.upper((string.gsub(english, "%s+", "")))
-        classID = CLASS_IDS[classTag]
-      end
-      return localized, english, classID, classTag
-    end
-  end
+  -- Never replace the global UnitClass: FrameXML calls it from secure code
+  -- (SpellBookFrame_UpdatePages -> UnitClass("player")). An addon-owned
+  -- replacement taints that execution path, the spell buttons' fields get
+  -- written tainted and the next click ends in ADDON_ACTION_FORBIDDEN
+  -- "CastSpell()". Callers that need classID/classTag use Widgets.UnitClass.
 
   if type(env.Ambiguate) ~= "function" then
     env.Ambiguate = function(name, _context)

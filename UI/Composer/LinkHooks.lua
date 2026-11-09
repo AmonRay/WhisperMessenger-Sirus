@@ -65,9 +65,9 @@ local function tryInsertLink(link, options)
   end
 
   -- ponytail: one insert per frame. A single shift-click fans out into several
-  -- Blizzard insert paths (player-link handler, SetItemRef modified-click
-  -- fallback, our SetItemRef post-hook). Only the first — the plain
-  -- whisperable name — should land. GetTime() is constant within a frame.
+  -- Blizzard insert paths (ChatEdit_InsertLink, SetItemRef modified-click
+  -- fallback, our SetItemRef post-hook). Only the first should land.
+  -- GetTime() is constant within a frame.
   local now = type(_G.GetTime) == "function" and _G.GetTime() or nil
   if now ~= nil and now == lastInsertFrameTime then
     return true -- already inserted this frame; report handled so callers don't fall back
@@ -79,147 +79,47 @@ local function tryInsertLink(link, options)
 end
 
 local function safeHookGlobal(functionName, handler)
+  if type(_G[functionName]) ~= "function" then
+    return false
+  end
   local ok = pcall(_G.hooksecurefunc, functionName, handler)
   return ok
 end
 
--- Snapshot originals at module load so we can restore them when no composer
--- input has focus. We intentionally do NOT install the overrides here —
--- leaving our function baked into Blizzard's call graph taints every
--- internal `ChatEdit_GetActiveWindow` query, including the one on the
--- `OPENCHAT` binding (Enter) path. That crashed `UpdateHeader` arithmetic
--- with WhisperMessenger attribution on every Enter press and on `/r` after
--- a post-M+ BN_WHISPER sticky.
---
--- Instead, the overrides install on composer focus-gained and restore on
--- focus-lost. While the composer is focused (user actively composing), any
--- Blizzard query routes through us and links insert correctly. While it is
--- unfocused — which is exactly when OPENCHAT and /r fire — Blizzard sees
--- its own function and runs untainted.
-local originals = {
-  chatEditGetActiveWindow = nil,
-  chatEditInsertLink = nil,
-  chatFrameUtilGetActiveWindow = nil,
-  chatFrameUtilInsertLink = nil,
-  captured = false,
-}
+-- True when a Blizzard chat editbox currently owns the keyboard: the link
+-- already went there, we must not duplicate it into the composer.
+local function blizzardEditBoxFocused()
+  local getActive = _G.ChatEdit_GetActiveWindow
+  if type(getActive) ~= "function" then
+    return false
+  end
+  local ok, editBox = pcall(getActive)
+  return ok and editBox ~= nil and type(editBox.HasFocus) == "function" and editBox:HasFocus() == true
+end
 
-local function captureOriginals()
-  if originals.captured then
+-- Shift-click of an item/spell/quest/achievement ends in ChatEdit_InsertLink.
+-- Earlier versions REPLACED _G.ChatEdit_InsertLink / ChatEdit_GetActiveWindow
+-- while the composer had focus and assigned the originals back on focus loss.
+-- Any assignment from addon code leaves the global tainted for the rest of the
+-- session, so every secure caller (spellbook modified click, bag items,
+-- OPENCHAT) ran tainted afterwards. Now we only post-hook: Blizzard runs its
+-- own untouched function, then we insert into our focused composer.
+local function onChatEditInsertLink(link)
+  if _G._wmSuspended or type(link) ~= "string" or link == "" then
     return
   end
-  originals.chatEditGetActiveWindow = _G.ChatEdit_GetActiveWindow
-  originals.chatEditInsertLink = _G.ChatEdit_InsertLink
-  local cfu = _G.ChatFrameUtil
-  if type(cfu) == "table" then
-    originals.chatFrameUtilGetActiveWindow = cfu.GetActiveWindow
-    originals.chatFrameUtilInsertLink = cfu.InsertLink
-  end
-  originals.captured = true
-end
-
-local overrideInstalled = false
-
-local function wmGetActiveWindow()
-  local original = originals.chatEditGetActiveWindow or originals.chatFrameUtilGetActiveWindow
-  if original then
-    local result = original()
-    if result ~= nil then
-      return result
-    end
-  end
-  local input = findInputForInsertion(false)
-  if input ~= nil and isInputShown(input) and isInputFocused(input) then
-    return input
-  end
-  return nil
-end
-
-local function wmInsertLink(link)
-  -- Rewrite Classic plain-text quest links before trying either path.
-  local insertable = link
-  if type(insertable) == "string" then
-    insertable = QuestLinkClassic.Rewrite(insertable)
-  end
-
-  -- Try our focused composer FIRST (through tryInsertLink, so the one-insert-
-  -- per-frame dedupe applies). Blizzard routes the same click through several
-  -- insert paths in one frame (player-link handler, SetItemRef modified-click
-  -- fallback, our SetItemRef post-hook); only the first should land. Overrides
-  -- are only installed while our composer is focused, so inserting ourselves
-  -- first never steals links from other editboxes.
-  if not _G._wmSuspended and type(insertable) == "string" and insertable ~= "" then
-    if tryInsertLink(insertable, { allowVisibleWithoutFocus = false }) then
-      return true
-    end
-  end
-
-  local original = originals.chatEditInsertLink or originals.chatFrameUtilInsertLink
-  if original then
-    return original(insertable) == true
-  end
-  return false
-end
-
-local function installOverrides()
-  if overrideInstalled then
+  if blizzardEditBoxFocused() then
     return
   end
-  captureOriginals()
-  _G.ChatEdit_GetActiveWindow = wmGetActiveWindow
-  _G.ChatEdit_InsertLink = wmInsertLink
-  local cfu = _G.ChatFrameUtil
-  if type(cfu) == "table" then
-    cfu.GetActiveWindow = wmGetActiveWindow
-    cfu.InsertLink = wmInsertLink
-  end
-  overrideInstalled = true
-end
-
-local function anyLinkedInputFocused()
-  for _, input in ipairs(linkedInputs) do
-    if input ~= nil and type(input.HasFocus) == "function" and input:HasFocus() then
-      return true
-    end
-  end
-  return false
-end
-
-local function uninstallOverrides()
-  if not overrideInstalled then
-    return
-  end
-  _G.ChatEdit_GetActiveWindow = originals.chatEditGetActiveWindow
-  _G.ChatEdit_InsertLink = originals.chatEditInsertLink
-  local cfu = _G.ChatFrameUtil
-  if type(cfu) == "table" then
-    cfu.GetActiveWindow = originals.chatFrameUtilGetActiveWindow
-    cfu.InsertLink = originals.chatFrameUtilInsertLink
-  end
-  overrideInstalled = false
-end
-
-local function attachFocusGuards(input)
-  if type(input.HookScript) ~= "function" then
-    return
-  end
-  input:HookScript("OnEditFocusGained", function()
-    -- An input whose own script refused the focus (ClearFocus) has none by now.
-    if isInputFocused(input) then
-      installOverrides()
-    end
-  end)
-  input:HookScript("OnEditFocusLost", function()
-    if not anyLinkedInputFocused() then
-      uninstallOverrides()
-    end
-  end)
+  tryInsertLink(link, { allowVisibleWithoutFocus = false })
 end
 
 local function registerLinkHooks()
   if registeredLinkHooks or type(_G.hooksecurefunc) ~= "function" then
     return
   end
+
+  safeHookGlobal("ChatEdit_InsertLink", onChatEditInsertLink)
 
   -- SetItemRef: handles clicking hyperlinks inside chat bubbles / transcript.
   safeHookGlobal("SetItemRef", function(link, text)
@@ -249,9 +149,8 @@ local function registerLinkHooks()
 end
 
 function LinkHooks.RegisterInput(input)
-  -- Blizzard code (GetActiveChatType, etc.) expects the editbox returned
-  -- by GetActiveWindow to behave like a chat frame editbox. Add fields
-  -- and method stubs so our plain EditBox doesn't error.
+  -- Fields some Blizzard helpers expect on a chat-like editbox. They live on
+  -- our own EditBox only, so they never taint Blizzard state.
   if input.chatType == nil then
     input.chatType = "SAY"
   end
@@ -261,9 +160,12 @@ function LinkHooks.RegisterInput(input)
     end
   end
   table.insert(linkedInputs, 1, input)
-  attachFocusGuards(input)
   registerLinkHooks()
 end
+
+-- Exposed for tests.
+LinkHooks._TryInsertLink = tryInsertLink
+LinkHooks._OnChatEditInsertLink = onChatEditInsertLink
 
 ns.ComposerLinkHooks = LinkHooks
 return LinkHooks

@@ -43,7 +43,8 @@ local function playerClassTag()
   if type(unitClass) ~= "function" then
     return nil
   end
-  local ok, englishClass, _, _, playerTag = pcall(unitClass, "player")
+  -- pcall shifts the returns: ok, localized, english, classID, classTag.
+  local ok, _, englishClass, _, playerTag = pcall(unitClass, "player")
   local tag = playerTag or englishClass
   if ok and type(tag) == "string" and tag ~= "" then
     cachedPlayerClassTag = tag
