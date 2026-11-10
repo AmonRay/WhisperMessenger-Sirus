@@ -65,7 +65,10 @@ return function()
   -- Renegade: both faction world channels, each with its faction's language.
   withSirus(2, function()
     assert(WorldChannels.IsRenegade() == true, "faction override 2 should be Renegade")
-    assert(names(WorldChannels.ForCharacter()) == "Мир(А),Мир(О)", "Renegade should see Мир(А) and Мир(О), got " .. names(WorldChannels.ForCharacter()))
+    assert(
+      names(WorldChannels.ForCharacter()) == "Мир(А),Мир(О)",
+      "Renegade should see Мир(А) and Мир(О), got " .. names(WorldChannels.ForCharacter())
+    )
     assert(WorldChannels.LanguageFor("Мир(А)") == "всеобщий", "Мир(А) should use всеобщий for a Renegade")
     assert(WorldChannels.LanguageFor("Мир(О)") == "орочий", "Мир(О) should use орочий for a Renegade")
     assert(WorldChannels.LanguageFor("Мир") == nil, "plain Мир has no language override")

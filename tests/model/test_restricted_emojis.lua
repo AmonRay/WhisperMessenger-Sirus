@@ -38,9 +38,15 @@ return function()
 
   -- sender resolution
   withPlayer("Рэйнбоу", function()
-    assert(RestrictedEmojis.SenderOf({ direction = "out", playerName = "Артас-Сирус" }) == "Рэйнбоу", "outgoing sender is the local player")
+    assert(
+      RestrictedEmojis.SenderOf({ direction = "out", playerName = "Артас-Сирус" }) == "Рэйнбоу",
+      "outgoing sender is the local player"
+    )
   end)
-  assert(RestrictedEmojis.SenderOf({ direction = "in", playerName = "Реинбоу-Сирус" }) == "Реинбоу", "incoming sender is playerName")
+  assert(
+    RestrictedEmojis.SenderOf({ direction = "in", playerName = "Реинбоу-Сирус" }) == "Реинбоу",
+    "incoming sender is playerName"
+  )
   assert(RestrictedEmojis.SenderOf(nil) == nil, "nil message has no sender")
 
   -- rendering

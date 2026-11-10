@@ -68,15 +68,17 @@ end
 -- senderName: who wrote the text. Personal (restricted) emojis render only
 -- when it is one of their owners; otherwise the token stays literal.
 function ReactionAssets.FormatTextForDisplay(text, senderName)
-  return (tostring(text or ""):gsub(":([%a%d_]+):", function(key)
-    if RestrictedEmojis.IsRestricted(key) then
-      if RestrictedEmojis.CanUse(key, senderName) then
-        return RestrictedEmojis.GetInlineTextureMarkup(key, ReactionAssets.GetIconSize())
+  return (
+    tostring(text or ""):gsub(":([%a%d_]+):", function(key)
+      if RestrictedEmojis.IsRestricted(key) then
+        if RestrictedEmojis.CanUse(key, senderName) then
+          return RestrictedEmojis.GetInlineTextureMarkup(key, ReactionAssets.GetIconSize())
+        end
+        return ":" .. key .. ":"
       end
-      return ":" .. key .. ":"
-    end
-    return ReactionAssets.GetInlineTextureMarkup(key) or ":" .. key .. ":"
-  end))
+      return ReactionAssets.GetInlineTextureMarkup(key) or ":" .. key .. ":"
+    end)
+  )
 end
 function ReactionAssets.GetIconSize()
   local size = tonumber(Fonts.GetFontSize and Fonts.GetFontSize()) or 12
