@@ -1,10 +1,10 @@
-## Interface: 30300
+## Interface: 120105, 16001
 ## Title: Whisper Messenger
 ## Notes: Never lose a whisper again. Every whisper in one messenger window with history, online status and unread badges.
 ## Author: F0rty_tw0
 ## Category: Chat
 ## IconTexture: Interface\AddOns\WhisperMessenger\Media\icon.tga
-## Version: v2.1.8
+## Version: v2.1.9
 ## SavedVariables: WhisperMessengerDB
 ## SavedVariablesPerCharacter: WhisperMessengerCharacterDB
 ## OptionalDeps: EllesmereUI

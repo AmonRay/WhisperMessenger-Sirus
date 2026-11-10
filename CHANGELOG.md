@@ -6,6 +6,8 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+## [2.1.9] - 2026-11-10
+
 - Fixed: On the original Wrath client (3.3.5a) closing the messenger with ESC while typing no longer leaves the keyboard stuck, so hotkeys for other windows work again right away.
 - Fixed: Making the messenger window smaller no longer leaves messages drawn below the message box or outside the window.
 - Fixed: On the original Wrath client (3.3.5a) the Window Scale slider no longer shrinks the window while you drag it, so you can make the window bigger again. Resetting to defaults applies the scale right away.
