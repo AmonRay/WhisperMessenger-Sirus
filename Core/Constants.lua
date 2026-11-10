@@ -4,7 +4,7 @@ if type(ns) ~= "table" then
 end
 
 local Constants = {
-  VERSION = "v2.1.5",
+  VERSION = "v2.1.6",
 
   LIVE_EVENT_NAMES = {
     "CHAT_MSG_WHISPER",
@@ -54,6 +54,8 @@ local Constants = {
     "GROUP_FORMED",
     "GROUP_JOINED",
     "GROUP_LEFT",
+    "PARTY_MEMBERS_CHANGED",
+    "RAID_ROSTER_UPDATE",
     "CHALLENGE_MODE_START",
     "CHALLENGE_MODE_COMPLETED",
     "CHALLENGE_MODE_RESET",

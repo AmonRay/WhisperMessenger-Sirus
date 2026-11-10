@@ -210,7 +210,7 @@ function Frame.WireFrame(refs, options)
         frame:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", commitX, commitY)
       end
     end)
-    relayoutWindow(nextWidth, nextHeight, nil, false)
+    relayoutWindow(frameWidth(), frameHeight(), nil, false)
   end
 
   local windowResize = WindowResize.New({

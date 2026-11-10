@@ -350,6 +350,27 @@ return function()
     assert(store.conversations["party::" .. LOCAL_PROFILE_ID] == nil, "known party GUID must not use singleton key")
   end
 
+  -- test_classic_roster_events_reopen_a_group_session_after_reload
+  do
+    _G.IsInGroup = function(_category)
+      return true
+    end
+    _G.IsInRaid = function()
+      return false
+    end
+
+    for _, event in ipairs({ "PARTY_MEMBERS_CHANGED", "RAID_ROSTER_UPDATE" }) do
+      local state = makeState({
+        [PARTY_KEY] = { channel = "PARTY", messages = {}, leftGroup = true },
+      })
+      local Bootstrap = makeBootstrap(state)
+
+      LifecycleHandlers.Handle(Bootstrap, event, {})
+
+      assert(state.conversations[PARTY_KEY].leftGroup == nil, event .. " must reopen the current party chat after a reload")
+    end
+  end
+
   -- Restore globals
   _G.IsInGroup = savedIsInGroup
   _G.IsInRaid = savedIsInRaid

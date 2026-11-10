@@ -30,7 +30,8 @@ end
 
 -- Runs fn(frame, bound) with a hidden, bound window and the game's binding
 -- API stubbed; bound lists the keys overridden now.
-local function withBoundWindow(fn)
+local function withBoundWindow(fn, options)
+  options = options or {}
   local saved = {}
   for _, name in ipairs(SAVED_NAMES) do
     saved[name] = rawget(_G, name)
@@ -41,7 +42,7 @@ local function withBoundWindow(fn)
   rawset(_G, "GetBindingKey", function()
     return "ESCAPE"
   end)
-  rawset(_G, "SetOverrideBindingClick", function(_owner, _priority, key, _buttonName)
+  rawset(_G, "SetOverrideBindingClick", options.overrideBindingClick or function(_owner, _priority, key, _buttonName)
     table.insert(bound, key)
   end)
   rawset(_G, "ClearOverrideBindings", function(_owner)
@@ -97,4 +98,19 @@ return function()
     frame:Hide()
     assert(#bound == 0, "a closed window must give ESC back to the game")
   end)
+
+  -- test_blocked_override_binding_is_asked_once_and_never_raises
+  local attempts = 0
+  withBoundWindow(function(frame, bound)
+    frame:Show()
+    frame:Hide()
+    frame:Show()
+    assert(#bound == 0, "a blocked client must not hold ESC")
+  end, {
+    overrideBindingClick = function()
+      attempts = attempts + 1
+      error("ADDON_ACTION_BLOCKED", 0)
+    end,
+  })
+  assert(attempts == 1, "a blocked SetOverrideBindingClick must not be retried, got " .. attempts)
 end

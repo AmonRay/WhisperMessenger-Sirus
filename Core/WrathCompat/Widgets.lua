@@ -118,11 +118,41 @@ function Widgets.UnitClass(unit)
   return localized, english, classID, classTag
 end
 
+local function pointByName(region, pointName)
+  local getNumPoints = region.GetNumPoints
+  local getPoint = region.GetPoint
+  if type(getNumPoints) ~= "function" or type(getPoint) ~= "function" then
+    return nil
+  end
+  local count = getNumPoints(region)
+  for index = 1, (type(count) == "number" and count or 0) do
+    local point, relativeTo, relativePoint, offsetX, offsetY = getPoint(region, index)
+    if point == pointName then
+      return point, relativeTo, relativePoint, offsetX, offsetY
+    end
+  end
+  return nil
+end
+
+function Widgets.GetPointByName(region, pointName)
+  return pointByName(region, pointName)
+end
+
+function Widgets.InstallGetPointByName(region)
+  if region == nil or type(region.GetPointByName) == "function" then
+    return false
+  end
+  region.GetPointByName = pointByName
+  return true
+end
+
 function Widgets.CreateFrame(frameType, name, parent, template, id)
   if type(nativeCreateFrame) ~= "function" then
     return nil
   end
-  return nativeCreateFrame(frameType, name, parent, stripTemplates(template), id)
+  local frame = nativeCreateFrame(frameType, name, parent, stripTemplates(template), id)
+  Widgets.InstallGetPointByName(frame)
+  return frame
 end
 
 function Widgets.WrapFactory(env)
@@ -164,6 +194,8 @@ function Widgets.Install(env)
     env.GetNormalizedRealmName = shim
     env._wmWrathNormalizedShim = shim
   end
+
+  Widgets.InstallGetPointByName(env.UIParent)
 
   return true
 end

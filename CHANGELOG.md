@@ -6,6 +6,11 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+## [2.1.6] - 2026-11-10
+
+- Fixed: On the original Wrath client (3.3.5a) right-clicking a group chat now opens its menu instead of stopping with an error.
+- Fixed: After a reload on the original Wrath client (3.3.5a) the messenger again sees that you are still in a group, so you can write in group chat and your current group is no longer treated as left.
+- Fixed: The messenger no longer shows a protected-action error when it takes the ESC key for its window; ESC still closes the window.
 - Fixed: On the original Wrath client (3.3.5a) the addon could fail to start because the client only opened its entry file - it now loads all of its files.
 - Fixed: Whisper Messenger no longer interferes with windows other addons create (for example the copy window in Details).
 - Fixed: On the original Wrath client (3.3.5a) the addon no longer stops with an error when the game will not let it attach link hover and click handling to a window.

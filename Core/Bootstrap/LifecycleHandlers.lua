@@ -63,7 +63,7 @@ function LifecycleHandlers.Handle(Bootstrap, event, deps, ...)
     return GroupMembership.handleGroupLeft(Bootstrap, category, partyGUID)
   end
 
-  if event == "GROUP_ROSTER_UPDATE" then
+  if event == "GROUP_ROSTER_UPDATE" or event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
     return GroupMembership.handleGroupRosterUpdate(Bootstrap)
   end
 
@@ -88,7 +88,9 @@ function LifecycleHandlers.Handle(Bootstrap, event, deps, ...)
   end
 
   if event == "PLAYER_ENTERING_WORLD" then
-    return Presence.handlePlayerEnteringWorld(Bootstrap, deps)
+    local handled = Presence.handlePlayerEnteringWorld(Bootstrap, deps)
+    GroupMembership.handleGroupRosterUpdate(Bootstrap)
+    return handled
   end
 
   if event == "UPDATE_BINDINGS" or event == "HOUSE_EDITOR_MODE_CHANGED" then

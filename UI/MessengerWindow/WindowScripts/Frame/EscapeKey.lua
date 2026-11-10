@@ -79,6 +79,7 @@ function EscapeKey.New(frame, deps)
   local inCombat = deps.inCombat or defaultInCombat
 
   local focused = false
+  local bindingBlocked = false
   -- The game-menu keys held now, joined; nil while ESC belongs to the game.
   local boundKeys = nil
   local button = nil
@@ -90,18 +91,29 @@ function EscapeKey.New(frame, deps)
 
   local function unbind()
     if boundKeys ~= nil and type(clearOverrideBindings) == "function" then
-      clearOverrideBindings(button)
+      pcall(clearOverrideBindings, button)
     end
     boundKeys = nil
   end
 
   local function bind()
-    if boundKeys ~= nil or button == nil or type(setOverrideBindingClick) ~= "function" then
+    if bindingBlocked or boundKeys ~= nil or button == nil or type(setOverrideBindingClick) ~= "function" then
       return
     end
     local keys = gameMenuKeys(getBindingKey)
+    local bound = {}
     for _, gameMenuKey in ipairs(keys) do
-      setOverrideBindingClick(button, true, gameMenuKey, BUTTON_NAME)
+      if not pcall(setOverrideBindingClick, button, true, gameMenuKey, BUTTON_NAME) then
+        bindingBlocked = true
+        break
+      end
+      bound[#bound + 1] = gameMenuKey
+    end
+    if bindingBlocked then
+      if #bound > 0 and type(clearOverrideBindings) == "function" then
+        pcall(clearOverrideBindings, button)
+      end
+      return
     end
     if #keys > 0 then
       boundKeys = table.concat(keys, " ")
