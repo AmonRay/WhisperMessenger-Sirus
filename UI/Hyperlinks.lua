@@ -5,7 +5,11 @@ end
 
 local UrlFormatter = ns.UIHyperlinksUrlFormatter or require("WhisperMessenger.UI.Hyperlinks.UrlFormatter")
 local QuestLinkClassic = ns.UIHyperlinksQuestLinkClassic or require("WhisperMessenger.UI.Hyperlinks.QuestLinkClassic")
-local CombatItemRef = ns.UIHyperlinksCombatItemRef or require("WhisperMessenger.UI.Hyperlinks.CombatItemRef")
+local CombatItemRef = ns.UIHyperlinksCombatItemRef
+if CombatItemRef == nil and type(require) == "function" then
+  local ok, loaded = pcall(require, "WhisperMessenger.UI.Hyperlinks.CombatItemRef")
+  CombatItemRef = ok and loaded or nil
+end
 local ReactionAssets = ns.ChatBubbleReactionAssets or require("WhisperMessenger.UI.ChatBubble.ReactionAssets")
 
 local function restoreTrailingEmojiToken(hyperlink)
@@ -222,7 +226,7 @@ local function routeClick(frame, link, text, button)
     return
   end
 
-  if CombatItemRef.TryPin(link) then
+  if CombatItemRef ~= nil and CombatItemRef.TryPin(link) then
     return
   end
 

@@ -6,6 +6,10 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+## [2.1.7] - 2026-11-10
+
+- Fixed: On the original Wrath client (3.3.5a) a module the game did not load could stop the messenger from opening with a "require" error. The addon now reads any missing module from its own folder.
+
 ## [2.1.6] - 2026-11-10
 
 - Fixed: On the original Wrath client (3.3.5a) right-clicking a group chat now opens its menu instead of stopping with an error.

@@ -20,7 +20,54 @@ function Loader.LoadModule(name, key)
   error(key .. " module not available")
 end
 
+local ADDON_FOLDER = "Interface\\AddOns\\WhisperMessenger\\"
+
+local function moduleFile(name, addonName)
+  if type(name) ~= "string" then
+    return nil
+  end
+  local prefix = addonName .. "%."
+  if string.find(name, prefix) ~= 1 then
+    return nil
+  end
+  local relative = string.sub(name, string.len(addonName) + 2)
+  if relative == "" then
+    return nil
+  end
+  return ADDON_FOLDER .. (string.gsub(relative, "%.", "\\")) .. ".lua"
+end
+
+function Loader.CreateRequire(env, addonName, addonTable)
+  env = env or _G
+  local loaded = {}
+
+  return function(name)
+    if loaded[name] ~= nil then
+      return loaded[name]
+    end
+    local path = moduleFile(name, addonName)
+    local chunk = path ~= nil and type(env.loadfile) == "function" and env.loadfile(path) or nil
+    if type(chunk) ~= "function" then
+      error("module not available: " .. tostring(name), 2)
+    end
+    local module = chunk(addonName, addonTable)
+    loaded[name] = module
+    return module
+  end
+end
+
+function Loader.InstallRequireShim(env, addonName, addonTable)
+  env = env or _G
+  if type(env.require) == "function" then
+    return false
+  end
+  env.require = Loader.CreateRequire(env, addonName, addonTable or ns)
+  return true
+end
+
 ns.Loader = Loader
 rawset(_G, "WhisperMessengerLoader", Loader)
+
+Loader.InstallRequireShim(_G, addonName, ns)
 
 return Loader
