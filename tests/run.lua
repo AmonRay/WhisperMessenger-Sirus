@@ -11,13 +11,12 @@ local function portablePath(path)
   end
   return path
 end
-loadfile = function(path, ...)
+rawset(_G, "loadfile", function(path, ...)
   return rawLoadfile(portablePath(path), ...)
-end
-dofile = function(path)
+end)
+rawset(_G, "dofile", function(path)
   return rawDofile(portablePath(path))
-end
-_G.loadfile, _G.dofile = loadfile, dofile
+end)
 
 local rawRequire = require
 
