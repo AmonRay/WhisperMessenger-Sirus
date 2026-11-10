@@ -234,6 +234,23 @@ function ConversationPane.Create(factory, parent, selectedContact, conversation,
   view._layoutHeight = parentHeight
   HeaderView.Relayout(view, parentWidth)
 
+  -- 3.3.5a resolves anchored rects lazily: while the window shrinks the pane
+  -- can still report its old, taller height, sizing the transcript past the
+  -- composer. Re-fit once the pane's real height lands.
+  if type(pane.HookScript) == "function" then
+    pane:HookScript("OnSizeChanged", function(_, _, newHeight)
+      if view._refitting or type(newHeight) ~= "number" or newHeight <= 0 or newHeight == view._fittedPaneHeight then
+        return
+      end
+      view._refitting = true
+      local ok, err = pcall(ConversationPane.Relayout, view, view._layoutWidth, view._layoutHeight)
+      view._refitting = false
+      if not ok then
+        error(err, 0)
+      end
+    end)
+  end
+
   if type(options.onReact) == "function" then
     transcript.onReact = function(message, reactionKey)
       return options.onReact(view._selectedContact, message, reactionKey)
@@ -281,6 +298,7 @@ function ConversationPane.Relayout(view, width, height)
   -- differ from the window-derived metric; size the transcript to what the
   -- pane actually is so bubbles reach the composer instead of stopping short.
   local paneHeight = sizeValue(view.frame, "GetHeight", "height", height)
+  view._fittedPaneHeight = paneHeight
   local transcriptW = width - Theme.LAYOUT.TRANSCRIPT_HORIZONTAL_INSET
   local transcriptH = paneHeight - Theme.HeaderHeight() - bannerOffset - InfoStrip.HeightOf(view)
   local t = view.transcript

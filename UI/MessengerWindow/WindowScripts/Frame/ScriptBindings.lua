@@ -65,6 +65,32 @@ function ScriptBindings.Bind(options)
     alphaTicker = nil
   end
 
+  local function isInsideWindow(widget)
+    local current = widget
+    while current ~= nil do
+      if current == frame then
+        return true
+      end
+      current = type(current.GetParent) == "function" and current:GetParent() or nil
+    end
+    return false
+  end
+
+  -- 3.3.5a keeps keyboard focus on a hidden EditBox: closed with the composer
+  -- focused (ESC from the input), the window kept every key (C, P, B, ESC...)
+  -- and no other window could open. Only the window's own boxes are cleared.
+  local function releaseKeyboardFocus()
+    local getFocus = _G["GetCurrentKeyBoardFocus"]
+    local focused = type(getFocus) == "function" and getFocus() or nil
+    if focused ~= nil and type(focused.ClearFocus) == "function" and isInsideWindow(focused) then
+      pcall(focused.ClearFocus, focused)
+    end
+    local input = options.composerInput
+    if input and type(input.HasFocus) == "function" and input:HasFocus() and type(input.ClearFocus) == "function" then
+      pcall(input.ClearFocus, input)
+    end
+  end
+
   local strata = WindowStrata.New(frame, options, escapeOrder)
   local promoteStrata = strata.promote
   local demoteStrataIfIdle = strata.demoteIfIdle
@@ -95,6 +121,7 @@ function ScriptBindings.Bind(options)
     end)
 
     frame:SetScript("OnHide", function()
+      releaseKeyboardFocus()
       escapeOrder.release()
       setOutsideClickListening(false)
       stopAlphaTicker()

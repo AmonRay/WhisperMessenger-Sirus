@@ -6,6 +6,9 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+- Fixed: On the original Wrath client (3.3.5a) closing the messenger with ESC while typing no longer leaves the keyboard stuck, so hotkeys for other windows work again right away.
+- Fixed: Making the messenger window smaller no longer leaves messages drawn below the message box or outside the window.
+
 ## [2.1.7] - 2026-11-10
 
 - Fixed: On the original Wrath client (3.3.5a) a module the game did not load could stop the messenger from opening with a "require" error. The addon now reads any missing module from its own folder.
