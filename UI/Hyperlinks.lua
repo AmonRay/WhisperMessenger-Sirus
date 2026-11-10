@@ -26,6 +26,10 @@ local function restoreTrailingEmojiToken(hyperlink)
   return "|H" .. link .. ":|h" .. display .. ":|h"
 end
 
+-- Sender of the text being formatted; set for the duration of one
+-- FormatTextForDisplay call (formatting is synchronous).
+local activeSender = nil
+
 local function formatEmojiInPlainSegments(value)
   local output = {}
   local cursor = 1
@@ -33,12 +37,12 @@ local function formatEmojiInPlainSegments(value)
   while cursor <= #value do
     local hyperlinkStart, hyperlinkEnd = string.find(value, "|H.-|h.-|h", cursor)
     if hyperlinkStart == nil then
-      table.insert(output, ReactionAssets.FormatTextForDisplay(string.sub(value, cursor)))
+      table.insert(output, ReactionAssets.FormatTextForDisplay(string.sub(value, cursor), activeSender))
       break
     end
 
     if hyperlinkStart > cursor then
-      table.insert(output, ReactionAssets.FormatTextForDisplay(string.sub(value, cursor, hyperlinkStart - 1)))
+      table.insert(output, ReactionAssets.FormatTextForDisplay(string.sub(value, cursor, hyperlinkStart - 1), activeSender))
     end
 
     local hyperlink = string.sub(value, hyperlinkStart, hyperlinkEnd)
@@ -107,12 +111,14 @@ local function copyExternalUrl(url)
   return false
 end
 
-function Hyperlinks.FormatTextForDisplay(text)
+-- senderName (optional): author of the text, used to gate personal emojis.
+function Hyperlinks.FormatTextForDisplay(text, senderName)
   local value = QuestLinkClassic.Rewrite(tostring(text or ""))
   if value == "" then
     return ""
   end
 
+  activeSender = senderName
   local output = {}
   local cursor = 1
 
@@ -131,6 +137,7 @@ function Hyperlinks.FormatTextForDisplay(text)
     cursor = hyperlinkEnd + 1
   end
 
+  activeSender = nil
   return table.concat(output)
 end
 

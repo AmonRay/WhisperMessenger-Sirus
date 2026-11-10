@@ -9,6 +9,7 @@ local Popover = ns.ComposerPopover or require("WhisperMessenger.UI.Composer.Popo
 local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.PickerPopup")
 local NativeArt = ns.UIHelpersNativeArt or require("WhisperMessenger.UI.Helpers.NativeArt")
 local Hud = ns.Hud or require("WhisperMessenger.UI.Theme.Hud")
+local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
 
 local EmojiPicker = {}
 
@@ -31,9 +32,12 @@ function EmojiPicker.Create(factory, parent, anchorFrame, onSelect)
   -- A tooltip-border (HUD) panel shifts its cells clear of the border.
   local inset = PickerPopup.BorderInset(frame)
   local pad = PADDING + inset
-  frame:SetSize(layout.frameWidth + inset * 2, buttonSize * layout.rows + PADDING * 2 + inset * 2)
+  local function applyFrameSize(rows)
+    frame:SetSize(layout.frameWidth + inset * 2, buttonSize * rows + PADDING * 2 + inset * 2)
+  end
+  applyFrameSize(layout.rows)
 
-  for index, key in ipairs(Assets.KEYS) do
+  local function createButton(index, key, texture, coords)
     local slot = index - 1
     local column = slot % layout.columns
     local row = math.floor(slot / layout.columns)
@@ -48,8 +52,7 @@ function EmojiPicker.Create(factory, parent, anchorFrame, onSelect)
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetPoint("CENTER", button, "CENTER", 0, 0)
     icon:SetSize(iconSize, iconSize)
-    icon:SetTexture(Assets.TEXTURE)
-    local coords = Assets.GetTexCoords(key)
+    icon:SetTexture(texture)
     icon:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
 
     button:SetScript("OnEnter", function(self)
@@ -71,12 +74,39 @@ function EmojiPicker.Create(factory, parent, anchorFrame, onSelect)
       onSelect(key)
     end)
     picker.buttons[index] = button
+    return button
   end
+
+  for index, key in ipairs(Assets.KEYS) do
+    createButton(index, key, Assets.TEXTURE, Assets.GetTexCoords(key))
+  end
+
+  -- Personal emojis are appended after the shared set, only for their
+  -- owners. Built on first open: the player name isn't reliable at load.
+  picker.restrictedKeys = nil
+  local function ensureRestrictedButtons()
+    if picker.restrictedKeys ~= nil then
+      return
+    end
+    local playerName = RestrictedEmojis.LocalPlayerName()
+    if playerName == nil then
+      return
+    end
+    picker.restrictedKeys = RestrictedEmojis.KeysFor(playerName)
+    local count = #Assets.KEYS
+    for _, key in ipairs(picker.restrictedKeys) do
+      count = count + 1
+      createButton(count, key, RestrictedEmojis.GetTexture(key), { 0, 1, 0, 1 })
+    end
+    applyFrameSize(math.max(layout.rows, math.ceil(count / layout.columns)))
+  end
+  picker.ensureRestrictedButtons = ensureRestrictedButtons
 
   function picker:open()
     if not self.enabled then
       return false
     end
+    ensureRestrictedButtons()
     popover.open()
     return true
   end

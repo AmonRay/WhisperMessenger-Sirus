@@ -9,6 +9,7 @@ local Hyperlinks = ns.UIHyperlinks or require("WhisperMessenger.UI.Hyperlinks")
 local Virtualization = ns.ConversationPaneTranscriptVirtualization or require("WhisperMessenger.UI.ConversationPane.TranscriptVirtualization")
 local MessageReplies = ns.MessageReplies or require("WhisperMessenger.Model.MessageReplies")
 local TranscriptRows = ns.ConversationPaneTranscriptRows or require("WhisperMessenger.UI.ConversationPane.TranscriptRows")
+local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
 local sizeValue = UIHelpers.sizeValue
 
 local TranscriptView = {}
@@ -25,7 +26,7 @@ function TranscriptView.IsAtEnd(transcript)
 end
 
 local function formatMessage(message)
-  local body = Hyperlinks.FormatTextForDisplay(message and message.text or "")
+  local body = Hyperlinks.FormatTextForDisplay(message and message.text or "", RestrictedEmojis.SenderOf(message))
 
   if message.kind == "system" then
     return "[System] " .. body

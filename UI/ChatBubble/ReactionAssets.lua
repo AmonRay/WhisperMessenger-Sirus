@@ -5,6 +5,7 @@ end
 
 local Protocol = ns.MessageReactionProtocol or require("WhisperMessenger.Model.MessageReactionProtocol")
 local Fonts = ns.ThemeFonts or require("WhisperMessenger.UI.Theme.Fonts")
+local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
 
 local ReactionAssets = {}
 local KEYS = Protocol.REACTION_KEYS
@@ -64,8 +65,16 @@ function ReactionAssets.GetInlineTextureMarkup(key)
   )
 end
 
-function ReactionAssets.FormatTextForDisplay(text)
+-- senderName: who wrote the text. Personal (restricted) emojis render only
+-- when it is one of their owners; otherwise the token stays literal.
+function ReactionAssets.FormatTextForDisplay(text, senderName)
   return (tostring(text or ""):gsub(":([%a%d_]+):", function(key)
+    if RestrictedEmojis.IsRestricted(key) then
+      if RestrictedEmojis.CanUse(key, senderName) then
+        return RestrictedEmojis.GetInlineTextureMarkup(key, ReactionAssets.GetIconSize())
+      end
+      return ":" .. key .. ":"
+    end
     return ReactionAssets.GetInlineTextureMarkup(key) or ":" .. key .. ":"
   end))
 end

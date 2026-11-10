@@ -6,6 +6,8 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+- New: Personal emojis. Some emojis belong to specific characters: only they see them in the emoji picker, and the emoji shows as a picture only in messages those characters sent. Typed by anyone else it stays plain text. The first one is the clown, for Рэйнбоу, Реинбоу, Рэинбоу and Рейнбоу.
+
 ## [2.1.9] - 2026-11-10
 
 - Fixed: On the original Wrath client (3.3.5a) closing the messenger with ESC while typing no longer leaves the keyboard stuck, so hotkeys for other windows work again right away.

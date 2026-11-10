@@ -14,6 +14,7 @@ local Hyperlinks = ns.UIHyperlinks or require("WhisperMessenger.UI.Hyperlinks")
 local MessageReactions = ns.MessageReactions or require("WhisperMessenger.Model.MessageReactions")
 local ReactionAssets = ns.ChatBubbleReactionAssets or require("WhisperMessenger.UI.ChatBubble.ReactionAssets")
 local ReactionBadge = ns.ChatBubbleReactionBadge or require("WhisperMessenger.UI.ChatBubble.ReactionBadge")
+local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
 local setFontObject = UIHelpers.setFontObject
 local setTextColor = UIHelpers.setTextColor
 
@@ -152,7 +153,7 @@ function BubbleFrame.CreateBubble(factory, parent, message, options)
   local showIcon = options.showIcon
   local kind = message.kind or "user"
   local direction = message.direction or "in"
-  local displayText = Hyperlinks.FormatTextForDisplay(AddonGreetingText.ForDisplay(message))
+  local displayText = Hyperlinks.FormatTextForDisplay(AddonGreetingText.ForDisplay(message), RestrictedEmojis.SenderOf(message))
   if message.mention then
     displayText = MentionHighlight.Apply(displayText)
   end
