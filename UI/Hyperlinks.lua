@@ -62,7 +62,7 @@ end
 -- Link types whose GameTooltip:SetHyperlink has a side effect instead of a
 -- tooltip: `trade` opens the profession window. Hovering shows nothing for
 -- these (same as Blizzard chat); clicking still routes through SetItemRef.
-local NO_HOVER_TOOLTIP_TYPES = { trade = true }
+local NO_HOVER_TOOLTIP_TYPES = { trade = true, journal = true }
 
 local Hyperlinks = {}
 

@@ -15,6 +15,8 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 - Fixed: On the original Wrath client (3.3.5a) dropdowns in the Native WoW HUD theme no longer open as an empty black window.
 - Fixed: On the original Wrath client (3.3.5a) you can write in guild and officer chat again instead of only reading it.
 - Fixed: On the original Wrath client (3.3.5a) item, player, quest and group-search links in messages can be clicked and hovered again.
+- Fixed: Opening a chat now always shows the latest messages right away, even with many unread messages; the "New messages" divider still marks where they start.
+- Fixed: Hovering a journal link (for example a boss or quest from the adventure guide) no longer shows a tooltip with the raw link text.
 - On Sirus the channel list now shows the world channel your character can use: "Мир" for Horde and Alliance, "Мир(А)" and "Мир(О)" for a Renegade. A Renegade writes in Common in Мир(А) and in Orcish in Мир(О).
 
 ## [2.1.7] - 2026-11-10

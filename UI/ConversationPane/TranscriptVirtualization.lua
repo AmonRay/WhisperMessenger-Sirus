@@ -7,12 +7,10 @@ local ChatBubbleLayout = ns.ChatBubbleLayout or require("WhisperMessenger.UI.Cha
 local FramePool = ns.ChatBubbleFramePool or require("WhisperMessenger.UI.ChatBubble.FramePool")
 local ScrollView = ns.ScrollView or require("WhisperMessenger.UI.ScrollView")
 local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
-local UnreadDividerPosition = ns.ConversationPaneUnreadDividerPosition or require("WhisperMessenger.UI.ConversationPane.UnreadDividerPosition")
 local TranscriptRows = ns.ConversationPaneTranscriptRows or require("WhisperMessenger.UI.ConversationPane.TranscriptRows")
 local TranscriptRowGeometry = ns.ConversationPaneTranscriptRowGeometry or require("WhisperMessenger.UI.ConversationPane.TranscriptRowGeometry")
 local DisplayName = ns.DisplayName or require("WhisperMessenger.Util.DisplayName")
 local sizeValue = UIHelpers.sizeValue
-local CONTENT_PAD = TranscriptRows.CONTENT_PAD
 
 local TranscriptVirtualization = {}
 
@@ -183,13 +181,8 @@ function TranscriptVirtualization.Render(transcript, messages, paneWidth, option
   if anchorMessage then
     targetOffset = anchoredOffset(state.rows, anchorMessage, anchorDelta, anchorIndex) or targetOffset
   end
-  local viewportHeight = sizeValue(transcript.scrollFrame, "GetHeight", "height", transcript.viewportHeight or 0)
-  local dividerOffset = UnreadDividerPosition.OpeningOffset(transcript, state, dividerMessage, viewportHeight)
-  if dividerOffset ~= nil then
-    snapToEnd = false
-    targetOffset = math.max(dividerOffset - CONTENT_PAD, 0)
-    force = true
-  end
+  -- Opening a chat always shows the latest messages; the unread divider only
+  -- marks where the new block starts and never pulls the view away from the end.
   local _, relaidOut = bindOffset(transcript, state, targetOffset, snapToEnd, force, rebuild)
 
   local settledWidth = sizeValue(transcript.scrollFrame, "GetWidth", "width", paneWidth)

@@ -94,18 +94,16 @@ return function()
     assert(findDivider(transcript.content) ~= nil, "divider rendered above the first unread message")
   end
 
-  -- test_tall_unread_block_opens_at_divider
+  -- test_tall_unread_block_still_opens_at_latest_message
   do
     local transcript = makeTranscript(400, 120)
     local messages = makeMessages(80)
     render(transcript, messages, messages[40])
-    local row = transcript._virtualState.rows[40]
     assert(
-      ScrollView.GetOffset(transcript) == row.offset - TranscriptRows.CONTENT_PAD,
-      "tall unread block opens with the divider at the top, got " .. tostring(ScrollView.GetOffset(transcript))
+      ScrollView.GetOffset(transcript) == ScrollView.GetRange(transcript),
+      "tall unread block opens at the latest message, got " .. tostring(ScrollView.GetOffset(transcript))
     )
-    local divider = findDivider(transcript.content)
-    assert(divider ~= nil, "divider rendered")
+    assert(transcript._virtualState.rows[40] ~= nil, "divider row kept in the transcript")
   end
 
   -- test_divider_appearing_on_open_transcript_positions_once
@@ -114,8 +112,7 @@ return function()
     local messages = makeMessages(80)
     render(transcript, messages, nil)
     render(transcript, messages, messages[40])
-    local dividerOffset = transcript._virtualState.rows[40].offset - TranscriptRows.CONTENT_PAD
-    assert(ScrollView.GetOffset(transcript) == dividerOffset, "a newly captured divider repositions the view")
+    assert(ScrollView.GetOffset(transcript) == ScrollView.GetRange(transcript), "a newly captured divider keeps the latest message in view")
 
     local readingOffset = transcript._virtualState.rows[60].offset
     ScrollView.SetVerticalScroll(transcript, readingOffset)
