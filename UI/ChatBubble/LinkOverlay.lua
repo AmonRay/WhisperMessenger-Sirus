@@ -103,7 +103,7 @@ function LinkOverlay.Sync(frame, fontString, text)
     end
   end
   if not fontSet then
-    fontSet = call(html, "SetFontObject", rawget(_G, "ChatFontNormal") or rawget(_G, "GameFontHighlight"))
+    call(html, "SetFontObject", rawget(_G, "ChatFontNormal") or rawget(_G, "GameFontHighlight"))
   end
   if type(fontString.GetTextColor) == "function" then
     call(html, "SetTextColor", fontString:GetTextColor())
