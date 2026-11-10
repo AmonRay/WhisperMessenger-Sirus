@@ -120,6 +120,7 @@ Transport\WhisperGateway.lua
 Core\Ingest\ChannelChatIngest\ChannelKey.lua
 Transport\ChannelIndex.lua
 Transport\JoinedChannels.lua
+Transport\WorldChannels.lua
 Transport\ChatGateway.lua
 Transport\BNetResolver\AccountName.lua
 Transport\BNetResolver\GameAccountProbe.lua
@@ -196,6 +197,7 @@ UI\ScrollView\RetailSkin.lua
 UI\ScrollView\Factory.lua
 UI\ScrollView\ScrollView.lua
 UI\ChatBubble\Grouping.lua
+UI\ChatBubble\LinkOverlay.lua
 UI\ChatBubble\BubbleStructure.lua
 UI\ChatBubble\PlayerMenuClick.lua
 UI\ChatBubble\BubbleIcon.lua

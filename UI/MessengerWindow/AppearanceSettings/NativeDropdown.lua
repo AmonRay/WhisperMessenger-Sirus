@@ -8,6 +8,7 @@ local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local NativeControls = ns.UIHelpersNativeControls or require("WhisperMessenger.UI.Helpers.NativeControls")
 local Hud = ns.Hud or require("WhisperMessenger.UI.Theme.Hud")
 local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.PickerPopup")
+local WrathCompat = ns.WrathCompat or require("WhisperMessenger.Core.WrathCompat")
 
 -- Native WoW HUD dropdown row. Prefers the game's dropdown
 -- (WowStyle1DropdownTemplate set up with SetupMenu); without it, a panel
@@ -180,7 +181,9 @@ function NativeDropdown.Create(factory, parent, options)
     end
     -- No GenerateMenu here: the menu is being generated already.
     select(requested, false)
-    if type(rootDescription.SetScrollMode) == "function" then
+    -- Sirus' Custom_Menu scroll box (3.3.5a) draws an empty black popup;
+    -- the plain list renders fine there.
+    if type(rootDescription.SetScrollMode) == "function" and not WrathCompat.IsWrath335() then
       rootDescription:SetScrollMode(menuHeight)
     end
     for index, option in ipairs(optionsList) do

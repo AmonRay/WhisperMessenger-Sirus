@@ -6,6 +6,7 @@ end
 local WhisperGateway = ns.WhisperGateway or require("WhisperMessenger.Transport.WhisperGateway")
 local ChannelType = ns.ChannelType or require("WhisperMessenger.Model.Identity.ChannelType")
 local ChannelIndex = ns.ChannelIndex or require("WhisperMessenger.Transport.ChannelIndex")
+local WorldChannels = ns.WorldChannels or require("WhisperMessenger.Transport.WorldChannels")
 
 local Gateway = {}
 
@@ -111,12 +112,13 @@ end
 
 -- Sends to a numbered chat CHANNEL.
 -- Caller is responsible for resolving channelIndex from a stable name at send time.
-function Gateway.SendChannel(api, channelIndex, text)
+-- `language` is optional (nil = the character's default language).
+function Gateway.SendChannel(api, channelIndex, text, language)
   local sender = resolveChatSender(api)
   if sender == nil then
     error("No chat sender available")
   end
-  return sender(text, "CHANNEL", nil, channelIndex)
+  return sender(text, "CHANNEL", language, channelIndex)
 end
 
 -- ---------------------------------------------------------------------------
@@ -127,7 +129,8 @@ end
 -- result. Returns false if fn errors or returns a non-true value.
 local function checkMembership(fn, ...)
   local ok, result = pcall(fn, ...)
-  return ok and result == true
+  -- 3.3.5a membership APIs return 1 / nil rather than booleans.
+  return ok and result ~= nil and result ~= false and result ~= 0
 end
 
 -- Map from ChannelType constant to a resolver function.
@@ -251,7 +254,8 @@ function Gateway.Send(api, conversation, text)
     if channelIndex == nil then
       error("Not in channel: " .. tostring(conversation.channelBaseName))
     end
-    return Gateway.SendChannel(api, channelIndex, text)
+    -- Sirus Renegades speak each faction world channel's language.
+    return Gateway.SendChannel(api, channelIndex, text, WorldChannels.LanguageFor(conversation.channelBaseName))
   elseif channel == ChannelType.COMMUNITY then
     error("COMMUNITY is receive-only: addon sends are blocked by Blizzard C_Club protection")
   else

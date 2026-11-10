@@ -186,10 +186,20 @@ return function()
 
   releaseMouseDown(releaseSlider.slider, "LeftButton")
   releaseSlider.slider:SetValue(4.4, true)
-  releaseSlider.slider:SetValue(7.7)
+  releaseSlider.slider:SetValue(7.7, false)
   assert(#releaseChanges == 2 and releaseChanges[2] == 8, "programmatic update during drag must commit immediately")
   releaseMouseUp(releaseSlider.slider, "LeftButton")
   assert(#releaseChanges == 2, "programmatic update during drag must clear stale deferred value")
+
+  -- 3.3.5a: OnValueChanged carries no userInput flag (nil). A drag must still
+  -- defer the commit to release, or the window rescales under the cursor and
+  -- the thumb can only walk down.
+  releaseMouseDown(releaseSlider.slider, "LeftButton")
+  releaseSlider.slider:SetValue(9.1)
+  releaseSlider.slider:SetValue(9.8)
+  assert(#releaseChanges == 2 and releaseSlider.value.text == "10", "3.3.5a drag (nil userInput) must not commit before release")
+  releaseMouseUp(releaseSlider.slider, "LeftButton")
+  assert(#releaseChanges == 3 and releaseChanges[3] == 10, "3.3.5a drag release must commit the final value once")
 
   parent:SetSize(1500, 900)
   local _, minimumHeight = WindowBounds.GetResizeBounds(parent)

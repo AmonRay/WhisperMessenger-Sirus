@@ -332,5 +332,23 @@ return function()
     restoreGlobals(saved)
   end
 
+  -- ---------------------------------------------------------------------------
+  -- 3.3.5a: IsInGuild returns 1 / nil instead of true / false.
+  -- ---------------------------------------------------------------------------
+  do
+    local saved = saveGlobals({ "IsInGuild" })
+    local api = { SendChatMessage = function() end }
+    rawset(_G, "IsInGuild", function()
+      return 1
+    end)
+    assert(ChatGateway.CanSend(api, { channel = ChannelType.GUILD }) == true, "CanSend GUILD should accept 3.3.5a IsInGuild() == 1")
+    assert(ChatGateway.CanSend(api, { channel = ChannelType.OFFICER }) == true, "CanSend OFFICER should accept 3.3.5a IsInGuild() == 1")
+    rawset(_G, "IsInGuild", function()
+      return nil
+    end)
+    assert(ChatGateway.CanSend(api, { channel = ChannelType.GUILD }) == false, "CanSend GUILD should be false when 3.3.5a IsInGuild() == nil")
+    restoreGlobals(saved)
+  end
+
   print("PASS: test_chat_gateway_membership")
 end

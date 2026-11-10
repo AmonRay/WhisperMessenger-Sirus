@@ -6,6 +6,7 @@ end
 local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
 local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local BubbleStructure = ns.ChatBubbleBubbleStructure or require("WhisperMessenger.UI.ChatBubble.BubbleStructure")
+local LinkOverlay = ns.ChatBubbleLinkOverlay or require("WhisperMessenger.UI.ChatBubble.LinkOverlay")
 local BubbleIcon = ns.ChatBubbleBubbleIcon or require("WhisperMessenger.UI.ChatBubble.BubbleIcon")
 local ContextMenu = ns.ChatBubbleContextMenu or require("WhisperMessenger.UI.ChatBubble.ContextMenu")
 local HoverCopy = ns.ChatBubbleHoverCopy or require("WhisperMessenger.UI.ChatBubble.HoverCopy")
@@ -259,6 +260,7 @@ function BubbleFrame.CreateBubble(factory, parent, message, options)
   textFS:SetJustifyH("LEFT")
   textFS:SetText(displayText)
   textFS:SetPoint("TOPLEFT", frame, "TOPLEFT", pH, -pV - quoteHeight)
+  LinkOverlay.Sync(frame, textFS, displayText)
 
   -- Censored message indicator
   local CENSORED_LABEL_HEIGHT = 12

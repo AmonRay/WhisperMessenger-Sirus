@@ -34,7 +34,8 @@ local function defaultReset(item, onChange)
     -- per-row onChange callback registered in CreateSliderRow. Calling
     -- onChange manually here would double-fire it.
     if control.slider and control.slider.SetValue then
-      control.slider:SetValue(item.default)
+      -- Explicit false: a programmatic reset must commit even mid-drag.
+      control.slider:SetValue(item.default, false)
     end
     return
   end

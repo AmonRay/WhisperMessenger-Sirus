@@ -58,6 +58,22 @@ return function()
 
   Theme.SetPreset("wow_default")
 
+  -- test_modern_menu_is_opaque_and_above_sibling_rows
+  -- The open list used the translucent option fill, so the rows below
+  -- (font size slider, outline) showed through it.
+  do
+    local dd = newDropdown(factory)
+    local menu = assert(FindUI.dropdownMenu(dd.row), "modern dropdown has a menu")
+    local bg = FindUI.ofType(menu, "Texture")[1]
+    assert(bg and type(bg.color) == "table", "menu has a painted background")
+    assert((bg.color[4] or 1) >= 0.999, "open menu background must be opaque, alpha " .. tostring(bg.color[4]))
+    assert(menu.frameStrata == "DIALOG", "open menu must sit above sibling rows, strata " .. tostring(menu.frameStrata))
+    Theme.SetPreset("plumber_warm")
+    dd.applyTheme(Theme)
+    assert((bg.color[4] or 1) >= 0.999, "menu stays opaque after a theme change")
+    Theme.SetPreset("wow_default")
+  end
+
   -- test_modern_dropdown_uses_input_surface
   do
     local dd = newDropdown(factory)

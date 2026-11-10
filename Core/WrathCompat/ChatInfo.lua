@@ -8,12 +8,14 @@ local ChatInfo = {}
 function ChatInfo.Create(env)
   local api = {}
 
-  function api.SendChatMessage(text, chatType, _languageID, target)
+  -- 3.3.5a takes the language by its localized name ("всеобщий"); retail
+  -- number IDs mean nothing here, so only names pass through.
+  function api.SendChatMessage(text, chatType, language, target)
     local send = env.SendChatMessage
     if type(send) ~= "function" then
       return false
     end
-    return send(text, chatType, nil, target)
+    return send(text, chatType, type(language) == "string" and language or nil, target)
   end
 
   function api.SendAddonMessage(prefix, text, channel, target)

@@ -128,6 +128,35 @@ return function()
     assert(selectedRadio(radios) == "open_sans", "initial font is the checked radio")
   end
 
+  -- test_wrath_menu_skips_scroll_mode
+  -- Sirus' Custom_Menu scroll box renders an empty black popup, so the
+  -- 3.3.5a client gets a plain (non-scrolling) list.
+  do
+    local dropdown = build(dropdownFactory())
+    local savedProject, savedBuild = rawget(_G, "WOW_PROJECT_ID"), rawget(_G, "GetBuildInfo")
+    rawset(_G, "WOW_PROJECT_ID", nil)
+    rawset(_G, "GetBuildInfo", function()
+      return "3.3.5", "12340", "Jun 24 2010", 30300
+    end)
+    local scrollCalls, radioCount = 0, 0
+    local root = {
+      SetScrollMode = function()
+        scrollCalls = scrollCalls + 1
+      end,
+      CreateRadio = function()
+        radioCount = radioCount + 1
+      end,
+    }
+    local ok, err = pcall(dropdown.button.generator, dropdown.button, root)
+    rawset(_G, "WOW_PROJECT_ID", savedProject)
+    rawset(_G, "GetBuildInfo", savedBuild)
+    if not ok then
+      error(err, 0)
+    end
+    assert(scrollCalls == 0, "3.3.5a menu must not use scroll mode, calls " .. scrollCalls)
+    assert(radioCount == 3, "3.3.5a menu still lists every font, got " .. radioCount)
+  end
+
   -- test_hud_dropdown_pick_fires_on_change_and_moves_the_check
   do
     local dropdown, changes = build(dropdownFactory())

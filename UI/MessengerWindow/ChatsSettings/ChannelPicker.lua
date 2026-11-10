@@ -9,6 +9,7 @@ local SettingsControls = ns.SettingsControls or require("WhisperMessenger.UI.Sha
 local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
 local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
 local JoinedChannels = ns.JoinedChannels or require("WhisperMessenger.Transport.JoinedChannels")
+local WorldChannels = ns.WorldChannels or require("WhisperMessenger.Transport.WorldChannels")
 
 -- "Channels" section of the Chats page: one toggle per built-in channel plus
 -- one per custom channel the character has joined. Ticking a channel saves a
@@ -123,7 +124,8 @@ function ChannelPicker.Create(factory, frame, anchor, options)
       entry.toggle.setValue(isEnabled(entry.slug))
       visible[#visible + 1] = entry
     end
-    local custom = JoinedChannels.Custom()
+    -- Sirus: Мир for Horde/Alliance, Мир(А) + Мир(О) for a Renegade.
+    local custom = WorldChannels.Arrange(JoinedChannels.Custom())
     local listed = {}
     for _, channel in ipairs(custom) do
       listed[channel.slug] = true

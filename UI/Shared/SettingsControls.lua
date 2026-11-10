@@ -127,7 +127,9 @@ function SettingsControls.CreateSliderRow(factory, parent, spec)
     valueChangeGeneration = valueChangeGeneration + 1
     local stepped = math.floor(value / step + 0.5) * step
     valueFs:SetText(formatFn and formatFn(stepped) or tostring(stepped))
-    if commitOnRelease and dragActive and userInput == true then
+    -- 3.3.5a passes no userInput flag (nil); only an explicit false marks a
+    -- programmatic SetValue during a drag.
+    if commitOnRelease and dragActive and userInput ~= false then
       pendingValue = stepped
       return
     end

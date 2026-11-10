@@ -7,6 +7,7 @@ local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local Hyperlinks = ns.UIHyperlinks or require("WhisperMessenger.UI.Hyperlinks")
 local Hud = ns.Hud or require("WhisperMessenger.UI.Theme.Hud")
 local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.PickerPopup")
+local LinkOverlay = ns.ChatBubbleLinkOverlay or require("WhisperMessenger.UI.ChatBubble.LinkOverlay")
 
 local CORNER_R = 8
 
@@ -91,6 +92,8 @@ function BubbleStructure.createStructure(frame, factory)
   frame._bgFills = bgFills
   frame._bgCorners = bgCorners
   frame._textFS = textFS
+  -- 3.3.5a: clickable links need a SimpleHTML twin over the text.
+  LinkOverlay.Attach(factory, frame)
 
   return bgFills, bgCorners, textFS
 end

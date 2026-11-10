@@ -15,6 +15,13 @@ local DropdownSelector = {}
 local DEFAULT_BUTTON_HEIGHT = 26
 local DEFAULT_MENU_HEIGHT = 156
 
+-- The open list must hide the rows below it: the option fill is translucent,
+-- so the menu gets the window surface at full alpha.
+local function menuBackground()
+  local c = Theme.COLORS.bg_header or Theme.COLORS.bg_composer or { 0.05, 0.06, 0.08, 1 }
+  return { c[1], c[2], c[3], 1 }
+end
+
 function DropdownSelector.Create(factory, parent, options)
   options = options or {}
   local native = NativeDropdown.Create(factory, parent, options)
@@ -57,6 +64,9 @@ function DropdownSelector.Create(factory, parent, options)
 
   local menu = factory.CreateFrame("ScrollFrame", nil, row)
   menu:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -2)
+  if menu.SetFrameStrata then
+    menu:SetFrameStrata("DIALOG")
+  end
   menu:SetFrameLevel((row.GetFrameLevel and row:GetFrameLevel() or 1) + 20)
   menu:SetClampedToScreen(true)
   menu:EnableMouseWheel(true)
@@ -233,7 +243,7 @@ function DropdownSelector.Create(factory, parent, options)
 
   setOptionsList(optionsList)
   paintClosedButton()
-  applyColorTexture(menuBg, palette.bg)
+  applyColorTexture(menuBg, menuBackground())
 
   return {
     row = row,
@@ -260,7 +270,7 @@ function DropdownSelector.Create(factory, parent, options)
       mergePalette(nextColors)
       paintClosedButton()
       repaintOptions()
-      applyColorTexture(menuBg, palette.bg)
+      applyColorTexture(menuBg, menuBackground())
     end,
   }
 end
