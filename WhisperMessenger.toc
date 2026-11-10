@@ -47,7 +47,6 @@ Locale\koKR.lua
 Locale\zhCN.lua
 Locale\zhTW.lua
 Locale\Localization.lua
-
 Model\Identity\Factions.lua
 Model\Identity\ChannelType.lua
 Model\Identity\Identity.lua
@@ -107,7 +106,6 @@ Model\ContactEnricher\WoWStatus.lua
 Model\ContactEnricher\BNetStatus.lua
 Model\ContactEnricher\AvailabilityEnricher.lua
 Model\ContactEnricher\ContactEnricher.lua
-
 Persistence\Schema.lua
 Persistence\Migrations.lua
 Persistence\Helpers.lua
@@ -115,7 +113,6 @@ Persistence\SavedState\LegacyMigration.lua
 Persistence\SavedState\PrefixMigration.lua
 Persistence\SavedState\CompactRename.lua
 Persistence\SavedState\SavedState.lua
-
 Transport\Types.lua
 Transport\Availability.lua
 Transport\AddonComm.lua
@@ -133,7 +130,6 @@ Core\WhoRow.lua
 Core\SeenLevelEvents\WhoLevels.lua
 Core\SeenLevelEvents\Guild.lua
 Core\SeenLevelEvents.lua
-
 Core\LocalPlayer.lua
 Core\Ingest\GroupChatIngest\SecretString.lua
 Core\Ingest\GroupChatIngest\Direction.lua
@@ -151,7 +147,6 @@ Core\EventRouter\PartMerge.lua
 Core\EventRouter\AddonGreetingIngest.lua
 Core\EventRouter.lua
 Core\SlashCommands.lua
-
 UI\Theme\Presets\Builder.lua
 UI\Theme\Presets\Data\WowDefault.lua
 UI\Theme\Presets\Data\ElvuiDark.lua
@@ -192,6 +187,7 @@ UI\Shared\PanelBadge.lua
 UI\Shared\CloseGlyphButton.lua
 UI\Hyperlinks\UrlFormatter.lua
 UI\Hyperlinks\QuestLinkClassic.lua
+UI\Hyperlinks\CombatItemRef.lua
 UI\ChatBubble\ReactionAssets.lua
 UI\Hyperlinks.lua
 UI\ScrollView\Metrics.lua
@@ -289,6 +285,9 @@ UI\ConversationPane\EdgeFade.lua
 UI\ConversationPane\InfoStrip.lua
 UI\ConversationPane\ThemeRefresh.lua
 UI\ConversationPane\ConversationPane.lua
+UI\Composer\ChatLinkHookUtil.lua
+UI\Composer\ChatLinkSourcesAddOns.lua
+UI\Composer\ChatLinkSources.lua
 UI\Composer\LinkHooks.lua
 UI\Composer\Popover.lua
 UI\Composer\EmojiPicker.lua
@@ -458,7 +457,6 @@ UI\MessengerWindow\MessengerWindow\DockWiring.lua
 UI\MessengerWindow\MessengerWindow\WindowShell.lua
 UI\MessengerWindow\MessengerWindow\ComposerRuntime.lua
 UI\MessengerWindow\MessengerWindow.lua
-
 Core\Bootstrap\RuntimeFactory.lua
 Core\Bootstrap\EventBridge\Registration.lua
 Core\Bootstrap\EventBridge\LivePayload.lua
@@ -532,6 +530,7 @@ Core\PublicApi\Panels.lua
 Core\Bootstrap\WindowRuntime\IconToggle.lua
 Core\Bootstrap\WindowRuntime\PreviewOpen.lua
 Core\Bootstrap\WindowRuntime\PreviewReplyRuntime.lua
+Core\Bootstrap\WindowRuntime\DetachedPreviewRuntime.lua
 Core\Bootstrap\WindowRuntime\LiveThemeSync.lua
 Core\Bootstrap\WindowRuntime\GrowSource.lua
 Core\Bootstrap\WindowRuntime.lua
