@@ -41,11 +41,10 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::notice::Release ${TAG} already exists - nothing to do."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Release ${TAG} already exists - recreating it from this commit."
+            gh release delete "$TAG" --cleanup-tag --yes
           fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
 
       - name: Build archive
         id: pkg
