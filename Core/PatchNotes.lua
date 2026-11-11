@@ -11,10 +11,12 @@ local PatchNotes = {
     "Fixed: On the original Wrath client (3.3.5a) closing the messenger with ESC while typing no longer leaves the keyboard stuck, so hotkeys for other windows work again right away.",
     "Fixed: Making the messenger window smaller no longer leaves messages drawn below the message box or outside the window.",
     "Fixed: On the original Wrath client (3.3.5a) the Window Scale slider no longer shrinks the window while you drag it, so you can make the window bigger again. Resetting to defaults applies the scale right away.",
-    "Fixed: Dropdown lists in the settings are no longer see-through and no longer draw under the rows next to them.",
+    "Fixed: Dropdown lists in the settings, such as Message Retention, are no longer see-through and open on top of the rows below them, also on the original Wrath client (3.3.5a). A click anywhere else closes an open list.",
     "Fixed: On the original Wrath client (3.3.5a) dropdowns in the Native WoW HUD theme no longer open as an empty black window.",
     "Fixed: On the original Wrath client (3.3.5a) you can write in guild and officer chat again instead of only reading it.",
     "Fixed: On the original Wrath client (3.3.5a) item, player, quest and group-search links in messages can be clicked and hovered again.",
+    'Fixed: Opening a chat now always shows the latest messages right away, even with many unread messages; the "New messages" divider still marks where they start.',
+    "Fixed: Hovering a journal link (for example a boss or quest from the adventure guide) no longer shows a tooltip with the raw link text.",
     'On Sirus the channel list now shows the world channel your character can use: "Мир" for Horde and Alliance, "Мир(А)" and "Мир(О)" for a Renegade. A Renegade writes in Common in Мир(А) and in Orcish in Мир(О).',
   },
 }

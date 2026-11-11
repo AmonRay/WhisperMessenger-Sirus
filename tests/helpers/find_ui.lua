@@ -87,9 +87,10 @@ function FindUI.selectorButtons(root, labelText)
   return FindUI.ofType(FindUI.byLabel(root, labelText), "Button")
 end
 
--- Popup menu (ScrollFrame) of a DropdownSelector row.
+-- Popup menu (ScrollFrame) of a DropdownSelector row. An open list hangs off
+-- the screen root, so the row's own handle on it wins.
 function FindUI.dropdownMenu(row)
-  return FindUI.ofType(row, "ScrollFrame")[1]
+  return row._wmDropdownMenu or FindUI.ofType(row, "ScrollFrame")[1]
 end
 
 -- Listed (shown) option buttons of a DropdownSelector row, in order; pooled

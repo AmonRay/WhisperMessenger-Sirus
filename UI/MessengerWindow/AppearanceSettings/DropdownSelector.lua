@@ -15,6 +15,59 @@ local DropdownSelector = {}
 local DEFAULT_BUTTON_HEIGHT = 26
 local DEFAULT_MENU_HEIGHT = 156
 
+-- On 3.3.5a a frame inside the settings scroll child is drawn together with
+-- that scroll frame, whatever strata it asks for, so the open list sat under
+-- the rows below it and they showed through. While it is open the list hangs
+-- off the screen root at the top dialog strata (like the game's own dropdown
+-- lists), at the window's scale, and a screen-wide catcher right under it
+-- closes it on a click or a wheel turn anywhere else.
+DropdownSelector.OPEN_STRATA = "FULLSCREEN_DIALOG"
+DropdownSelector.OPEN_LEVEL = 100
+
+-- Screen root the open list hangs off; nil where there is none (tests).
+local function screenRoot()
+  local root = rawget(_G, "UIParent")
+  if type(root) == "table" and type(root.GetEffectiveScale) == "function" then
+    return root
+  end
+  return nil
+end
+
+local function stack(frame, strata, level)
+  if frame.SetFrameStrata then
+    frame:SetFrameStrata(strata)
+  end
+  if frame.SetFrameLevel then
+    frame:SetFrameLevel(level)
+  end
+end
+
+-- Scale that makes a frame on `root` as big on screen as `anchor`.
+local function scaleFor(anchor, root)
+  local anchorScale = anchor.GetEffectiveScale and anchor:GetEffectiveScale() or 1
+  local rootScale = root:GetEffectiveScale()
+  if type(anchorScale) ~= "number" or type(rootScale) ~= "number" or anchorScale <= 0 or rootScale <= 0 then
+    return 1
+  end
+  return anchorScale / rootScale
+end
+
+local function createCatcher(factory, root, onClose)
+  local catcher = factory.CreateFrame("Button", nil, root)
+  catcher:SetAllPoints(root)
+  catcher:EnableMouse(true)
+  if catcher.RegisterForClicks then
+    catcher:RegisterForClicks("AnyUp")
+  end
+  if catcher.EnableMouseWheel then
+    catcher:EnableMouseWheel(true)
+  end
+  catcher:SetScript("OnClick", onClose)
+  catcher:SetScript("OnMouseWheel", onClose)
+  catcher:Hide()
+  return catcher
+end
+
 -- The open list must hide the rows below it: the option fill is translucent,
 -- so the menu gets the window surface at full alpha.
 local function menuBackground()
@@ -70,6 +123,12 @@ function DropdownSelector.Create(factory, parent, options)
   menu:SetFrameLevel((row.GetFrameLevel and row:GetFrameLevel() or 1) + 20)
   menu:SetClampedToScreen(true)
   menu:EnableMouseWheel(true)
+  -- Solid under the pointer, so a click between rows never reaches the catcher.
+  if menu.EnableMouse then
+    menu:EnableMouse(true)
+  end
+  -- The open list leaves the row, so the row keeps a handle on it.
+  row._wmDropdownMenu = menu
   if menu.SetClipsChildren then
     menu:SetClipsChildren(true)
   end
@@ -127,6 +186,47 @@ function DropdownSelector.Create(factory, parent, options)
       onChange(key)
     end
     menu:Hide()
+  end
+
+  local catcher = nil
+
+  -- Moves the open list out of the settings scroll child onto the screen
+  -- root, above every window; dropMenu puts it back under its row.
+  local function liftMenu()
+    local root = screenRoot()
+    if root == nil or type(menu.SetParent) ~= "function" then
+      return
+    end
+    if menu:GetParent() ~= root then
+      menu:SetParent(root)
+    end
+    if menu.SetScale then
+      menu:SetScale(scaleFor(button, root))
+    end
+    local level = DropdownSelector.OPEN_LEVEL
+    stack(menu, DropdownSelector.OPEN_STRATA, level)
+    stack(content, DropdownSelector.OPEN_STRATA, level + 1)
+    for _, optionButton in ipairs(buttonPool) do
+      stack(optionButton, DropdownSelector.OPEN_STRATA, level + 2)
+    end
+    catcher = catcher or createCatcher(factory, root, function()
+      menu:Hide()
+    end)
+    stack(catcher, DropdownSelector.OPEN_STRATA, level - 1)
+    catcher:Show()
+  end
+
+  local function dropMenu()
+    if catcher then
+      catcher:Hide()
+    end
+    if type(menu.SetParent) ~= "function" or menu:GetParent() == row then
+      return
+    end
+    menu:SetParent(row)
+    if menu.SetScale then
+      menu:SetScale(1)
+    end
   end
 
   local function createOptionButton()
@@ -219,9 +319,11 @@ function DropdownSelector.Create(factory, parent, options)
       end
     end
     scrollToSelected()
+    liftMenu()
     menu:Raise()
     menu:Show()
   end)
+  menu:SetScript("OnHide", dropMenu)
   button:SetScript("OnEnter", function()
     buttonHovered = true
     paintClosedButton()

@@ -74,6 +74,45 @@ return function()
     Theme.SetPreset("wow_default")
   end
 
+  -- test_open_menu_hangs_off_the_screen_root_above_every_row
+  -- On 3.3.5a the list, still inside the settings scroll child, drew under
+  -- the rows below it whatever strata it asked for. Open, it hangs off the
+  -- screen root at the top dialog strata, as big as the scaled window, and a
+  -- screen-wide catcher right under it closes it on an outside click.
+  do
+    local savedRoot = rawget(_G, "UIParent")
+    local root = factory.CreateFrame("Frame", "UIParent", nil)
+    rawset(_G, "UIParent", root)
+    local window = factory.CreateFrame("Frame", nil, root)
+    window:SetScale(1.25)
+    local dd = DropdownSelector.Create(factory, window, {
+      labelText = "Message Retention",
+      optionsList = { { key = 1, label = "1 hour" }, { key = 2, label = "1 day" } },
+      fallbackKey = 2,
+      initial = 2,
+      rowWidth = 300,
+    })
+    local menu = assert(FindUI.dropdownMenu(dd.row), "modern dropdown has a menu")
+    FindUI.click(dd.button)
+    assert(menu:IsShown(), "menu opens")
+    assert(menu:GetParent() == root, "open menu hangs off the screen root")
+    assert(menu.frameStrata == DropdownSelector.OPEN_STRATA, "open menu sits in the top dialog strata")
+    assert(math.abs(menu:GetEffectiveScale() - dd.button:GetEffectiveScale()) < 0.0001, "open menu keeps the window scale")
+    assert(#FindUI.dropdownOptions(dd.row) == 2, "options stay listed while open")
+    local catcher = FindUI.find(root, function(node)
+      return node.frameType == "Button" and node.allPoints == root and node.mouseEnabled == true
+    end)
+    assert(catcher and catcher:IsShown(), "screen-wide catcher shown under the open menu")
+    assert(catcher.frameStrata == DropdownSelector.OPEN_STRATA, "catcher shares the menu strata")
+    assert(catcher.frameLevel < menu.frameLevel, "catcher sits under the menu")
+    FindUI.click(catcher)
+    assert(not menu:IsShown(), "outside click closes the menu")
+    assert(not catcher:IsShown(), "catcher hides with the menu")
+    assert(menu:GetParent() == dd.row, "closed menu returns to its row")
+    assert(menu:GetScale() == 1, "closed menu drops the lift scale")
+    rawset(_G, "UIParent", savedRoot)
+  end
+
   -- test_modern_dropdown_uses_input_surface
   do
     local dd = newDropdown(factory)
