@@ -212,7 +212,7 @@ return function()
 
   local function test_lock_reason_text_is_localized()
     Localization.Configure({ language = "deDE" })
-    local locked = build({ competitive = true })
+    local locked = build({ competitive = true, settings = { blockChatInInstances = true } })
     local text = locked.quickReply.getLockReasonText()
     assert(text == Localization.Text("Competitive Content"), "localized reason, got " .. tostring(text))
     assert(text ~= "Competitive Content", "the reason is translated, not the raw key")

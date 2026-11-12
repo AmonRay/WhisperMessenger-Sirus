@@ -153,10 +153,7 @@ function BubbleFrame.CreateBubble(factory, parent, message, options)
   local showIcon = options.showIcon
   local kind = message.kind or "user"
   local direction = message.direction or "in"
-  local displayText = Hyperlinks.FormatTextForDisplay(AddonGreetingText.ForDisplay(message), RestrictedEmojis.SenderOf(message))
-  if message.mention then
-    displayText = MentionHighlight.Apply(displayText)
-  end
+  local displayText
 
   local pH = Theme.LAYOUT.BUBBLE_PADDING_H
   local pV = Theme.LAYOUT.BUBBLE_PADDING_V
@@ -233,15 +230,29 @@ function BubbleFrame.CreateBubble(factory, parent, message, options)
     applyBubbleColor(frame, message.mention and BubbleColors.MentionColor() or Theme.COLORS.bg_bubble_in)
   end
 
-  local textAvailWidth = maxBubbleWidth - pH * 2
+  local textAvailWidth = math.max(maxBubbleWidth - pH * 2, 1)
 
+  -- Use the actual FontString font (system messages and inherited locale
+  -- fonts need not match the configured base size). Keep raw messages intact.
+  local inlineFontSize
+  if textFS.GetFont then
+    local _, size = textFS:GetFont()
+    inlineFontSize = size
+  end
+  inlineFontSize = tonumber(inlineFontSize) or (Fonts.GetFontSize and Fonts.GetFontSize()) or 12
+  displayText = Hyperlinks.FormatTextForDisplay(AddonGreetingText.ForDisplay(message), RestrictedEmojis.SenderOf(message), inlineFontSize)
+  if message.mention then
+    displayText = MentionHighlight.Apply(displayText)
+  end
   local textHeight = BubbleStructure.measureTextHeight(textFS, displayText, textAvailWidth)
 
   local textColumnWidth = textAvailWidth
   if type(textFS.GetStringWidth) == "function" then
     local rawWidth = textFS:GetStringWidth() or 0
     if rawWidth > 0 then
-      textColumnWidth = math.min(rawWidth, textAvailWidth)
+      -- Wrath rounds the rendered glyph advances to pixels. Do not shrink
+      -- below the measured advance and accidentally add one more line.
+      textColumnWidth = math.min(math.ceil(rawWidth) + 1, textAvailWidth)
     end
   end
 

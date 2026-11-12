@@ -16,6 +16,7 @@ ToggleSpecs.DEFAULTS = {
   deselectComposerOnSend = false,
   doubleEscapeToClose = false,
   hideOnCombat = false,
+  blockChatInInstances = false,
   allowAddonIntegration = true,
 }
 
@@ -98,6 +99,18 @@ function ToggleSpecs.Build(config, onChange)
       tooltipLines = {
         text("Hide on entering combat"),
         text("Hides the messenger when combat starts and opens it again when combat ends. If you close it yourself during combat, it stays closed."),
+      },
+    },
+    {
+      key = "blockChatInInstances",
+      labelKey = "Block chat in Mythic+, battlegrounds and arenas",
+      initial = config.blockChatInInstances == true,
+      onChange = function(value)
+        onChange("blockChatInInstances", value == true)
+      end,
+      tooltipLines = {
+        text("Block chat in Mythic+, battlegrounds and arenas"),
+        text("When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."),
       },
     },
     {

@@ -24,8 +24,9 @@ return function()
   reset()
   assert(runtime.isChannelIngestSuspended() == false, "open world on a client without the lockdown API ingests channels")
 
-  -- test_restricted_content_suspends
-  for _, flag in ipairs({ "_inMythicContent", "_inEncounter", "_inCompetitiveContent" }) do
+  -- test_restricted_content_suspends with the addon policy enabled
+  runtime.accountState.settings.blockChatInInstances = true
+  for _, flag in ipairs({ "_inMythicContent", "_inCompetitiveContent" }) do
     reset()
     Bootstrap[flag] = true
     assert(runtime.isChannelIngestSuspended() == true, flag .. " suspends channel chats")

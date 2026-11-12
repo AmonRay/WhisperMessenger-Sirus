@@ -39,7 +39,17 @@ function ReactionAssets.GetTexCoords(key)
   return TEX_COORDS[key]
 end
 
-function ReactionAssets.GetInlineTextureMarkup(key)
+-- Inline glyphs use the message's line box; picker/badge sizes stay separate.
+local function inlineIconSize(fontSize)
+  -- Only message bubbles supply a font size. Other surfaces keep their
+  -- existing sizing (previews, quotes and picker copy text).
+  if tonumber(fontSize) == nil then
+    return ReactionAssets.GetIconSize()
+  end
+  return math.max(1, math.floor(tonumber(fontSize) + 4 + 0.5))
+end
+
+function ReactionAssets.GetInlineTextureMarkup(key, fontSize)
   local coords = ReactionAssets.GetTexCoords(key)
   if coords == nil then
     return nil
@@ -50,7 +60,7 @@ function ReactionAssets.GetInlineTextureMarkup(key)
   local right = math.floor(coords[2] * textureWidth + 0.5)
   local top = math.floor(coords[3] * textureHeight + 0.5)
   local bottom = math.floor(coords[4] * textureHeight + 0.5)
-  local size = ReactionAssets.GetIconSize()
+  local size = inlineIconSize(fontSize)
   return string.format(
     "|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t",
     ReactionAssets.TEXTURE,
@@ -67,16 +77,16 @@ end
 
 -- senderName: who wrote the text. Personal (restricted) emojis render only
 -- when it is one of their owners; otherwise the token stays literal.
-function ReactionAssets.FormatTextForDisplay(text, senderName)
+function ReactionAssets.FormatTextForDisplay(text, senderName, fontSize)
   return (
     tostring(text or ""):gsub(":([%a%d_]+):", function(key)
       if RestrictedEmojis.IsRestricted(key) then
         if RestrictedEmojis.CanUse(key, senderName) then
-          return RestrictedEmojis.GetInlineTextureMarkup(key, ReactionAssets.GetIconSize())
+          return RestrictedEmojis.GetInlineTextureMarkup(key, inlineIconSize(fontSize))
         end
         return ":" .. key .. ":"
       end
-      return ReactionAssets.GetInlineTextureMarkup(key) or ":" .. key .. ":"
+      return ReactionAssets.GetInlineTextureMarkup(key, fontSize) or ":" .. key .. ":"
     end)
   )
 end

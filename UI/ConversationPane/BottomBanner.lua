@@ -44,11 +44,16 @@ local function resizeTranscript(view, delta)
   if currentH <= 0 then
     return
   end
-  local newH = currentH + delta
+  local newH = math.max(currentH + delta, 1)
+  local previousOffset = ScrollView.GetOffset(t)
+  local wasRendering = t._renderingViewport
+  t._renderingViewport = true
   t.scrollFrame:SetSize(sizeValue(t.scrollFrame, "GetWidth", "width", 0), newH)
   t.scrollBar:SetHeight(newH)
   t.viewportHeight = newH
+  t._renderingViewport = wasRendering
   if t._allMessages then
+    t._virtualRequestedOffset = previousOffset
     t._virtualForceEnd = wasAtEnd
     -- A height change must re-lay-out the bubbles.
     TranscriptView.RenderTranscript(t, t._allMessages, TranscriptView.FORCE_RENDER)

@@ -22,9 +22,16 @@ end
 local BubbleStructure = {}
 
 function BubbleStructure.measureTextHeight(fontString, text, maxWidth)
-  fontString:SetWidth(maxWidth)
+  -- Pooled regions can still be anchored to a previous, narrower bubble.
+  -- Measure an unconstrained height at the new width, not that old rect.
+  fontString:ClearAllPoints()
+  if fontString.SetHeight then
+    fontString:SetHeight(0)
+  end
+  fontString:SetWidth(math.max(maxWidth, 1))
   fontString:SetText(text or "")
-  return fontString:GetStringHeight() or 14
+  local height = fontString:GetStringHeight()
+  return type(height) == "number" and height > 0 and math.ceil(height) or 14
 end
 
 -- Native WoW HUD bubble background: a tooltip-bordered child frame, so it

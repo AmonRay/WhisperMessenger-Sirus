@@ -23,7 +23,7 @@ return function()
 
   do
     local calls = {}
-    local runtime = {}
+    local runtime = { accountState = { settings = { blockChatInInstances = true } } }
     local Bootstrap = {
       _loadFrame = {},
       unregisterChatFilters = function()
@@ -114,6 +114,7 @@ return function()
       accountState = {
         settings = {
           hideOnCombat = true,
+          blockChatInInstances = true,
         },
       },
       syncReplyKey = function()
@@ -195,6 +196,7 @@ return function()
     local enabledCalls = {}
     local suspendedAtCall = {}
     local runtime = {
+      accountState = { settings = { blockChatInInstances = true } },
       seenLevelEvents = {
         SetEnabled = function(on)
           enabledCalls[#enabledCalls + 1] = on
@@ -242,7 +244,7 @@ return function()
 
   do
     runWithoutReplyState(function()
-      local runtime = {}
+      local runtime = { accountState = { settings = { blockChatInInstances = true } } }
       MythicSuspendController.Attach(runtime, {})
       runtime.suspend()
       runtime.resume()

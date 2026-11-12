@@ -167,6 +167,7 @@ return function()
     local locked = true
     local whispers = {}
     local runtime = newRuntime(whispers, {})
+    runtime.accountState = { settings = { blockChatInInstances = true } }
     runtime.isMythicLockdown = function()
       return locked
     end

@@ -65,6 +65,7 @@ return function()
   do
     local sent = {}
     local runtime = newRuntime(sent)
+    runtime.accountState = { settings = { blockChatInInstances = true } }
     runtime.isMythicLockdown = function()
       return true
     end
@@ -83,6 +84,7 @@ return function()
   do
     local sent = {}
     local runtime = newRuntime(sent)
+    runtime.accountState = { settings = { blockChatInInstances = true } }
     runtime.isCompetitiveContent = function()
       return true
     end
@@ -93,6 +95,7 @@ return function()
   -- test_locked_reaction_is_not_queued
   do
     local runtime = newRuntime({})
+    runtime.accountState = { settings = { blockChatInInstances = true } }
     runtime.isCompetitiveContent = function()
       return true
     end

@@ -45,6 +45,7 @@ return function()
 
     local MythicSuspendController = require("WhisperMessenger.Core.Bootstrap.MythicSuspendController")
     local runtime = makeRuntime()
+    runtime.accountState.settings.blockChatInInstances = true
     local Bootstrap = {}
 
     MythicSuspendController.Attach(runtime, {

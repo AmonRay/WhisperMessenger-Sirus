@@ -411,6 +411,7 @@ return function()
   rawset(_G, "InCombatLockdown", function()
     return false
   end)
+  runtime.accountState = { settings = { blockChatInInstances = true } }
   runtime.isCompetitiveContent = function()
     return true
   end

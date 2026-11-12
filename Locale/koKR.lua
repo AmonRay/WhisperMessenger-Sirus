@@ -131,6 +131,8 @@ local Korean = {
   ["Rose"] = "분홍",
 
   -- Behavior settings
+  ["Block chat in Mythic+, battlegrounds and arenas"] = "쐐기+, 전장 및 투기장에서 채팅 차단",
+  ["When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."] = "켜면 해당 지역에서 메시지 전송을 막습니다. 기본값은 꺼짐이며 게임 자체 제한은 계속 적용됩니다.",
   ["Control how the messenger window behaves."] = "메신저 창의 동작을 설정합니다.",
   ["Compact window"] = "컴팩트 창",
   ["The floating button opens a narrow chat list attached to it. Click a chat to slide into it."] = "떠 있는 버튼을 누르면 버튼에 붙은 좁은 대화 목록이 열립니다. 대화를 클릭하면 해당 대화로 넘어갑니다.",

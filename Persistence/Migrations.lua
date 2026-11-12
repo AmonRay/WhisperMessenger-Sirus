@@ -129,6 +129,11 @@ function Migrations.Apply(accountState, schema)
     end
   end
 
+  if type(accountState.settings) ~= "table" then
+    accountState.settings = {}
+  end
+  -- Only an explicit boolean true enables the optional addon policy.
+  accountState.settings.blockChatInInstances = accountState.settings.blockChatInInstances == true
   dropRetiredSettings(accountState.settings)
 
   accountState.schemaVersion = Migrations.CURRENT_VERSION

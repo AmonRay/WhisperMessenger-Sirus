@@ -131,6 +131,8 @@ local Russian = {
   ["Rose"] = "Розовый",
 
   -- Behavior settings
+  ["Block chat in Mythic+, battlegrounds and arenas"] = "Запрещать переписку в М+, на полях боя и аренах",
+  ["When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."] = "При включении запрещает отправку сообщений там. По умолчанию выключено; ограничения игры продолжают действовать.",
   ["Control how the messenger window behaves."] = "Настройте поведение окна мессенджера.",
   ["Compact window"] = "Компактное окно",
   ["The floating button opens a narrow chat list attached to it. Click a chat to slide into it."] = "Плавающая кнопка открывает прикреплённый к ней узкий список чатов. Нажмите на чат, чтобы перейти к нему.",

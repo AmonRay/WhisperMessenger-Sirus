@@ -118,7 +118,13 @@ function SettingsHandler.Create(options)
       end
     end
 
+    if key == "blockChatInInstances" then
+      persistedValue = value == true
+    end
     accountSettings[key] = persistedValue
+    if key == "blockChatInInstances" and runtime.syncInstanceChatPolicy then
+      runtime.syncInstanceChatPolicy()
+    end
 
     if key ~= "windowScale" and runtime.store.config[key] ~= nil then
       runtime.store.config[key] = persistedValue

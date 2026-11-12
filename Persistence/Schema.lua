@@ -13,6 +13,7 @@ function Schema.NewAccountState()
     pendingHydration = {},
     channelMessages = {},
     filters = { ignored = {}, rules = {} },
+    settings = { blockChatInInstances = false },
   }
 end
 

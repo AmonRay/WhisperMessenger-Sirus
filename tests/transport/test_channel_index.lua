@@ -48,7 +48,7 @@ return function()
   -- test_name_lookup_when_no_channel_list
   withGlobals({
     GetChannelName = function(name)
-      return name == "CraftScan" and 5 or 0
+      return name == "CraftScan" and 5 or 0, name == "CraftScan" and "CraftScan" or nil
     end,
   }, function()
     assert(ChannelIndex.Resolve("CraftScan") == 5, "the name lookup finds the channel")

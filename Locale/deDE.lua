@@ -131,6 +131,8 @@ local German = {
   ["Rose"] = "Rosa",
 
   -- Behavior settings
+  ["Block chat in Mythic+, battlegrounds and arenas"] = "Chat in Mythisch+, Schlachtfeldern und Arenen sperren",
+  ["When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."] = "Wenn aktiviert, können dort keine Nachrichten gesendet werden. Standardmäßig aus; Spielsperren gelten weiterhin.",
   ["Control how the messenger window behaves."] = "Verhalten des Messenger-Fensters steuern.",
   ["Compact window"] = "Kompaktes Fenster",
   ["The floating button opens a narrow chat list attached to it. Click a chat to slide into it."] = "Die schwebende Schaltfläche öffnet eine schmale, daran befestigte Chatliste. Klicke auf einen Chat, um zu ihm zu gleiten.",

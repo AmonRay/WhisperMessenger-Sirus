@@ -131,6 +131,8 @@ local Italian = {
   ["Rose"] = "Rosa",
 
   -- Behavior settings
+  ["Block chat in Mythic+, battlegrounds and arenas"] = "Blocca la chat in Mitica+, campi di battaglia e arene",
+  ["When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."] = "Se attivo, impedisce di inviare messaggi lì. Disattivo per impostazione predefinita; restano le restrizioni del gioco.",
   ["Control how the messenger window behaves."] = "Imposta il comportamento della finestra.",
   ["Compact window"] = "Finestra compatta",
   ["The floating button opens a narrow chat list attached to it. Click a chat to slide into it."] = "Il pulsante mobile apre un elenco di chat stretto collegato a esso. Fai clic su una chat per scorrere fino a essa.",

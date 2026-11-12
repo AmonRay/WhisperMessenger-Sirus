@@ -10,6 +10,7 @@ return function()
   do
     local runtime = {
       lastIncomingWhisperKey = "me::WOW::pre-mythic-target",
+      accountState = { settings = { blockChatInInstances = true } },
     }
     local Bootstrap = {
       _loadFrame = {},
@@ -107,6 +108,7 @@ return function()
     local runtime = {
       lastIncomingWhisperKey = nil,
       localProfileId = "me",
+      accountState = { settings = { blockChatInInstances = true } },
       store = { conversations = {} },
       now = function()
         return 200

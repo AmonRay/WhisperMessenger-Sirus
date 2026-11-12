@@ -4,13 +4,12 @@ if type(ns) ~= "table" then
 end
 
 local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
+local ChannelIndex = ns.ChannelIndex or require("WhisperMessenger.Transport.ChannelIndex")
 
 -- The custom chat channels the character has joined, read from the game.
 local JoinedChannels = {}
 
 local CUSTOM_ZONE_ID = 0
--- GetChannelList returns (id, name, disabled) per joined channel.
-local CHANNEL_LIST_STRIDE = 3
 -- Community streams are listed as raw "Community:<club>:<stream>" ids.
 local COMMUNITY_PREFIX = "Community:"
 -- Enum.PermanentChatChannelType.Custom.
@@ -29,7 +28,9 @@ local function serverChannelNames()
   if type(enumerate) ~= "function" then
     return names
   end
-  local ok, list = pcall(pack, enumerate())
+  local ok, list = pcall(function()
+    return pack(enumerate())
+  end)
   if not ok then
     return names
   end
@@ -69,25 +70,19 @@ end
 -- Custom channels as { slug, label, joined }, in the game's channel order.
 function JoinedChannels.Custom()
   local channels = {}
-  local getList = _G.GetChannelList
-  if type(getList) ~= "function" then
-    return channels
-  end
-  local ok, list = pcall(function()
-    return pack(getList())
-  end)
-  if not ok then
-    return channels
-  end
+  local rows = ChannelIndex.Joined() or {}
   local serverNames = serverChannelNames()
   local seen = {}
-  for i = 1, list.n, CHANNEL_LIST_STRIDE do
-    local name = list[i + 1]
-    if type(name) == "string" and name ~= "" and isCustom(name, serverNames) then
+  for _, row in ipairs(rows) do
+    local name = row.name
+    -- World chat may be reported as a built-in server channel on Sirus.
+    local isWorld = name == "Мир" or name == "Мир(А)" or name == "Мир(О)"
+    if isWorld or isCustom(name, serverNames) then
       local slug = ChannelKey.Slug(CUSTOM_ZONE_ID, name)
       if slug and not seen[slug] then
         seen[slug] = true
-        channels[#channels + 1] = { slug = slug, label = name, joined = true }
+        local liveId = ChannelIndex.Resolve(name)
+        channels[#channels + 1] = { slug = slug, label = name, joined = liveId ~= nil, id = liveId }
       end
     end
   end

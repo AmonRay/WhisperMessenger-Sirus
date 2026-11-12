@@ -11,7 +11,7 @@ local InviteHandler = {}
 -- One whisper, sent at most once per conversation. Kept short enough that the
 -- translated copy still fits WoW's 255-byte chat limit.
 InviteHandler.INVITE_TEXT =
-  "Hey! I use Whisper Messenger for whispers: messenger window, history, unread badges, reactions, typing/seen. Free on CurseForge and Wago, grab it and we get all of it between us."
+  "Привет! Пользуйся Whisper Messenger для переписки на Sirus: https://forum.sirus.su/resources/whisper-messenger-messendzher-dlja-sirus-3-3-5a-df-ui.647"
 
 -- "Show invite link" setting: on unless explicitly turned off.
 function InviteHandler.IsEnabled(runtime)

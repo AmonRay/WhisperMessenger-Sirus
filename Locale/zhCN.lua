@@ -131,6 +131,8 @@ local SimplifiedChinese = {
   ["Rose"] = "玫红",
 
   -- Behavior settings
+  ["Block chat in Mythic+, battlegrounds and arenas"] = "在大秘境、战场和竞技场禁用聊天",
+  ["When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."] = "开启后阻止在这些区域发送消息。默认关闭；游戏自身的聊天限制仍然生效。",
   ["Control how the messenger window behaves."] = "控制信使窗口的行为。",
   ["Compact window"] = "紧凑窗口",
   ["The floating button opens a narrow chat list attached to it. Click a chat to slide into it."] = "浮动按钮会打开一个附着在其上的窄聊天列表。点击聊天即可滑入。",

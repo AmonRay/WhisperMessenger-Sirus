@@ -269,8 +269,8 @@ return function()
   -- ---------------------------------------------------------------------------
   do
     local saved = saveGlobals({ "GetChannelName" })
-    rawset(_G, "GetChannelName", function(_name)
-      return 1
+    rawset(_G, "GetChannelName", function(name)
+      return 1, name
     end)
 
     local api = { SendChatMessage = function() end }

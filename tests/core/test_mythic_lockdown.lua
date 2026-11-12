@@ -67,6 +67,7 @@ return function()
         end,
       },
       bnetApi = {},
+      accountState = { settings = { blockChatInInstances = true } },
       isMythicLockdown = function()
         return true
       end,
@@ -125,7 +126,7 @@ return function()
         conversations = {},
         contacts = {},
         pendingHydration = {},
-        settings = { hideFromDefaultChat = true },
+        settings = { hideFromDefaultChat = true, blockChatInInstances = true },
       },
       characterState = {
         window = { x = 0, y = 0, width = 900, height = 560 },

@@ -11,6 +11,7 @@ local function L(key)
   return Localization and Localization.Text(key) or key
 end
 
+local RestrictedActions = ns.BootstrapRestrictedActions or require("WhisperMessenger.Core.Bootstrap.RestrictedActions")
 local MythicSuspendController = {}
 local DEFAULT_MYTHIC_PAUSE_NOTICE_KEY = "Messages are paused in Mythic content and will resume after you leave."
 
@@ -30,7 +31,24 @@ function MythicSuspendController.Attach(runtime, deps)
   local getNumChatWindows = deps.getNumChatWindows
   local getEditBox = deps.getEditBox
 
+  runtime.syncInstanceChatPolicy = function()
+    local handlers = ns.BootstrapLifecycleHandlers
+    if handlers then
+      handlers.SyncInstancePolicy(Bootstrap)
+    end
+  end
+
   runtime.suspend = function()
+    if not RestrictedActions.BlockChatInInstances(runtime) then
+      if runtime._instanceChatSuspended or _G._wmSuspended then
+        runtime.resume()
+      end
+      return
+    end
+    if runtime._instanceChatSuspended then
+      return
+    end
+    runtime._instanceChatSuspended = true
     runtime.messagingNotice = deps.mythicPauseNotice or L(DEFAULT_MYTHIC_PAUSE_NOTICE_KEY)
     Bootstrap._wasVisibleBeforeMythic = isWindowVisible()
     setWindowVisible(false)
@@ -67,6 +85,10 @@ function MythicSuspendController.Attach(runtime, deps)
   end
 
   runtime.resume = function()
+    if not (runtime._instanceChatSuspended or _G._wmSuspended) then
+      return
+    end
+    runtime._instanceChatSuspended = nil
     runtime.messagingNotice = nil
     _G._wmSuspended = nil
 

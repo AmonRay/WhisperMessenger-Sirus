@@ -198,20 +198,11 @@ function Bootstrap.Initialize(factory, options)
 
   -- A chat lock behaves exactly like restricted content.
   runtime.isCompetitiveContent = function()
-    if runtime.restrictedActions and runtime.restrictedActions.isCompetitive() then
-      return true
-    end
-    if runtime.isChatLocked() then
-      return true
-    end
-    return Bootstrap._inCompetitiveContent == true or Bootstrap._inEncounter == true
+    return RestrictedActions.IsCompetitiveContent(runtime, Bootstrap)
   end
 
   runtime.isMythicLockdown = function()
-    if runtime.restrictedActions and runtime.restrictedActions.isMythic() then
-      return true
-    end
-    return Bootstrap._inMythicContent == true
+    return RestrictedActions.IsMythicLockdown(runtime, Bootstrap)
   end
 
   local SeenLevelEvents = loadModule("WhisperMessenger.Core.SeenLevelEvents", "SeenLevelEvents")

@@ -57,10 +57,11 @@ local function bindOffset(transcript, state, requestedOffset, snapToEnd, force, 
   local targetOffset = snapToEnd and math.max(state.totalHeight - viewportHeight, 0) or requestedOffset
   local anchorMessage, anchorDelta, anchorIndex = captureAnchor(rows, targetOffset)
   local firstIndex, lastIndex = rangeForOffset(rows, targetOffset, viewportHeight)
-  if not force and firstIndex == state.firstIndex and lastIndex == state.lastIndex then
+  if not force and firstIndex == state.firstIndex and lastIndex == state.lastIndex and state.viewportHeight == viewportHeight then
     return state.totalHeight, false
   end
 
+  state.viewportHeight = viewportHeight
   transcript._renderingViewport = true
   local settled = false
   local passCap = #rows + 1
@@ -138,17 +139,29 @@ local function bindOffset(transcript, state, requestedOffset, snapToEnd, force, 
     ScrollView.SetVerticalScroll(transcript, targetOffset)
   end
   transcript._renderingViewport = false
+  -- SetVerticalScroll may be clamped by the native scroll child while its
+  -- rectangle settles. Its synchronous event was deliberately ignored above;
+  -- bind the actual range once now instead of waiting for a user scroll.
+  local actualOffset = ScrollView.GetOffset(transcript)
+  local actualFirst, actualLast = rangeForOffset(rows, actualOffset, viewportHeight)
+  if not transcript._settlingViewport and (actualFirst ~= state.firstIndex or actualLast ~= state.lastIndex) then
+    transcript._settlingViewport = true
+    bindOffset(transcript, state, actualOffset, false, false, false)
+    transcript._settlingViewport = nil
+  end
   return state.totalHeight, true
 end
 
 function TranscriptVirtualization.Render(transcript, messages, paneWidth, options, renderOptions)
   local previousState = transcript._virtualState
   local previousRows = previousState and previousState.rows or nil
-  local previousOffset = ScrollView.GetOffset(transcript)
+  local previousOffset = transcript._virtualRequestedOffset or ScrollView.GetOffset(transcript)
+  transcript._virtualRequestedOffset = nil
   local hadRows = previousRows ~= nil and #previousRows > 0
-  local forceSnapToEnd = transcript._virtualForceEnd == true
+  local requestedEnd = transcript._virtualForceEnd
+  local forceSnapToEnd = requestedEnd == true
   transcript._virtualForceEnd = nil
-  local snapToEnd = forceSnapToEnd or not hadRows or isAtEnd(transcript)
+  local snapToEnd = forceSnapToEnd or not hadRows or (requestedEnd == nil and isAtEnd(transcript))
   local anchorMessage, anchorDelta, anchorIndex
   if hadRows and not snapToEnd then
     anchorMessage, anchorDelta, anchorIndex = captureAnchor(previousRows, previousOffset)
@@ -186,12 +199,22 @@ function TranscriptVirtualization.Render(transcript, messages, paneWidth, option
   local _, relaidOut = bindOffset(transcript, state, targetOffset, snapToEnd, force, rebuild)
 
   local settledWidth = sizeValue(transcript.scrollFrame, "GetWidth", "width", paneWidth)
-  if settledWidth ~= paneWidth then
+  if settledWidth > 0 and settledWidth ~= paneWidth then
+    -- The scrollbar may consume width. Capture before Prepare replaces the
+    -- measured row heights with estimates at that final width.
+    local settledOffset = ScrollView.GetOffset(transcript)
+    local message, delta, index = captureAnchor(state.rows, settledOffset)
     local settledChanged
     state, settledChanged = TranscriptRows.Prepare(transcript, messages, settledWidth, dividerMessage)
     state.options = options
     state.fallbackClassTag = fallbackClassTag
-    local _, settledRelaidOut = bindOffset(transcript, state, ScrollView.GetOffset(transcript), snapToEnd, force or settledChanged, rebuild)
+    state.senderFallbackClassTag = senderFallbackClassTag
+    state.displayNameRevision = displayNameRevision
+    state.chatLocked = options and options.chatLocked
+    if not snapToEnd then
+      settledOffset = anchoredOffset(state.rows, message, delta, index) or settledOffset
+    end
+    local _, settledRelaidOut = bindOffset(transcript, state, settledOffset, snapToEnd, force or settledChanged, rebuild)
     relaidOut = relaidOut or settledRelaidOut
   end
   return state.totalHeight, state.firstIndex, state.lastIndex, relaidOut
@@ -202,13 +225,16 @@ function TranscriptVirtualization.RefreshViewport(transcript)
   if state == nil or transcript._renderingViewport then
     return false
   end
-  local offset = ScrollView.GetOffset(transcript)
-  local firstIndex, lastIndex = rangeForOffset(state.rows, offset, transcript.viewportHeight or 0)
-  if firstIndex == state.firstIndex and lastIndex == state.lastIndex then
+  local width = sizeValue(transcript.scrollFrame, "GetWidth", "width", state.paneWidth)
+  if width <= 0 then
     return false
   end
-  bindOffset(transcript, state, offset, isAtEnd(transcript), false, false)
-  return true
+  if width ~= state.paneWidth then
+    local _, _, _, relaidOut = TranscriptVirtualization.Render(transcript, state.messages, width, state.options)
+    return relaidOut
+  end
+  local _, relaidOut = bindOffset(transcript, state, ScrollView.GetOffset(transcript), isAtEnd(transcript), false, false)
+  return relaidOut
 end
 
 function TranscriptVirtualization.Reset(transcript)
@@ -216,6 +242,8 @@ function TranscriptVirtualization.Reset(transcript)
   transcript._positionedDivider = nil
   transcript._virtualFirstIndex = nil
   transcript._virtualLastIndex = nil
+  transcript._virtualRequestedOffset = nil
+  transcript._virtualForceEnd = nil
 end
 
 ns.ConversationPaneTranscriptVirtualization = TranscriptVirtualization

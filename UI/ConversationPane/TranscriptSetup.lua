@@ -138,6 +138,64 @@ function TranscriptSetup.ConfigureTranscript(factory, transcript, parentWidth)
   end
 
   Navigation.InstallPostScrollHook(transcript, refreshViewport)
+  -- Native scroll offsets can settle after SetScrollChild/UpdateScrollChildRect,
+  -- without a wheel or slider event (especially on the first show in Wrath).
+  if transcript.scrollFrame.HookScript then
+    transcript.scrollFrame:HookScript("OnVerticalScroll", refreshViewport)
+  end
+end
+
+-- Refit immediately when geometry is available, then once next frame for
+-- Wrath's lazy anchored rectangles. No permanent OnUpdate or timer loop.
+function TranscriptSetup.BindLayout(view, relayout)
+  local pane = view.frame
+  local function refit(width, height)
+    if view._refitting then
+      return
+    end
+    -- Explicit resize dimensions beat a stale anchored getter on this frame.
+    -- Without a resize event, use the live rect and then the saved layout.
+    if type(width) ~= "number" or width <= 0 then
+      width = sizeValue(pane, "GetWidth", "width", view._layoutWidth)
+    end
+    if type(height) ~= "number" or height <= 0 then
+      height = sizeValue(pane, "GetHeight", "height", view._layoutHeight)
+    end
+    if not width or width <= 0 or not height or height <= 0 then
+      return
+    end
+    view._refitting = true
+    local ok, err = pcall(relayout, view, width, height)
+    view._refitting = false
+    if not ok then
+      error(err, 0)
+    end
+  end
+  local function queueRefit()
+    if view._refitting or view._refitPending or not pane.SetScript then
+      return
+    end
+    view._refitPending = true
+    pane:SetScript("OnUpdate", function()
+      pane:SetScript("OnUpdate", nil)
+      view._refitPending = nil
+      refit()
+    end)
+  end
+  if pane.HookScript then
+    pane:HookScript("OnShow", function()
+      refit()
+      queueRefit()
+    end)
+    pane:HookScript("OnSizeChanged", function(_, width, height)
+      if width == view._fittedPaneWidth and height == view._fittedPaneHeight then
+        return
+      end
+      refit(width, height)
+      queueRefit()
+    end)
+  end
+  queueRefit()
 end
 
 ns.ConversationPaneTranscriptSetup = TranscriptSetup

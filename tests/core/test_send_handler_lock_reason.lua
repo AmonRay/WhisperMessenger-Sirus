@@ -2,6 +2,7 @@ local SendHandler = require("WhisperMessenger.Core.Bootstrap.SendHandler")
 
 local function rt(mythic, competitive)
   return {
+    accountState = { settings = { blockChatInInstances = true } },
     isMythicLockdown = function()
       return mythic
     end,

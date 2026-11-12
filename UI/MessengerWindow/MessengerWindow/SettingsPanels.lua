@@ -68,6 +68,7 @@ function SettingsPanels.Create(factory, options)
         autoFocusComposer = settingsConfig.autoFocusComposer,
         deselectComposerOnSend = settingsConfig.deselectComposerOnSend,
         hideOnCombat = settingsConfig.hideOnCombat,
+        blockChatInInstances = settingsConfig.blockChatInInstances == true,
         doubleEscapeToClose = settingsConfig.doubleEscapeToClose,
         allowAddonIntegration = settingsConfig.allowAddonIntegration,
         quickReplies = settingsConfig.quickReplies,

@@ -21,6 +21,7 @@ local SendParts = ns.BootstrapSendParts or require("WhisperMessenger.Core.Bootst
 local QUEST_LINK_ADDON_PREFIX = AddonComm.PREFIX_QUEST_LINK
 local REACTION_ADDON_PREFIX = AddonComm.PREFIX_REACTION
 
+local RestrictedActions = ns.BootstrapRestrictedActions or require("WhisperMessenger.Core.Bootstrap.RestrictedActions")
 local SendHandler = {}
 
 -- Keeps an unsent message in history: "queued" (lockdown; Send now later)
@@ -39,10 +40,17 @@ end
 
 -- The lock that keeps a whisper from going out now, as its status reason.
 local function lockReason(runtime)
-  if runtime.isMythicLockdown and runtime.isMythicLockdown() then
+  local ra = runtime.restrictedActions
+  if (runtime.isChatLocked and runtime.isChatLocked()) or (ra and ra.isChatLocked()) or RestrictedActions.ChatApiLocked() then
+    return "Competitive Content"
+  end
+  if not RestrictedActions.BlockChatInInstances(runtime) then
+    return nil
+  end
+  if RestrictedActions.IsMythicLockdown(runtime) or (runtime.isMythicLockdown and runtime.isMythicLockdown()) then
     return "Mythic Lockdown"
   end
-  if runtime.isCompetitiveContent and runtime.isCompetitiveContent() then
+  if RestrictedActions.IsCompetitiveContent(runtime) or (runtime.isCompetitiveContent and runtime.isCompetitiveContent()) then
     return "Competitive Content"
   end
   return nil

@@ -80,8 +80,8 @@ return function()
     withSirus(factionID, function()
       assert(WorldChannels.IsRenegade() == false, "faction " .. factionID .. " is not Renegade")
       assert(names(WorldChannels.ForCharacter()) == "Мир", "faction " .. factionID .. " should see only Мир")
-      assert(WorldChannels.LanguageFor("Мир(А)") == nil, "no override outside Renegade (А)")
-      assert(WorldChannels.LanguageFor("Мир(О)") == nil, "no override outside Renegade (О)")
+      assert(WorldChannels.LanguageFor("Мир(А)") == "всеобщий", "Мир(А) always uses Common")
+      assert(WorldChannels.LanguageFor("Мир(О)") == "орочий", "Мир(О) always uses Orcish")
     end)
   end
 
@@ -89,7 +89,7 @@ return function()
   withSirus(2, function()
     rawset(_G, "C_FactionManager", nil)
     assert(WorldChannels.IsRenegade() == false, "no faction manager means not Renegade")
-    assert(WorldChannels.LanguageFor("Мир(А)") == nil, "no override without a faction manager")
+    assert(WorldChannels.LanguageFor("Мир(А)") == "всеобщий", "channel language does not depend on faction manager")
   end)
 
   -- Arrange: drop world channels of the wrong faction, add the missing ones.
@@ -103,15 +103,15 @@ return function()
     for i, row in ipairs(arranged) do
       labels[i] = row.label
     end
-    assert(table.concat(labels, ",") == "Мир(А),CraftScan,Мир(О)", "Renegade rows: got " .. table.concat(labels, ","))
-    assert(arranged[3].slug == "c:" .. string.lower("Мир(О)"), "added row should use the custom-channel slug")
+    assert(table.concat(labels, ",") == "Мир(А),Мир,CraftScan,Мир(О)", "joined world channels remain visible: " .. table.concat(labels, ","))
+    assert(arranged[4].slug == "c:" .. string.lower("Мир(О)"), "added row should use the custom-channel slug")
   end)
   withSirus(0, function()
     local arranged = WorldChannels.Arrange({
       { slug = "c:" .. string.lower("Мир(А)"), label = "Мир(А)", joined = true },
       { slug = "c:" .. string.lower("Мир(О)"), label = "Мир(О)", joined = true },
     })
-    assert(#arranged == 1 and arranged[1].label == "Мир", "Horde should list only Мир")
+    assert(#arranged == 3 and arranged[1].label == "Мир(А)" and arranged[2].label == "Мир(О)" and arranged[3].label == "Мир", "joined channels remain visible even if the faction override disagrees")
   end)
 
   -- Sending: a Renegade speaks the channel's faction language in Мир(А)/(О).
@@ -133,7 +133,7 @@ return function()
     end)
     local api = spyApi()
     ChatGateway.Send(api, { channel = ChannelType.CHANNEL, channelBaseName = "Мир(А)" }, "x")
-    assert(api._calls[1].language == nil, "Alliance keeps the default language")
+    assert(api._calls[1].language == "всеобщий", "Мир(А) sends in Common regardless of faction")
   end)
 
   print("PASS: test_world_channels")

@@ -182,7 +182,7 @@ return function()
   -- test_resume_after_mythic_re_registers_conditional_filters
   run(function()
     local Bootstrap, active, _, restore = setup({}, { ignored = { ["spammer-realm"] = { name = "Spammer-Realm" } }, rules = {} })
-    local runtime = {}
+    local runtime = { accountState = { settings = { blockChatInInstances = true } } }
     MythicSuspendController.Attach(runtime, { Bootstrap = Bootstrap })
     Bootstrap.syncChatFilters()
     runtime.suspend()

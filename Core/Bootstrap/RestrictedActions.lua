@@ -49,6 +49,55 @@ function RestrictedActions.ChatApiLocked()
   return locked == true
 end
 
+-- Account-wide addon policy; server/API chat restrictions are independent.
+function RestrictedActions.BlockChatInInstances(runtime)
+  local settings = runtime and runtime.accountState and runtime.accountState.settings
+  return type(settings) == "table" and settings.blockChatInInstances == true
+end
+
+-- Provisional Sirus M+ probe: difficulty 8 is NOT confirmed on this server.
+-- Keep the Wrath flavor flag out of this probe; validate the ID in game.
+function RestrictedActions.InMythicInstance()
+  if type(_G.GetInstanceInfo) ~= "function" then
+    return false
+  end
+  local ok, _name, _instanceType, difficultyID = pcall(_G.GetInstanceInfo)
+  return ok and difficultyID == 8
+end
+
+local function inPvPInstance()
+  if type(_G.GetInstanceInfo) ~= "function" then
+    return false
+  end
+  local ok, _name, instanceType = pcall(_G.GetInstanceInfo)
+  return ok and (instanceType == "pvp" or instanceType == "arena")
+end
+
+function RestrictedActions.IsMythicLockdown(runtime, bootstrap)
+  if not RestrictedActions.BlockChatInInstances(runtime) then
+    return false
+  end
+  local ra = runtime and runtime.restrictedActions
+  return (ra ~= nil and ra.isMythic()) or RestrictedActions.InMythicInstance()
+    or (bootstrap ~= nil and bootstrap._inMythicContent == true)
+end
+
+function RestrictedActions.IsCompetitiveContent(runtime, bootstrap)
+  local ra = runtime and runtime.restrictedActions
+  -- Never turn off a genuine chat restriction when changing the addon policy.
+  if (runtime and runtime.isChatLocked and runtime.isChatLocked())
+    or (ra and ra.isChatLocked()) or RestrictedActions.ChatApiLocked()
+  then
+    return true
+  end
+  if not RestrictedActions.BlockChatInInstances(runtime) then
+    return false
+  end
+  return inPvPInstance() or RestrictedActions.IsMythicLockdown(runtime, bootstrap)
+    or (ra ~= nil and ra.isActive and ra.isActive(RestrictedActions.TYPES.PvPMatch))
+    or (bootstrap ~= nil and bootstrap._inCompetitiveContent == true)
+end
+
 function RestrictedActions.New()
   local cached = {}
   local updates = {}

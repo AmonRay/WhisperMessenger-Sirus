@@ -234,22 +234,7 @@ function ConversationPane.Create(factory, parent, selectedContact, conversation,
   view._layoutHeight = parentHeight
   HeaderView.Relayout(view, parentWidth)
 
-  -- 3.3.5a resolves anchored rects lazily: while the window shrinks the pane
-  -- can still report its old, taller height, sizing the transcript past the
-  -- composer. Re-fit once the pane's real height lands.
-  if type(pane.HookScript) == "function" then
-    pane:HookScript("OnSizeChanged", function(_, _, newHeight)
-      if view._refitting or type(newHeight) ~= "number" or newHeight <= 0 or newHeight == view._fittedPaneHeight then
-        return
-      end
-      view._refitting = true
-      local ok, err = pcall(ConversationPane.Relayout, view, view._layoutWidth, view._layoutHeight)
-      view._refitting = false
-      if not ok then
-        error(err, 0)
-      end
-    end)
-  end
+  TranscriptSetup.BindLayout(view, ConversationPane.Relayout)
 
   if type(options.onReact) == "function" then
     transcript.onReact = function(message, reactionKey)
@@ -298,17 +283,26 @@ function ConversationPane.Relayout(view, width, height)
   -- differ from the window-derived metric; size the transcript to what the
   -- pane actually is so bubbles reach the composer instead of stopping short.
   local paneHeight = sizeValue(view.frame, "GetHeight", "height", height)
+  local paneWidth = sizeValue(view.frame, "GetWidth", "width", width)
   view._fittedPaneHeight = paneHeight
-  local transcriptW = width - Theme.LAYOUT.TRANSCRIPT_HORIZONTAL_INSET
-  local transcriptH = paneHeight - Theme.HeaderHeight() - bannerOffset - InfoStrip.HeightOf(view)
+  view._fittedPaneWidth = paneWidth
+  local transcriptW = math.max(paneWidth - Theme.LAYOUT.TRANSCRIPT_HORIZONTAL_INSET, 1)
+  local transcriptH = math.max(paneHeight - Theme.HeaderHeight() - bannerOffset - InfoStrip.HeightOf(view), 1)
   local t = view.transcript
   local wasAtEnd = transcriptIsAtEnd(t)
+  local previousOffset = ScrollView.GetOffset(t)
+  -- Resizing can synchronously fire native scroll events. Keep the old row
+  -- geometry and reading offset intact until Render captures its anchor.
+  local wasRendering = t._renderingViewport
+  t._renderingViewport = true
   ScrollView.Resize(t, transcriptW, transcriptH)
+  t._renderingViewport = wasRendering
   if t.text and t.text.SetWidth then
     t.text:SetWidth(transcriptW)
   end
   -- Re-render bubbles at the new width
   if t._allMessages then
+    t._virtualRequestedOffset = previousOffset
     t._virtualForceEnd = wasAtEnd
     TranscriptView.RenderTranscript(t, t._allMessages, FORCE_RENDER)
   end

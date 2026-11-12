@@ -5,58 +5,99 @@ end
 
 local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
 
--- The live number of a joined chat channel. Numbers follow join order and
--- change when the player leaves or rejoins channels, so a channel chat looks
--- its number up by name at send time and never trusts a stored one.
+-- Resolve live membership at send time; never trust a saved channel number.
 local ChannelIndex = {}
-
 local lower = string.lower
-local select = select
 
 local function sameChannel(name, wanted)
+  if wanted == "Мир" or wanted == "Мир(А)" or wanted == "Мир(О)" then
+    return name == wanted
+  end
   local baseName = ChannelKey.BaseName(name)
   return baseName ~= nil and lower(baseName) == wanted
 end
 
--- GetChannelList returns id, name, disabled triples. A disabled channel
--- (Trade outside a city) cannot be sent to.
-local function findInList(wanted, ...)
-  for index = 1, select("#", ...), 3 do
-    local id, name, disabled = select(index, ...)
-    if disabled ~= true and type(id) == "number" and sameChannel(name, wanted) then
-      return id
+local function pack(...)
+  return { n = select("#", ...), ... }
+end
+
+local function validLayout(list, stride)
+  if list.n % stride ~= 0 then
+    return false
+  end
+  for index = 1, list.n, stride do
+    if type(list[index]) ~= "number" or type(list[index + 1]) ~= "string" then
+      return false
+    end
+    if stride == 3 then
+      local disabled = list[index + 2]
+      if disabled ~= nil and type(disabled) ~= "boolean" and disabled ~= 0 and disabled ~= 1 then
+        return false
+      end
     end
   end
-  return nil
+  return true
 end
 
-local function fromList(wanted)
-  local ok, id = pcall(function()
-    return findInList(wanted, _G.GetChannelList())
-  end)
-  return ok and id or nil
-end
-
-local function fromName(baseName)
-  local ok, id = pcall(_G.GetChannelName, baseName)
-  if ok and type(id) == "number" and id > 0 then
-    return id
+-- Wrath returns id/name pairs; newer clients add a disabled field.
+-- nil means enumeration was unavailable, not that the player joined nothing.
+-- Malformed or ambiguous enumeration fails closed (no name-lookup fallback).
+function ChannelIndex.Joined()
+  if type(_G.GetChannelList) ~= "function" then
+    return nil
   end
-  return nil
+  local ok, list = pcall(function()
+    return pack(_G.GetChannelList())
+  end)
+  if not ok then
+    return nil
+  end
+  local rows = {}
+  if list.n == 0 then
+    return rows
+  end
+  local pairsValid, triplesValid = validLayout(list, 2), validLayout(list, 3)
+  if pairsValid == triplesValid then
+    return rows
+  end
+  local stride = pairsValid and 2 or 3
+  for index = 1, list.n, stride do
+    local id, name = list[index], list[index + 1]
+    local disabled = stride == 3 and list[index + 2] or false
+    if type(id) == "number" and id > 0 and type(name) == "string" and name ~= "" then
+      rows[#rows + 1] = { id = id, name = name, disabled = disabled == true or disabled == 1 }
+    end
+  end
+  return rows
 end
 
--- channelBaseName: the stored base name, possibly with a zone suffix
--- ("General - Elwynn Forest"). Returns the live channel number or nil.
+-- Exact base-name matching only. GetChannelName may accept partial names, so
+-- its returned name must also match before accepting its numeric ID.
 function ChannelIndex.Resolve(channelBaseName)
   local baseName = ChannelKey.BaseName(channelBaseName)
   if baseName == nil then
     return nil
   end
-  if type(_G.GetChannelList) == "function" then
-    return fromList(lower(baseName))
+  local isWorld = baseName == "Мир" or baseName == "Мир(А)" or baseName == "Мир(О)"
+  local wanted = isWorld and baseName or lower(baseName)
+  local rows = ChannelIndex.Joined()
+  if rows then
+    local found
+    for _, row in ipairs(rows) do
+      if not row.disabled and sameChannel(row.name, wanted) then
+        if found ~= nil and found ~= row.id then
+          return nil
+        end
+        found = row.id
+      end
+    end
+    return found
   end
   if type(_G.GetChannelName) == "function" then
-    return fromName(baseName)
+    local ok, id, name = pcall(_G.GetChannelName, baseName)
+    if ok and type(id) == "number" and id > 0 and sameChannel(name, wanted) then
+      return id
+    end
   end
   return nil
 end
