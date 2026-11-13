@@ -122,13 +122,17 @@ return function()
     "expected classic quest text to be rewritten to hyperlink, got: " .. tostring(composer.input:GetText())
   )
 
-  -- Nothing lands when the window is hidden
-  -- (the composer's own frame still reports itself shown, as it does in game)
+  -- Nothing lands when the window is closed: the composer goes with it and
+  -- loses the focus that decides where a shift-clicked link belongs.
   composer.input:SetText("")
+  composer.input:ClearFocus()
+  composer.input:Hide()
   parent:Hide()
   insertLinkHook(itemLink)
-  assert(composer.input:GetText() == "", "expected no link inserted when parent hidden")
+  assert(composer.input:GetText() == "", "expected no link inserted when the window is hidden")
+  composer.input:Show()
   parent:Show()
+  composer.input:SetFocus()
 
   -- SetItemRef hook for clicking hyperlinks in transcript
   assert(registeredHooks.SetItemRef ~= nil, "expected SetItemRef hook registered")

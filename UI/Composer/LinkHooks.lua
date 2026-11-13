@@ -57,13 +57,18 @@ end
 local function preferredInput()
   -- The composer the player is typing in wins: the client's own checks on it
   -- disagree about it being on screen (see hostShown above).
-  if not hostShown() then
-    return nil
-  end
+  -- The focused box wins, as in the game's own chat: the client's IsShown and
+  -- IsVisible answers for a composer the player is typing in are unreliable,
+  -- and a shift-clicked link has to land where the player is typing.
   for _, input in ipairs(linkedInputs) do
     if canInsert(input) and isInputFocused(input) then
       return input
     end
+  end
+  -- Without focus the window has to be up, or the link would go into a chat
+  -- the player cannot see.
+  if not hostShown() then
+    return nil
   end
   if canInsert(activeInput) then
     return activeInput
