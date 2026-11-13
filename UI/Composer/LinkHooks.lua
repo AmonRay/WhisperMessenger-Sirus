@@ -68,15 +68,13 @@ local function findInputForInsertion(allowVisibleWithoutFocus)
   return nil
 end
 
--- Diagnostic trail for in-game reports. Off unless the player enables it:
--- `/run WM_LINK_DEBUG=true`, one shift-click, then `/dump WMLinkDebug` lists
--- which Blizzard path ran and why the link was dropped.
+-- Diagnostic trail for in-game reports: `/dump WMLinkDebug` lists which
+-- Blizzard path ran and why the link was dropped. Always on, bounded, and it
+-- only ever holds the last few shift-clicks.
+local DEBUG_TRAIL_LIMIT = 12
 local debugTrail = {}
 local function recordDebug(message)
-  if _G.WM_LINK_DEBUG ~= true then
-    return
-  end
-  if #debugTrail >= 12 then
+  if #debugTrail >= DEBUG_TRAIL_LIMIT then
     table.remove(debugTrail, 1)
   end
   table.insert(debugTrail, message)
@@ -91,7 +89,23 @@ local function tryInsertLink(link, options)
   options = options or {}
   local input = findInputForInsertion(options.allowVisibleWithoutFocus == true)
   if input == nil then
-    recordDebug("no composer for " .. tostring(link))
+    local focused = 0
+    for _, candidate in ipairs(linkedInputs) do
+      if isInputFocused(candidate) then
+        focused = focused + 1
+      end
+    end
+    recordDebug(
+      "no composer for "
+        .. tostring(link)
+        .. " (registered="
+        .. #linkedInputs
+        .. ", focused="
+        .. focused
+        .. ", active="
+        .. tostring(activeInput ~= nil)
+        .. ")"
+    )
     return false
   end
 
@@ -162,18 +176,21 @@ local function blizzardChatBoxActive()
   return type(getActiveWindow) == "function" and getActiveWindow() ~= nil
 end
 
-local function insertFromBlizzard(link)
+local function insertFromBlizzard(link, source)
+  source = source or "blizzard"
   if _G._wmSuspended then
+    recordDebug(source .. ": suspended")
     return
   end
   if type(link) ~= "string" or link == "" then
+    recordDebug(source .. ": empty link")
     return
   end
   if blizzardChatBoxActive() then
-    recordDebug("blizzard chat box took " .. link)
+    recordDebug(source .. ": blizzard chat box took " .. link)
     return
   end
-  recordDebug("link " .. link)
+  recordDebug(source .. ": " .. link)
   tryInsertLink(link, { allowVisibleWithoutFocus = false })
 end
 
@@ -260,7 +277,7 @@ local function registerLinkHooks()
     local playerName = playerNameFromLink(link)
     if isBattleNetPlayerLink(link) or isPlayerLink(link) then
       if playerName ~= nil and ChatLinkSources.IsChatLinkClick() then
-        insertFromBlizzard(playerName)
+        insertFromBlizzard(playerName, "SetItemRef")
       end
       return
     end
@@ -284,20 +301,39 @@ local function registerLinkHooks()
   -- or bank shift-click through them. Their post-hooks hand us the link
   -- directly; the per-frame dedupe keeps a click that reaches both to one
   -- insert.
-  local function insertFromChatLinkClick(link)
+  local function insertFromChatLinkClick(link, source)
     if not ChatLinkSources.IsChatLinkClick() then
+      recordDebug((source or "click") .. ": not a chat-link click")
       return
     end
-    insertFromBlizzard(link)
+    insertFromBlizzard(link, source)
   end
 
-  safeHookMethod(_G.ChatFrameUtil, "InsertLink", insertFromBlizzard)
-  safeHookGlobal("ChatEdit_InsertLink", insertFromBlizzard)
-  safeHookGlobal("ChatEdit_TryInsertChatLink", insertFromChatLinkClick)
-  safeHookGlobal("HandleModifiedItemClick", insertFromChatLinkClick)
+  local installed = {}
+  local function installGlobal(name, handler)
+    if safeHookGlobal(name, handler) then
+      table.insert(installed, name)
+    else
+      table.insert(installed, name .. "!")
+    end
+  end
+
+  if safeHookMethod(_G.ChatFrameUtil, "InsertLink", insertFromBlizzard) then
+    table.insert(installed, "ChatFrameUtil.InsertLink")
+  end
+  installGlobal("ChatEdit_InsertLink", function(link)
+    insertFromBlizzard(link, "ChatEdit_InsertLink")
+  end)
+  installGlobal("ChatEdit_TryInsertChatLink", function(link)
+    return insertFromChatLinkClick(link, "ChatEdit_TryInsertChatLink")
+  end)
+  installGlobal("HandleModifiedItemClick", function(link)
+    return insertFromChatLinkClick(link, "HandleModifiedItemClick")
+  end)
   ChatLinkSources.Register(insertFromBlizzard)
 
   registeredLinkHooks = true
+  recordDebug("hooks: " .. table.concat(installed, " "))
 end
 
 function LinkHooks.RegisterInput(input)
