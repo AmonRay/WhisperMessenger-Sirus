@@ -23,6 +23,15 @@ FlavorCompat.isForever = type(tocVersion) == "number" and tocVersion >= FOREVER_
 
 FlavorCompat.isWrath335 = projectId == nil and type(tocVersion) == "number" and tocVersion <= 30300
 
+-- 3.3.5a (Sirus): changing an override binding fires UPDATE_BINDINGS before
+-- the call returns, so other addons' handlers for it run inside this addon's
+-- call. Action-bar addons (ElvUI) rebind their secure bars there; the client
+-- blocks that and blames this addon (ADDON_ACTION_BLOCKED). There the
+-- messenger never moves a key on its own (ESC, Enter). Read at call time.
+function FlavorCompat.CanOverrideKeys()
+  return FlavorCompat.isWrath335 ~= true
+end
+
 -- Region id of the current game client; nil without the API.
 function FlavorCompat.CurrentRegion()
   local getCurrentRegion = _G["GetCurrentRegion"]

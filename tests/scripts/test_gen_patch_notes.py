@@ -15,6 +15,18 @@ class RenderLuaTests(unittest.TestCase):
         self.assertEqual(gen_patch_notes.quote_lua("a\nb"), '"a\\nb"')
 
 
+class LocalizedSectionTests(unittest.TestCase):
+    def test_matching_russian_release_overrides_english(self):
+        english = "## [2.1.10] - 2026-11-12\n- Fixed: chat.\n"
+        russian = "## [2.1.10] - 2026-11-12\n- Исправлен чат.\n"
+        self.assertEqual(gen_patch_notes.select_section(english, russian)[2], ["Исправлен чат."])
+
+    def test_stale_translation_does_not_override_new_release(self):
+        english = "## [2.1.11]\n- New release.\n"
+        russian = "## [2.1.10]\n- Старый выпуск.\n"
+        self.assertEqual(gen_patch_notes.select_section(english, russian)[2], ["New release."])
+
+
 class ParseLatestSectionTests(unittest.TestCase):
     def test_nested_bullets_fold_into_parent_line(self):
         text = "## [1.5.0] - 2026-09-20\n- New look:\n  - Cleaner window.\n  - Softer colors.\n- Fixed: typo.\n"

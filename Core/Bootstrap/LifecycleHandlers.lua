@@ -36,8 +36,7 @@ function LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
   local enabled = RestrictedActions.BlockChatInInstances(runtime)
   if enabled then
     local detector = deps.getContentDetector and deps.getContentDetector() or ns.ContentDetector
-    Bootstrap._inMythicContent = RestrictedActions.IsMythicLockdown(runtime)
-      or (detector ~= nil and detector.IsMythicRestricted(_G.GetInstanceInfo))
+    Bootstrap._inMythicContent = RestrictedActions.IsMythicLockdown(runtime) or (detector ~= nil and detector.IsMythicRestricted(_G.GetInstanceInfo))
     if detector then
       Bootstrap._inCompetitiveContent = detector.IsCompetitiveContent(_G.GetInstanceInfo)
     end
@@ -61,9 +60,7 @@ function LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
   if runtime.syncReplyKey then
     runtime.syncReplyKey()
   end
-  if not RestrictedActions.IsCompetitiveContent(runtime, Bootstrap)
-    and not RestrictedActions.IsMythicLockdown(runtime, Bootstrap)
-  then
+  if not RestrictedActions.IsCompetitiveContent(runtime, Bootstrap) and not RestrictedActions.IsMythicLockdown(runtime, Bootstrap) then
     runtime.messagingNotice = nil
     for key, status in pairs(runtime.sendStatusByConversation or {}) do
       if status.status == "Mythic Lockdown" or status.status == "Competitive Content" then
@@ -163,13 +160,15 @@ end
 
 function LifecycleHandlers.Handle(Bootstrap, event, deps, ...)
   local handled = handle(Bootstrap, event, deps, ...)
-  if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA"
+  if
+    event == "PLAYER_ENTERING_WORLD"
+    or event == "ZONE_CHANGED_NEW_AREA"
     or event == "ADDON_RESTRICTION_STATE_CHANGED"
-    or event == "CHALLENGE_MODE_START" or event == "CHALLENGE_MODE_COMPLETED" or event == "CHALLENGE_MODE_RESET"
+    or event == "CHALLENGE_MODE_START"
+    or event == "CHALLENGE_MODE_COMPLETED"
+    or event == "CHALLENGE_MODE_RESET"
   then
-    if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA"
-      or not RestrictedActions.BlockChatInInstances(Bootstrap.runtime)
-    then
+    if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" or not RestrictedActions.BlockChatInInstances(Bootstrap.runtime) then
       LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
     end
   end

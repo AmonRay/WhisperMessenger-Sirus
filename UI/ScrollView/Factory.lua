@@ -16,6 +16,7 @@ local clamp = TableUtils.clamp
 local Metrics = ns.ScrollViewMetrics or require("WhisperMessenger.UI.ScrollView.Metrics")
 local Navigation = ns.ScrollViewNavigation or require("WhisperMessenger.UI.ScrollView.Navigation")
 local RetailSkin = ns.ScrollViewRetailSkin or require("WhisperMessenger.UI.ScrollView.RetailSkin")
+local WheelGate = ns.ScrollViewWheelGate or require("WhisperMessenger.UI.ScrollView.WheelGate")
 
 local SCROLLBAR_WIDTH = Metrics.SCROLLBAR_WIDTH
 local SCROLLBAR_INSET = Metrics.SCROLLBAR_INSET
@@ -170,6 +171,10 @@ function Factory.Create(factory, parent, options)
 
   if scrollFrame.EnableMouseWheel then
     scrollFrame:EnableMouseWheel(true)
+  end
+  -- 3.3.5a: the wheel only while the cursor is on this list (WheelGate).
+  if WheelGate.Supported() then
+    view.wheelGate = WheelGate.Attach(factory, scrollFrame)
   end
 
   if scrollFrame.SetScript then

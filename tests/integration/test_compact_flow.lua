@@ -64,7 +64,7 @@ return function()
   end)
 
   -- test_mythic_notice_shows_on_the_chat_opened_during_suspend
-  run(nil, function(runtime)
+  run({ blockChatInInstances = true }, function(runtime)
     runtime.toggle()
     runtime.suspend()
     runtime.toggle()
@@ -76,7 +76,7 @@ return function()
   end)
 
   -- test_mythic_notice_covers_the_chat_open_when_suspend_starts_and_clears_on_resume
-  run(nil, function(runtime)
+  run({ blockChatInInstances = true }, function(runtime)
     runtime.toggle()
     clickRow(runtime, KEY)
     assert(runtime.window.composer.sendButton.disabled == false, "can send before suspend")

@@ -22,7 +22,13 @@ function FirstRunTip.IsFreshInstall(accountState)
   if accountState == nil then
     return false
   end
-  return next(accountState.settings or {}) == nil and next(accountState.conversations or {}) == nil
+  for key, value in pairs(accountState.settings or {}) do
+    -- This default is seeded by migration before fresh-install detection.
+    if key ~= "blockChatInInstances" or value ~= false then
+      return false
+    end
+  end
+  return next(accountState.conversations or {}) == nil
 end
 
 function FirstRunTip.Announce(accountState, options)

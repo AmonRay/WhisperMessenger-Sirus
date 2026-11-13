@@ -56,6 +56,15 @@ def parse_latest_section(text):
     return version, date, lines
 
 
+def select_section(text, localized_text=None):
+    section = parse_latest_section(text)
+    if localized_text:
+        localized = parse_latest_section(localized_text)
+        if localized[0] == section[0] and localized[2]:
+            return localized
+    return section
+
+
 def quote_lua(value):
     """Return a StyLua-compatible quoted string with the fewest escapes."""
     delimiter = "'" if value.count('"') > value.count("'") else '"'
@@ -94,7 +103,12 @@ def main():
         print("Error: could not read %s: %s" % (CHANGELOG_PATH, error), file=sys.stderr)
         return 1
 
-    version, date, lines = parse_latest_section(text)
+    localized_path = os.path.join(PROJECT_ROOT, "docs", "patch-notes-ru.md")
+    localized_text = None
+    if os.path.isfile(localized_path):
+        with open(localized_path, "r", encoding="utf-8") as handle:
+            localized_text = handle.read()
+    version, date, lines = select_section(text, localized_text)
 
     if version is None:
         print("Error: no versioned '## [x.y.z]' section found in CHANGELOG.md", file=sys.stderr)

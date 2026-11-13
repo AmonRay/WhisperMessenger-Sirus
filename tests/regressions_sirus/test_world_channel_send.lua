@@ -5,9 +5,17 @@ local GroupSendPolicy = require("WhisperMessenger.Core.Bootstrap.WindowRuntime.G
 
 return function()
   local names = {
-    "GetChannelList", "GetChannelName", "UnitFactionGroup", "C_FactionManager",
-    "LFG_CHANNEL_NAME", "LFG_CHANNEL_NAME_ALLIANCE", "LFG_CHANNEL_NAME_HORDE",
-    "LANGUAGE_ALLIANCE", "LANGUAGE_HORDE", "PLAYER_FACTION_LANGUAGE", "PLAYER_FACTION_GROUP",
+    "GetChannelList",
+    "GetChannelName",
+    "UnitFactionGroup",
+    "C_FactionManager",
+    "LFG_CHANNEL_NAME",
+    "LFG_CHANNEL_NAME_ALLIANCE",
+    "LFG_CHANNEL_NAME_HORDE",
+    "LANGUAGE_ALLIANCE",
+    "LANGUAGE_HORDE",
+    "PLAYER_FACTION_LANGUAGE",
+    "PLAYER_FACTION_GROUP",
   }
   local saved = {}
   for _, name in ipairs(names) do

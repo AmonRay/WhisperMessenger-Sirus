@@ -17,7 +17,11 @@ return function()
     end
     for _, source in ipairs({ "api", "event" }) do
       local apiLocked = source == "api"
-      _G.C_ChatInfo = { InChatMessagingLockdown = function() return apiLocked end }
+      _G.C_ChatInfo = {
+        InChatMessagingLockdown = function()
+          return apiLocked
+        end,
+      }
       _G._wmSuspended = nil
       local sent = 0
       local settings = { blockChatInInstances = true }
@@ -28,14 +32,20 @@ return function()
         localProfileId = "qa-sirus",
         pendingOutgoing = {},
         sendStatusByConversation = {},
-        now = function() return 100 end,
+        now = function()
+          return 100
+        end,
         chatApi = {
-          SendChatMessage = function() sent = sent + 1 end,
+          SendChatMessage = function()
+            sent = sent + 1
+          end,
           RegisterAddonMessagePrefix = function() end,
           SendAddonMessage = function() end,
         },
       }
-      runtime.isChatLocked = function() return runtime.restrictedActions.isChatLocked() end
+      runtime.isChatLocked = function()
+        return runtime.restrictedActions.isChatLocked()
+      end
       if source == "event" then
         runtime.restrictedActions.updateFromEvent(RestrictedActions.TYPES.Chat, RestrictedActions.STATES.Active)
       end
@@ -49,8 +59,11 @@ return function()
       change("blockChatInInstances", false)
       assert(RestrictedActions.IsCompetitiveContent(runtime, bootstrap), source .. ": opt-out must not bypass real chat lock")
       assert(SendHandler.HandleSend(runtime, {
-        conversationKey = "wow::WOW::thrall", target = "Thrall", displayName = "Thrall",
-        channel = "WOW", text = "Не отправлять автоматически",
+        conversationKey = "wow::WOW::thrall",
+        target = "Thrall",
+        displayName = "Thrall",
+        channel = "WOW",
+        text = "Не отправлять автоматически",
       }, function() end) == false, source .. ": real chat lock must refuse transport")
       assert(sent == 0, "locked message must not reach transport")
       local conversation = runtime.store.conversations["wow::WOW::thrall"]
@@ -64,7 +77,10 @@ return function()
       LifecycleHandlers.SyncInstancePolicy(bootstrap)
       assert(not runtime.isChatLocked(), "precondition: genuine chat lock lifted")
       assert(sent == 0, "setting changes, resume and reconciliation must never send queued messages")
-      assert(conversation.messages[#conversation.messages] == queued and queued.delivery == "queued", "queue must survive unlocking for explicit user action")
+      assert(
+        conversation.messages[#conversation.messages] == queued and queued.delivery == "queued",
+        "queue must survive unlocking for explicit user action"
+      )
     end
   end)
   _G.C_ChatInfo = savedChat

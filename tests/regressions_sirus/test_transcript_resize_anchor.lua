@@ -28,6 +28,9 @@ return function()
   ScrollView.SetVerticalScroll(view.transcript, ScrollView.GetRange(view.transcript))
   view.frame:SetSize(500, 420)
   ConversationPane.Relayout(view, 500, 420)
-  assert(math.abs(ScrollView.GetOffset(view.transcript) - ScrollView.GetRange(view.transcript)) <= 1, "latest history must stay pinned after width reflow")
+  assert(
+    math.abs(ScrollView.GetOffset(view.transcript) - ScrollView.GetRange(view.transcript)) <= 1,
+    "latest history must stay pinned after width reflow"
+  )
   assert(Rig.HasMessage(view.transcript, messages[#messages]), "latest bubble must remain bound without extra scroll input")
 end

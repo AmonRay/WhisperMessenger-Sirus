@@ -435,7 +435,7 @@ return function()
         conversations = {},
         contacts = {},
         pendingHydration = {},
-        settings = {},
+        settings = { blockChatInInstances = true },
       },
       characterState = {
         window = { x = 0, y = 0, width = 900, height = 560 },
@@ -517,7 +517,7 @@ return function()
         },
         contacts = {},
         pendingHydration = {},
-        settings = { compactLayout = false },
+        settings = { compactLayout = false, blockChatInInstances = true },
       },
       characterState = {
         window = { x = 0, y = 0, width = 900, height = 560 },

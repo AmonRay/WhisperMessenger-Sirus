@@ -13,6 +13,7 @@ return function()
   })
   local Bootstrap = {}
   Bootstrap.runtime = {
+    accountState = { settings = { blockChatInInstances = true } },
     store = { conversations = { k = { messages = { { direction = "out", kind = "user", text = "gg", delivery = "queued" } } } } },
     isCompetitiveContent = function()
       return Bootstrap._inCompetitiveContent == true

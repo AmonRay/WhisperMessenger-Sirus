@@ -224,6 +224,8 @@ return function()
   do
     local enabledCalls = {}
     local runtime = {
+      _instanceChatSuspended = true,
+      accountState = { settings = { blockChatInInstances = true } },
       seenLevelEvents = {
         SetEnabled = function(on)
           enabledCalls[#enabledCalls + 1] = on

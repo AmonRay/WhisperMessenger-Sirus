@@ -103,7 +103,10 @@ return function()
     for i, row in ipairs(arranged) do
       labels[i] = row.label
     end
-    assert(table.concat(labels, ",") == "Мир(А),Мир,CraftScan,Мир(О)", "joined world channels remain visible: " .. table.concat(labels, ","))
+    assert(
+      table.concat(labels, ",") == "Мир(А),Мир,CraftScan,Мир(О)",
+      "joined world channels remain visible: " .. table.concat(labels, ",")
+    )
     assert(arranged[4].slug == "c:" .. string.lower("Мир(О)"), "added row should use the custom-channel slug")
   end)
   withSirus(0, function()
@@ -111,7 +114,10 @@ return function()
       { slug = "c:" .. string.lower("Мир(А)"), label = "Мир(А)", joined = true },
       { slug = "c:" .. string.lower("Мир(О)"), label = "Мир(О)", joined = true },
     })
-    assert(#arranged == 3 and arranged[1].label == "Мир(А)" and arranged[2].label == "Мир(О)" and arranged[3].label == "Мир", "joined channels remain visible even if the faction override disagrees")
+    assert(
+      #arranged == 3 and arranged[1].label == "Мир(А)" and arranged[2].label == "Мир(О)" and arranged[3].label == "Мир",
+      "joined channels remain visible even if the faction override disagrees"
+    )
   end)
 
   -- Sending: a Renegade speaks the channel's faction language in Мир(А)/(О).

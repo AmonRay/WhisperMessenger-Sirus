@@ -190,8 +190,10 @@ function TranscriptView.RenderTranscript(transcript, messages, renderOptions)
   -- messages, but do not cache bubble heights measured against a fake width.
   local scrollFrame = transcript.scrollFrame
   if scrollFrame and scrollFrame.GetWidth and scrollFrame:GetWidth() <= 0 then
+    transcript._renderPendingWidth = true
     return lines
   end
+  transcript._renderPendingWidth = nil
   local paneWidth = sizeValue(scrollFrame, "GetWidth", "width", 400)
   local _, _, _, relaidOut = Virtualization.Render(transcript, allMessages, paneWidth, layoutOptions(transcript), renderOptions)
   if relaidOut then
@@ -208,9 +210,10 @@ function TranscriptView.RenderTranscript(transcript, messages, renderOptions)
 end
 
 function TranscriptView.RefreshViewport(transcript)
-  -- The first hidden render may have kept messages without creating rows.
-  -- Bind them as soon as the viewport acquires a real width.
-  if transcript._virtualState == nil and transcript.factory and transcript._allMessages then
+  -- A render skipped at zero width (hidden on 3.3.5a) kept the messages
+  -- without rows. Bind them as soon as the viewport has a real width, and
+  -- only then: a scroll must not re-render a bound or empty transcript.
+  if transcript._renderPendingWidth and transcript.factory and transcript._allMessages then
     local scrollFrame = transcript.scrollFrame
     if scrollFrame and scrollFrame.GetWidth and scrollFrame:GetWidth() > 0 then
       TranscriptView.RenderTranscript(transcript, transcript._allMessages)
@@ -241,6 +244,7 @@ end
 function TranscriptView.Reset(transcript)
   Virtualization.Reset(transcript)
   transcript._allMessages = nil
+  transcript._renderPendingWidth = nil
 end
 
 TranscriptView._pointValue = pointValue

@@ -11,6 +11,7 @@ return function()
       _inEncounter = false,
       _inCompetitiveContent = false,
       runtime = {
+        accountState = { settings = { blockChatInInstances = true } },
         restrictedActions = RestrictedActions.New(),
         suspend = function()
           suspendCalls = suspendCalls + 1
@@ -75,7 +76,7 @@ return function()
       _inEncounter = false,
       _inMythicContent = false,
       _inCompetitiveContent = false,
-      runtime = { restrictedActions = RestrictedActions.New() },
+      runtime = { accountState = { settings = { blockChatInInstances = true } }, restrictedActions = RestrictedActions.New() },
       syncChatFilters = function()
         syncCalls = syncCalls + 1
       end,

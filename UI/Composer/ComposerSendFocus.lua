@@ -7,6 +7,7 @@ local BindingKeys = ns.BindingKeys or require("WhisperMessenger.Util.BindingKeys
 local ComposerEnterButton = ns.ComposerEnterButton or require("WhisperMessenger.UI.Composer.ComposerEnterButton")
 local PointerFocus = ns.MessengerWindowWindowScriptsFramePointerFocus
   or require("WhisperMessenger.UI.MessengerWindow.WindowScripts.Frame.PointerFocus")
+local FlavorCompat = ns.FlavorCompat or require("WhisperMessenger.Core.FlavorCompat")
 
 -- "Deselect chat input after sending": a send takes the cursor out of the
 -- composer, and while the composer is on screen the game's open-chat key puts
@@ -30,6 +31,9 @@ local PointerFocus = ns.MessengerWindowWindowScriptsFramePointerFocus
 --
 -- Settings hide the composer's pane, so the pane's OnShow picks up a changed
 -- toggle when they close.
+--
+-- 3.3.5a (Sirus) leaves the key to the game (FlavorCompat.CanOverrideKeys):
+-- a send still takes the cursor out of the composer.
 local ComposerSendFocus = {}
 
 local OPEN_CHAT_ACTION = "OPENCHAT"
@@ -38,6 +42,14 @@ local EVENTS = { "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "UPDATE_BINDIN
 
 local function defaultInCombat()
   return type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown() == true
+end
+
+-- deps.overrideBindings, when given, decides instead of the client check.
+local function overridesAllowed(deps)
+  if deps.overrideBindings ~= nil then
+    return deps.overrideBindings == true
+  end
+  return FlavorCompat.CanOverrideKeys()
 end
 
 -- The window is the pane's topmost ancestor below UIParent.
@@ -115,6 +127,18 @@ function ComposerSendFocus.Create(pane, input, options, deps)
   local clearOverrideBindings = deps.clearOverrideBindings or _G["ClearOverrideBindings"]
   local inCombat = deps.inCombat or defaultInCombat
   local mouseIsOver = deps.mouseIsOver or defaultMouseIsOver
+
+  if not overridesAllowed(deps) then
+    local keyless = {
+      sync = function() end,
+    }
+    function keyless.afterSend()
+      if options.isOn() and input.ClearFocus then
+        input:ClearFocus()
+      end
+    end
+    return keyless
+  end
 
   -- The open-chat keys held now, joined; nil while the key belongs to the game.
   local boundKeys = nil

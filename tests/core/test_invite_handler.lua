@@ -49,7 +49,10 @@ return function()
 
   -- test_invite_text_fits_one_whisper
   assert(#InviteHandler.INVITE_TEXT <= 255, "the invite whisper must fit WoW's 255-byte chat limit")
-  assert(InviteHandler.INVITE_TEXT:find("https://forum.sirus.su/resources/whisper-messenger-messendzher-dlja-sirus-3-3-5a-df-ui.647", 1, true), "invite must include the Sirus forum link")
+  assert(
+    InviteHandler.INVITE_TEXT:find("https://forum.sirus.su/resources/whisper-messenger-messendzher-dlja-sirus-3-3-5a-df-ui.647", 1, true),
+    "invite must include the Sirus forum link"
+  )
   assert(InviteHandler.INVITE_TEXT:find("Привет", 1, true), "invite must be in Russian")
 
   -- test_invite_sends_one_whisper_and_marks_the_conversation

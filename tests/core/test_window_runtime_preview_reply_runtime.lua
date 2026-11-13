@@ -50,6 +50,7 @@ local function build(overrides)
     end,
   }
   local accountState = { settings = overrides.settings }
+  runtime.accountState = accountState
   local reply = PreviewReplyRuntime.Create({
     runtime = runtime,
     accountState = accountState,

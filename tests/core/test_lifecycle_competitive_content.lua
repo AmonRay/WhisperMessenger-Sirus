@@ -34,7 +34,8 @@ return function()
       return "Warsong Gulch", "pvp", 1
     end)
 
-    local Bootstrap = { runtime = { suspend = function() end, resume = function() end } }
+    local Bootstrap =
+      { runtime = { accountState = { settings = { blockChatInInstances = true } }, suspend = function() end, resume = function() end } }
     LifecycleHandlers.Handle(Bootstrap, "PLAYER_ENTERING_WORLD", makeDeps())
 
     assert(Bootstrap._inCompetitiveContent == true, "should set _inCompetitiveContent=true when entering battleground")
@@ -47,7 +48,8 @@ return function()
       return "Nagrand Arena", "arena", 1
     end)
 
-    local Bootstrap = { runtime = { suspend = function() end, resume = function() end } }
+    local Bootstrap =
+      { runtime = { accountState = { settings = { blockChatInInstances = true } }, suspend = function() end, resume = function() end } }
     LifecycleHandlers.Handle(Bootstrap, "PLAYER_ENTERING_WORLD", makeDeps())
 
     assert(Bootstrap._inCompetitiveContent == true, "should set _inCompetitiveContent=true when entering arena")
@@ -78,7 +80,8 @@ return function()
       return "Dungeon", "party", 8
     end)
 
-    local Bootstrap = { runtime = { suspend = function() end, resume = function() end } }
+    local Bootstrap =
+      { runtime = { accountState = { settings = { blockChatInInstances = true } }, suspend = function() end, resume = function() end } }
     LifecycleHandlers.Handle(Bootstrap, "PLAYER_ENTERING_WORLD", makeDeps())
 
     assert(Bootstrap._inMythicContent == true, "should set _inMythicContent=true for mythic keystone")
@@ -307,7 +310,7 @@ return function()
   do
     local callbackValue = nil
     local Bootstrap = {
-      runtime = { suspend = function() end, resume = function() end },
+      runtime = { accountState = { settings = { blockChatInInstances = true } }, suspend = function() end, resume = function() end },
       onCompetitiveStateChanged = function(active)
         callbackValue = active
       end,
@@ -325,7 +328,7 @@ return function()
   -- test_player_entering_world_sets_messaging_notice_in_bg
 
   do
-    local runtime = { suspend = function() end, resume = function() end }
+    local runtime = { accountState = { settings = { blockChatInInstances = true } }, suspend = function() end, resume = function() end }
     local Bootstrap = { runtime = runtime }
 
     rawset(_G, "GetInstanceInfo", function()

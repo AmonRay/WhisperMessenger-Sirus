@@ -4,6 +4,7 @@ if type(ns) ~= "table" then
 end
 
 local BindingKeys = ns.BindingKeys or require("WhisperMessenger.Util.BindingKeys")
+local FlavorCompat = ns.FlavorCompat or require("WhisperMessenger.Core.FlavorCompat")
 
 -- While the messenger has focus, the game-menu key (ESC) clicks a hidden
 -- button that closes it. Other windows' own ESC handlers (Professions) run
@@ -18,6 +19,10 @@ local BindingKeys = ns.BindingKeys or require("WhisperMessenger.Util.BindingKeys
 -- The game's ESC list closes a dialog and cancels spell targeting before
 -- any window, so ESC also goes back to the game while one is up. A cast in
 -- progress is not checked: out of combat, ESC closes the messenger first.
+--
+-- 3.3.5a (Sirus) never takes the key (FlavorCompat.CanOverrideKeys): the
+-- window stays in UISpecialFrames (EscapeOrder), so the game's own ESC sweep
+-- closes it.
 local EscapeKey = {}
 
 local BUTTON_NAME = "WhisperMessengerEscapeButton"
@@ -70,8 +75,21 @@ local function gameMenuKeys(getBindingKey)
   return BindingKeys.ForAction(getBindingKey, GAME_MENU_ACTION)
 end
 
+-- deps.overrideBindings, when given, decides instead of the client check.
+local function overridesAllowed(deps)
+  if deps.overrideBindings ~= nil then
+    return deps.overrideBindings == true
+  end
+  return FlavorCompat.CanOverrideKeys()
+end
+
 function EscapeKey.New(frame, deps)
   deps = deps or {}
+  if not overridesAllowed(deps) then
+    return {
+      setFocused = function() end,
+    }
+  end
   local createFrame = deps.createFrame or _G.CreateFrame
   local getBindingKey = deps.getBindingKey or _G.GetBindingKey
   local setOverrideBindingClick = deps.setOverrideBindingClick or _G["SetOverrideBindingClick"]

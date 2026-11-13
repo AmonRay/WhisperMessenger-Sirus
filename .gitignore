@@ -3,7 +3,9 @@
 .omc/
 dist/
 *.zip
-docs/
+docs/*
+!docs/patch-notes-ru.md
+.sharrowkin/
 .env
 .claude
 .release

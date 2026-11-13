@@ -209,7 +209,8 @@ local senderAvailability = {
   end,
   [ChannelType.CHANNEL] = function(api, conversation)
     local name = conversation.channelBaseName
-    return resolveChatSender(api) ~= nil and ChannelIndex.Resolve(name) ~= nil
+    return resolveChatSender(api) ~= nil
+      and ChannelIndex.Resolve(name) ~= nil
       and (not WorldChannels.RequiresLanguage(name) or WorldChannels.LanguageFor(name, api) ~= nil)
   end,
 }

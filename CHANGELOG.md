@@ -6,6 +6,19 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+## [2.1.10] - 2026-11-13
+
+- Fixed: World channels on Sirus now resolve their current joined channel correctly. Мир(А) always uses Common and Мир(О) always uses Orcish.
+- Messaging in Mythic+, battlegrounds and arenas is allowed by default. An optional Behavior setting restores the addon restriction; game chat restrictions still apply.
+- Fixed: Chat text wraps correctly on first opening, history appears without scrolling, and resizing keeps the reading position.
+- Emojis in messages are larger and follow the message font size.
+- Invitations now use Russian text and link to the Sirus forum download.
+- Window, floating button and detached preview positions can be shared between characters; the floating button also offers a layer setting.
+- Fixed: Reply hotkeys no longer type their key into the composer, and links from supported addons insert into the active message.
+- Fixed: Channel context distinguishes realms correctly, tab arrows stay visible, and the floating button stays on screen.
+- Fixed: On Sirus the mouse wheel scrolls the messenger only while the cursor is over it; a window opened over the messenger keeps its own scrolling.
+- Fixed: On Sirus, Esc and Enter no longer change key bindings, which together with action bar addons such as ElvUI caused an "action blocked" error. Esc still closes the window.
+
 - New: Personal emojis. Some emojis belong to specific characters: only they see them in the emoji picker, and the emoji shows as a picture only in messages those characters sent. Typed by anyone else it stays plain text. The first one is the clown, for Рэйнбоу, Реинбоу, Рэинбоу and Рейнбоу.
 
 ## [2.1.9] - 2026-11-10
