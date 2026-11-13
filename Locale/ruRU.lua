@@ -281,7 +281,6 @@ local Russian = {
   ["Open an empty conversation thread."] = "Открыть пустую переписку.",
   ["What's New"] = "Что нового",
   ["See what changed in the latest update."] = "Посмотрите, что изменилось в последнем обновлении.",
-  ["English only"] = "только на английском",
   ["Back"] = "Назад",
   ["Close"] = "Закрыть",
   ["Whispers"] = "Шепот",

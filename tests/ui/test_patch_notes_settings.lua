@@ -79,10 +79,7 @@ return function()
     assert(string.find(title, "What's New", 1, true), "expected the header to say What's New, got " .. tostring(title))
     assert(string.find(title, NOTES.version, 1, true), "expected the header to carry the version, got " .. tostring(title))
     assert(string.find(title, NOTES.date, 1, true), "expected the header to carry the date, got " .. tostring(title))
-    assert(
-      headerHint(view).text == "See what changed in the latest update. (English only)",
-      "expected the hint with the English-only disclaimer, got " .. tostring(headerHint(view).text)
-    )
+    assert(headerHint(view).text == "See what changed in the latest update.", "expected the plain hint, got " .. tostring(headerHint(view).text))
   end
 
   -- test_each_note_is_its_own_bulleted_block

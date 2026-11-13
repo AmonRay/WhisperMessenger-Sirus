@@ -279,7 +279,6 @@ local TraditionalChinese = {
   ["Open an empty conversation thread."] = "開啟空白對話。",
   ["What's New"] = "更新內容",
   ["See what changed in the latest update."] = "查看最新版本更新了哪些內容。",
-  ["English only"] = "僅英文",
   ["Back"] = "返回",
   ["Close"] = "關閉",
   ["Whispers"] = "密語",

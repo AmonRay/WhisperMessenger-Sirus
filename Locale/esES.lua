@@ -279,7 +279,6 @@ local Spanish = {
   ["Open an empty conversation thread."] = "Abrir una conversación vacía.",
   ["What's New"] = "Novedades",
   ["See what changed in the latest update."] = "Descubre qué ha cambiado en la última actualización.",
-  ["English only"] = "solo en inglés",
   ["Back"] = "Atrás",
   ["Close"] = "Cerrar",
   ["Whispers"] = "Susurros",

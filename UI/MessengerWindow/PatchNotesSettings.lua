@@ -22,10 +22,8 @@ local function text(key)
   return Localization.Text(key)
 end
 
--- The notes themselves are baked from the English CHANGELOG, so the
--- localized hint carries a localized "(English only)" disclaimer.
 local function hintText()
-  return text("See what changed in the latest update.") .. " (" .. text("English only") .. ")"
+  return text("See what changed in the latest update.")
 end
 
 local function buildTitle(config)
