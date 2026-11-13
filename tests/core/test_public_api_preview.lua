@@ -101,6 +101,8 @@ return function()
       preview({ onShown = {} }),
       preview({ detail = 5 }),
       preview({ detail = {} }),
+      preview({ who = 5 }),
+      preview({ who = {} }),
     }
     for i, p in ipairs(badPreviews) do
       local s = makeRuntime()
@@ -122,13 +124,14 @@ return function()
     assert(s.holder.get() == nil, "nothing stored while previews are off")
   end
 
-  local function test_false_while_the_button_rides_the_compact_window()
+  -- The open window already shows the lead (the owner's tab badge), so the
+  -- caller must not fall back to its own toast; the icon holds the card until
+  -- the button is home.
+  local function test_accepted_while_the_button_rides_the_compact_window()
     local s = makeRuntime()
     s.riding = true
-    assert(s.api.ShowPreview("ca", preview()) == false, "the card stays hidden while riding, so the caller keeps its own toast")
-    assert(s.holder.get() == nil and s.updates == 0, "nothing stored while riding")
-    s.riding = false
-    assert(s.api.ShowPreview("ca", preview()) == true, "accepted again once the button is home")
+    assert(s.api.ShowPreview("ca", preview()) == true, "accepted while riding, so the caller skips its own toast")
+    assert(s.holder.keyOf() == "ca" and s.updates == 1, "stored while riding, for when the button is home")
   end
 
   local function test_is_shown_needs_key_and_visible_frame()
@@ -226,6 +229,12 @@ return function()
     assert(s.holder.get().detail == "Your alt Artio can craft it", "the entry carries the detail")
   end
 
+  local function test_who_string_is_accepted_and_stored()
+    local s = makeRuntime()
+    assert(s.api.ShowPreview("ca", preview({ who = "Jaina-Proudmoore" })) == true, "a string who is accepted")
+    assert(s.holder.get().who == "Jaina-Proudmoore", "the entry carries the name to look up")
+  end
+
   local function test_no_detail_stores_nil()
     local s = makeRuntime()
     assert(s.api.ShowPreview("ca", preview()) == true and s.holder.get().detail == nil, "detail is optional")
@@ -274,6 +283,7 @@ return function()
   test_is_preview_shown_reads_the_detached_card()
   test_detail_string_is_accepted_and_stored()
   test_no_detail_stores_nil()
+  test_who_string_is_accepted_and_stored()
   test_an_overwritten_is_panel_shown_does_not_change_show_preview()
   test_show_stores_stamps_and_updates_surfaces()
   test_a_new_show_preview_arms_again_after_the_panel_closes()
@@ -285,7 +295,7 @@ return function()
   test_bad_arguments_return_false()
   test_false_when_widget_not_in_use()
   test_false_when_previews_are_turned_off()
-  test_false_while_the_button_rides_the_compact_window()
+  test_accepted_while_the_button_rides_the_compact_window()
   test_is_shown_needs_key_and_visible_frame()
   test_hide_only_hides_own_source()
   test_second_source_replaces_the_first_silently()

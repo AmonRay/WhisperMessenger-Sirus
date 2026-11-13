@@ -14,6 +14,7 @@ ToggleSpecs.DEFAULTS = {
   dimWhenMoving = true,
   autoFocusComposer = false,
   deselectComposerOnSend = false,
+  escapeClosesWindow = true,
   doubleEscapeToClose = false,
   hideOnCombat = false,
   blockChatInInstances = false,
@@ -111,6 +112,18 @@ function ToggleSpecs.Build(config, onChange)
       tooltipLines = {
         text("BLOCK_CHAT_IN_INSTANCES"),
         text("BLOCK_CHAT_IN_INSTANCES_TOOLTIP"),
+      },
+    },
+    {
+      key = "escapeClosesWindow",
+      labelKey = "Esc closes the window",
+      initial = config.escapeClosesWindow ~= false,
+      onChange = function(value)
+        onChange("escapeClosesWindow", value)
+      end,
+      tooltipLines = {
+        text("Esc closes the window"),
+        text("Turn off to keep the messenger open when you press Esc. Close it with its button or your Toggle Window key."),
       },
     },
     {

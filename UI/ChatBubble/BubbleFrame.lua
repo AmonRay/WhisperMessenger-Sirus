@@ -19,6 +19,7 @@ local setFontObject = UIHelpers.setFontObject
 local setTextColor = UIHelpers.setTextColor
 
 local Fonts = ns.ThemeFonts or require("WhisperMessenger.UI.Theme.Fonts")
+local GlyphCoverage = ns.ThemeGlyphCoverage or require("WhisperMessenger.UI.Theme.GlyphCoverage")
 local BubbleColors = ns.ThemeBubbleColors or require("WhisperMessenger.UI.Theme.BubbleColors")
 local ReplyQuote = ns.ChatBubbleReplyQuote or require("WhisperMessenger.UI.ChatBubble.ReplyQuote")
 local OutgoingDelivery = ns.OutgoingDelivery or require("WhisperMessenger.Model.OutgoingDelivery")
@@ -244,6 +245,8 @@ function BubbleFrame.CreateBubble(factory, parent, message, options)
   if message.mention then
     displayText = MentionHighlight.Apply(displayText)
   end
+  -- Before measuring: "ő", "ű" and the like need a font that has them.
+  GlyphCoverage.Apply(textFS, displayText)
   local textHeight = BubbleStructure.measureTextHeight(textFS, displayText, textAvailWidth)
 
   local textColumnWidth = textAvailWidth

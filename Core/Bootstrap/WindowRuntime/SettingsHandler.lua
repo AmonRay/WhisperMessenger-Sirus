@@ -15,9 +15,12 @@ local LanguageSetting = ns.BootstrapWindowRuntimeLanguageSetting or require("Whi
 local DisplayNameSetting = ns.BootstrapWindowRuntimeDisplayNameSetting or require("WhisperMessenger.Core.Bootstrap.WindowRuntime.DisplayNameSetting")
 local TabVisibilitySetting = ns.BootstrapWindowRuntimeTabVisibilitySetting
   or require("WhisperMessenger.Core.Bootstrap.WindowRuntime.TabVisibilitySetting")
+local RefreshingSettings = ns.BootstrapWindowRuntimeRefreshingSettings or require("WhisperMessenger.Core.Bootstrap.WindowRuntime.RefreshingSettings")
+local EscapeSetting = ns.BootstrapWindowRuntimeEscapeSetting or require("WhisperMessenger.Core.Bootstrap.WindowRuntime.EscapeSetting")
 local IconSettingReactions = ns.BootstrapWindowRuntimeIconSettingReactions
   or require("WhisperMessenger.Core.Bootstrap.WindowRuntime.IconSettingReactions")
 local DisplayName = ns.DisplayName or (type(require) == "function" and require("WhisperMessenger.Util.DisplayName")) or nil
+local WhoLookup = ns.WhoLookup or require("WhisperMessenger.Transport.WhoLookup")
 local WindowScale = ns.MessengerWindowWindowScale
   or (type(require) == "function" and require("WhisperMessenger.UI.MessengerWindow.WindowScale"))
   or nil
@@ -183,6 +186,9 @@ function SettingsHandler.Create(options)
       timeFormat.Configure({ [key] = persistedValue })
     end
     DisplayNameSetting.Apply(displayName, key, persistedValue, runtime.seenLevelEvents)
+    if key == "whoLookups" then
+      WhoLookup.SetEnabled(persistedValue ~= false)
+    end
     if key == "interfaceLanguage" then
       if localization.Configure then
         localization.Configure({ language = persistedValue })
@@ -212,25 +218,8 @@ function SettingsHandler.Create(options)
       ChatReplyState.ClearStaleWhisperReplyState(getNumChatWindows, getEditBox)
     end
     TabVisibilitySetting.Apply(runtime, accountSettings, key, persistedValue)
-    if
-      (
-        key == "hideMessagePreview"
-        or key == "hideBattleTagNumbers"
-        or key == "showPlayerLevels"
-        or key == "showWidgetMessagePreview"
-        or key == "widgetPreviewReply"
-        or key == "fontFamily"
-        or key == "fontSize"
-        or key == "fontOutline"
-        or key == "fontColor"
-        or key == "bubbleColorPreset"
-        or key == "timeFormat"
-        or key == "timeSource"
-        or key == "interfaceLanguage"
-        or key == "enabledChannels"
-        or key == "showInviteLink"
-      ) and runtime.refreshWindow
-    then
+    EscapeSetting.Apply(runtime, key)
+    if RefreshingSettings.Has(key) and runtime.refreshWindow then
       runtime.refreshWindow()
     end
 

@@ -20,6 +20,7 @@ local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and requi
 -- mythic-pause notice.
 
 local KeySettle = ns.KeySettle or require("WhisperMessenger.Core.KeySettle")
+local WhoTriggers = ns.BootstrapWindowRuntimeWhoTriggers or require("WhisperMessenger.Core.Bootstrap.WindowRuntime.WhoTriggers")
 
 local ReplyToLast = {}
 
@@ -59,12 +60,10 @@ function ReplyToLast.Create(deps)
     end
   end
 
-  local function reply()
-    local hooks = runtime.autoOpenHooks
-    if hooks and hooks.onReplyTell and hooks.onReplyTell() == true then
-      return
-    end
-
+  -- The chat a reply opens: the live incoming whisper, else the newest whisper
+  -- in the store. Read before KeySettle defers reply(), so the quiet /who can
+  -- ask for it inside the key press.
+  local function resolveTarget()
     local key = runtime.lastIncomingWhisperKey
     if not key and runtime.store and runtime.store.conversations then
       -- Reply is a whisper-only action. Filter out group conversations so a
@@ -82,6 +81,16 @@ function ReplyToLast.Create(deps)
       end
     end
 
+    return key
+  end
+
+  local function reply()
+    local hooks = runtime.autoOpenHooks
+    if hooks and hooks.onReplyTell and hooks.onReplyTell() == true then
+      return
+    end
+
+    local key = resolveTarget()
     if key and runtime.ensureWindow and runtime.setWindowVisible then
       runtime.ensureWindow()
       runtime.setWindowVisible(true)
@@ -104,6 +113,11 @@ function ReplyToLast.Create(deps)
   end
 
   return function()
+    local targetKey = resolveTarget()
+    if targetKey then
+      WhoTriggers.AskFor(runtime, targetKey)
+    end
+
     KeySettle.Schedule(reply)
   end
 end

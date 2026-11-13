@@ -20,7 +20,10 @@ return function()
     assert(english ~= nil, "Behavior settings must list the blockChatInInstances toggle")
     assert(english.labelKey == "BLOCK_CHAT_IN_INSTANCES", "toggle must use the BLOCK_CHAT_IN_INSTANCES locale key")
     assert(english.label == "Block chat in Mythic+, battlegrounds and arenas", "English label must not show the raw key")
-    assert(english.tooltipLines[2] == Localization.ENGLISH.BLOCK_CHAT_IN_INSTANCES_TOOLTIP, "English tooltip must come from BLOCK_CHAT_IN_INSTANCES_TOOLTIP")
+    assert(
+      english.tooltipLines[2] == Localization.ENGLISH.BLOCK_CHAT_IN_INSTANCES_TOOLTIP,
+      "English tooltip must come from BLOCK_CHAT_IN_INSTANCES_TOOLTIP"
+    )
     assert(english.initial == false, "setting must default to off")
 
     Localization.Configure({ language = "ruRU" })
@@ -28,7 +31,10 @@ return function()
     assert(russian.label ~= "BLOCK_CHAT_IN_INSTANCES" and russian.label:find("М+", 1, true), "Russian label must be translated")
     assert(russian.tooltipLines[2] ~= "BLOCK_CHAT_IN_INSTANCES_TOOLTIP", "Russian tooltip must be translated")
     assert(russian.initial == true, "strict true must show the toggle as on")
-    assert(findSpec(ToggleSpecs.Build({ blockChatInInstances = "yes" }, function() end), "blockChatInInstances").initial == false, "only strict true enables the setting")
+    assert(
+      findSpec(ToggleSpecs.Build({ blockChatInInstances = "yes" }, function() end), "blockChatInInstances").initial == false,
+      "only strict true enables the setting"
+    )
 
     -- Unknown keys still pass through untouched.
     assert(Localization.Text("Some untranslated text") == "Some untranslated text")

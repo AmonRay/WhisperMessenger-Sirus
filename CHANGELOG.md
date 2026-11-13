@@ -6,6 +6,36 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+## [2.1.12] - 2026-11-13
+
+- Исправлено: эмодзи в окне переписки снова крупные и растут вместе с размером текста сообщения. На клиенте 3.3.5a каждый значок теперь рисуется отдельной картинкой, поэтому он больше не сжимается в крошечную точку.
+- Исправлено: отправка в мировые каналы Sirus. У Орды и Альянса сообщения уходят в «Мир», у ренегатов — в отдельные «Мир(А)» и «Мир(О)»: в «Мир(А)» всегда на Всеобщем, в «Мир(О)» всегда на Орочьем, независимо от фракции персонажа. Текущий номер канала берётся из списка каналов при каждой отправке, отключённые и отсутствующие каналы не выбираются, история переписки не меняет свой ключ.
+- Исправлено: текст в переписке больше не ломается при первом открытии окна, история показывается сразу без прокрутки, а при изменении ширины окна позиция чтения сохраняется.
+- Исправлено: Esc закрывает окно и не трогает назначения клавиш; вместе с ElvUI и панелями действий больше нет ошибки «действие заблокировано». Enter по-прежнему отправляет сообщение.
+- Исправлено: колесо мыши прокручивает Whisper Messenger, только когда курсор над его окном. Окно, открытое поверх мессенджера, прокручивается само.
+- Новая настройка «Esc closes the window» в разделе «Поведение»: выключите её, если хотите, чтобы Esc не закрывал мессенджер.
+- Новая настройка в разделе «Шёпоты»: скрывать последнее сообщение игрока из канала, которое показывается над новым шёпотом.
+- Новые звуки в «Уведомлениях»: отдельный звук для упоминаний, звук для отправленных шёпотов (по умолчанию выключен) и отдельный звук для шёпотов в «Заявках».
+- Игроки теперь подгружаются через /who при открытии чата, ответе и шёпоте: в заголовке видны зона, уровень, класс и раса. Настройка «Look up players with /who» в разделе «Общие» это отключает.
+- Исправлено: буквы, которых нет в стандартном шрифте игры (например, венгерские ő и ű или польская ł), больше не показываются квадратами — сообщения, имена и поля ввода переключаются на шрифт чата.
+- В групповых и рейдовых чатах видно подземелье, рейд или поле боя, где они начались, а в чатах сообществ — название сообщества.
+- Прочитанный в обычном чате игры шёпот теперь считается прочитанным и в Whisper Messenger.
+
+- New option under Whispers: hide the player's last channel message that shows above a new whisper.
+- Party, raid and instance chats now show the dungeon, raid or battleground they started in, e.g. "Party - Halls of Atonement - Current".
+- New sound options under Notifications: pick a different sound for mentions, and turn on a sound for whispers you send (off by default).
+- Community chats now show the community's name, and say that replies go through the game's Communities window instead of looking like you could type there.
+- Reading a whisper in the game's own chat now clears it in Whisper Messenger too: click the game's whisper tab for that player, or start a whisper to them there.
+- New option under Notifications: play a sound when a whisper lands in Requests, with its own sound so you can tell it apart from a friend's whisper. Off by default.
+- New Behavior option "Esc closes the window". Turn it off to keep Whisper Messenger open when you press Esc; close it with its button or your Toggle Window key. Dying or opening a big game panel no longer closes it either while the option is off.
+- Opening a chat by clicking a contact, the message preview (also one from another addon, like Craft Alert's new-lead preview), or the Whisper Messenger button or minimap icon, by pressing your Reply or Toggle Window key, starting a new whisper, clicking the chat header, or right-clicking a player and choosing Whisper now refreshes that player's zone and guild, and their level if "Show player levels" is on, when the info is more than 10 minutes old. This no longer needs "Show player levels" turned on. Before, a player was looked up only once. The game ignores lookups sent too close together; when that happens, your next click on the chat tries again instead of waiting 10 minutes.
+- New option under General: "Look up players with /who". It's on by default; turn it off and Whisper Messenger stops these lookups, and the chat header no longer shows the zone or Online status they found. "Show player levels" now only shows or hides the level.
+- That lookup now also fills in the player's class, race and faction in the chat header. A player the lookup finds now shows as Online, with the zone they're in, for 10 minutes, even when the game's own check said they were offline. After that, "Last seen" counts the lookup too.
+- Fixed: typing a command like /use, /target, /focus or /cast in the message box no longer gets blocked by the game with an "AddOn tried to call a protected function" error. These commands now open in the game's chat box, so you press Enter once more to run them. Other commands like /roll and emotes still run right away.
+- Fixed: players who are offline no longer show as online in your contact list and chat header, and cross-faction guild or community members who are online no longer show as offline.
+- Fixed: letters the game's default font doesn't have, like the Hungarian ő and ű or the Polish ł, no longer show as squares. Messages, names, quotes, previews, notes and the text and search boxes switch to the game's chat font when the text needs one of them.
+- Fixed: with the compact window open, Craft Alert no longer pops its own alert at the top of the screen for a new lead. The Craft Alert tab shows the new lead, and if you close the window soon after, the preview shows on the button.
+
 ## [2.1.11] - 2026-11-13
 
 - The "Block chat in Mythic+, battlegrounds and arenas" setting now has its own translation keys, so its name and tooltip show correctly in Russian. It is still off by default.

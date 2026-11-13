@@ -60,7 +60,7 @@ local function withBoundWindow(fn, options)
     uiParent:Show()
     local frame = factory.CreateFrame("Frame", "WhisperMessengerWindow", uiParent)
     local resizeStub = makeResizeStub()
-    ScriptBindings.Bind({
+    local bindOptions = {
       frame = frame,
       frameTheme = { WINDOW_ALPHA_UPDATE_INTERVAL = 0.1 },
       windowResize = resizeStub,
@@ -76,8 +76,12 @@ local function withBoundWindow(fn, options)
       buildState = function()
         return {}
       end,
-    })
-    fn(frame, bound)
+    }
+    for key, value in pairs(options or {}) do
+      bindOptions[key] = value
+    end
+    local bindResult = ScriptBindings.Bind(bindOptions)
+    fn(frame, bound, bindResult)
   end)
   for _, name in ipairs(SAVED_NAMES) do
     rawset(_G, name, saved[name])
@@ -113,4 +117,17 @@ return function()
     end,
   })
   assert(attempts == 1, "a blocked SetOverrideBindingClick must not be retried, got " .. attempts)
+  -- test_escape_off_getter_keeps_window_unlisted_on_show
+  withBoundWindow(function(frame, bound, bindResult)
+    frame:Show()
+    for _, name in ipairs(_G.UISpecialFrames) do
+      assert(name ~= "WhisperMessengerWindow", "with Esc off the window must stay out of UISpecialFrames")
+    end
+    assert(#bound == 0, "with Esc off the window must not hold ESC")
+    assert(type(bindResult) == "table" and type(bindResult.refreshEscape) == "function", "Bind must return refreshEscape")
+  end, {
+    getEscapeClosesWindow = function()
+      return false
+    end,
+  })
 end

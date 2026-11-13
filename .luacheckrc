@@ -60,6 +60,7 @@ read_globals = {
   -- Secure environment: taint checks and the game's imported slash commands
   "issecurevariable",
   "hash_SlashCmdList",
+  "IsSecureCmd",
 
   -- Core frame/widget API
   "CreateFrame",
@@ -109,6 +110,7 @@ read_globals = {
   "C_BattleNet",
   "C_Timer",
   "C_FriendList",
+  "C_CreatureInfo",
   "C_Club",
   "C_DateAndTime",
   "C_RestrictedActions",
@@ -148,6 +150,7 @@ read_globals = {
   "ChatFrame_RemoveMessageEventFilter",
   "CHAT_FRAMES",
   "FCF_Close",
+  "FCF_Tab_OnClick",
   "FCF_PopInWindow",
   "ChatEdit_SetLastTellTarget",
   "BNGetNumFriends",
@@ -189,6 +192,7 @@ read_globals = {
   "GetNumGroupMembers",
   "InCombatLockdown",
   "IsInGroup",
+  "IsInInstance",
   "IsInRaid",
   "IsInGuild",
   "CanGuildInvite",
@@ -238,6 +242,7 @@ files["tests/**/*.lua"] = {
     "C_BattleNet",
     "C_Timer",
     "C_FriendList",
+    "C_CreatureInfo",
     "SlashCmdList",
     "SLASH_WHISPERMESSENGER1",
     "SLASH_WHISPERMESSENGER2",

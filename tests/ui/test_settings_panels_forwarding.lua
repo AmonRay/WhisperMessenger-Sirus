@@ -31,6 +31,7 @@ return function()
     hideMessagePreview = true,
     hideBattleTagNumbers = false,
     showPlayerLevels = true,
+    whoLookups = false,
     timeFormat = "24h",
     timeSource = "server",
     interfaceLanguage = "ruRU",
@@ -58,6 +59,7 @@ return function()
     autoOpenIncoming = true,
     autoOpenOutgoing = true,
     doubleEscapeToClose = true,
+    escapeClosesWindow = false,
     allowAddonIntegration = false,
     showGroupChats = false,
     requestsInbox = true,
@@ -65,6 +67,7 @@ return function()
     shareTypingStatus = false,
     shareReadReceipts = false,
     showInviteLink = false,
+    showChannelContext = false,
     addonGreetings = "hide",
     -- chats
     enabledChannels = { trade = true },
@@ -78,6 +81,11 @@ return function()
     showUnreadBadge = false,
     notificationSound = "chime",
     flashTaskbarOnWhisper = false,
+    playSoundOnRequest = true,
+    requestSound = "bell",
+    mentionSound = "orb",
+    playSoundOnSend = true,
+    sentSound = "ding",
     iconSize = 56,
     iconDesaturated = false,
     iconBackground = false,
@@ -126,6 +134,7 @@ return function()
   )
   assert(generalCapture.config.hideBattleTagNumbers == false, "general config should carry hideBattleTagNumbers")
   assert(generalCapture.config.showPlayerLevels == true, "general config should carry showPlayerLevels")
+  assert(generalCapture.config.whoLookups == false, "general config should carry whoLookups")
   assert(
     generalCapture.config.interfaceLanguage == "ruRU",
     "expected general config.interfaceLanguage=ruRU, got: " .. tostring(generalCapture.config.interfaceLanguage)
@@ -136,6 +145,7 @@ return function()
   assert(behaviorCapture.config.quickReplies == settingsConfig.quickReplies, "behavior config should carry quickReplies")
   assert(behaviorCapture.config.allowAddonIntegration == false, "behavior config should carry allowAddonIntegration")
   assert(behaviorCapture.config.deselectComposerOnSend == true, "behavior config should carry deselectComposerOnSend")
+  assert(behaviorCapture.config.escapeClosesWindow == false, "behavior config should carry escapeClosesWindow")
   assert(behaviorCapture.config.hideFromDefaultChat == nil, "whisper keys moved off the Behavior page")
   assert(behaviorCapture.config.showGroupChats == nil, "group chat key moved off the Behavior page")
 
@@ -147,6 +157,7 @@ return function()
   assert(whispersCapture.config.shareTypingStatus == false, "whispers config should carry shareTypingStatus")
   assert(whispersCapture.config.shareReadReceipts == false, "whispers config should carry shareReadReceipts")
   assert(whispersCapture.config.showInviteLink == false, "whispers config should carry showInviteLink")
+  assert(whispersCapture.config.showChannelContext == false, "whispers config should carry showChannelContext")
   assert(whispersCapture.config.closeGameWhisperTab == true, "whispers config should carry closeGameWhisperTab")
   assert(whispersCapture.config.addonGreetings == "hide", "whispers config should carry addonGreetings")
   assert(whispersCapture.config.showWidgetMessagePreview == false, "whispers config should carry showWidgetMessagePreview")
@@ -192,6 +203,11 @@ return function()
     "expected notification config.notificationSound=chime, got: " .. tostring(notificationCapture.config.notificationSound)
   )
   assert(notificationCapture.config.flashTaskbarOnWhisper == false, "Notifications config should forward flashTaskbarOnWhisper")
+  assert(notificationCapture.config.playSoundOnRequest == true, "Notifications config should forward playSoundOnRequest")
+  assert(notificationCapture.config.requestSound == "bell", "Notifications config should forward requestSound")
+  assert(notificationCapture.config.mentionSound == "orb", "Notifications config should forward mentionSound")
+  assert(notificationCapture.config.playSoundOnSend == true, "Notifications config should forward playSoundOnSend")
+  assert(notificationCapture.config.sentSound == "ding", "Notifications config should forward sentSound")
   assert(notificationCapture.config.iconMode == nil, "Notifications config should not include iconMode")
   assert(notificationCapture.config.iconSize == nil, "Notifications config should not include iconSize")
 
