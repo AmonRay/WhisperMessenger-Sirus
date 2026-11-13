@@ -54,16 +54,22 @@ local function canInsert(input)
   return input ~= nil and type(input.Insert) == "function"
 end
 
-local function preferredInput()
-  -- The composer the player is typing in wins: the client's own checks on it
-  -- disagree about it being on screen (see hostShown above).
-  -- The focused box wins, as in the game's own chat: the client's IsShown and
-  -- IsVisible answers for a composer the player is typing in are unreliable,
-  -- and a shift-clicked link has to land where the player is typing.
+local function focusedInput()
   for _, input in ipairs(linkedInputs) do
     if canInsert(input) and isInputFocused(input) then
       return input
     end
+  end
+  return nil
+end
+
+local function preferredInput()
+  -- The composer the player is typing in wins, as in the game's own chat: the
+  -- client's IsShown and IsVisible answers for it are unreliable, and a
+  -- shift-clicked link has to land where the player is typing.
+  local focused = focusedInput()
+  if focused ~= nil then
+    return focused
   end
   -- Without focus the window has to be up, or the link would go into a chat
   -- the player cannot see.
@@ -155,6 +161,22 @@ local function tryInsertLink(link, options)
   lastInsertFrameTime = now
 
   local before = type(input.GetText) == "function" and input:GetText() or nil
+  local function endsWith(text, tail)
+    return tail ~= "" and type(text) == "string" and string.sub(text, -#tail) == tail
+  end
+  -- The game's own insert runs on the same box once the composer answers as
+  -- the active chat window (see activeWindowReplacement), so a second copy
+  -- would land twice. Classic sends plain "[Name (id)]" quest text, which the
+  -- rewrite above turned into a hyperlink: replace it rather than add to it.
+  if endsWith(before, insertable) then
+    recordDebug("already in the composer")
+    return true
+  end
+  if link ~= insertable and endsWith(before, link) and type(input.SetText) == "function" then
+    input:SetText(string.sub(before, 1, #before - #link) .. insertable)
+    recordDebug("rewrote the composer link")
+    return true
+  end
   recordDebug("inserting into the composer")
   input:Insert(insertable)
   -- A client whose EditBox:Insert leaves the text alone (seen on 3.3.5a with a
@@ -169,6 +191,26 @@ local function tryInsertLink(link, options)
     end
   end
   return true
+end
+
+-- Every chat-link handler in the game, Blizzard's own and Sirus' custom
+-- windows alike, asks this before it hands a link to ChatEdit_InsertLink
+-- ("if IsModifiedClick("CHATLINK") and ChatEdit_GetActiveWindow() then").
+-- Post-hooks cannot reach a button that stored its handler before we hooked
+-- it, which is why the quest log, the achievement list, the adventure guide
+-- and the battle pass never got through. The focused composer answers as the
+-- active chat window, as the WIM messenger does, and only while Blizzard has
+-- no box of its own open; everyone else gets Blizzard's own answer.
+local nativeGetActiveWindow = nil
+local function activeWindowReplacement()
+  local blizzardBox = type(nativeGetActiveWindow) == "function" and nativeGetActiveWindow() or nil
+  if blizzardBox ~= nil then
+    return blizzardBox
+  end
+  if _G._wmSuspended then
+    return nil
+  end
+  return focusedInput()
 end
 
 local function safeHookGlobal(functionName, handler)
@@ -195,10 +237,28 @@ end
 -- composer only while it has focus and no Blizzard chat box is open (an open
 -- one already got the link from Blizzard). A click can reach more than one
 -- hook; the one-insert-per-frame dedupe in tryInsertLink keeps a single copy.
+local function isOurInput(frame)
+  for _, input in ipairs(linkedInputs) do
+    if frame == input then
+      return true
+    end
+  end
+  return false
+end
+
+-- Blizzard's own answer only: the composer answers as the active window too,
+-- and that must not read as "the game's chat box already took the link".
 local function blizzardChatBoxActive()
   local util = _G.ChatFrameUtil
-  local getActiveWindow = type(util) == "table" and util.GetActiveWindow or _G.ChatEdit_GetActiveWindow
-  return type(getActiveWindow) == "function" and getActiveWindow() ~= nil
+  local getActiveWindow = type(util) == "table" and util.GetActiveWindow or nil
+  if type(getActiveWindow) ~= "function" then
+    getActiveWindow = nativeGetActiveWindow or _G.ChatEdit_GetActiveWindow
+  end
+  if type(getActiveWindow) ~= "function" then
+    return false
+  end
+  local active = getActiveWindow()
+  return active ~= nil and not isOurInput(active)
 end
 
 local function insertFromBlizzard(link, source)
@@ -356,6 +416,13 @@ local function registerLinkHooks()
     return insertFromChatLinkClick(link, "HandleModifiedItemClick")
   end)
   ChatLinkSources.Register(insertFromBlizzard)
+
+  -- The one Blizzard slot the addon replaces; see activeWindowReplacement.
+  if type(_G.ChatEdit_GetActiveWindow) == "function" and nativeGetActiveWindow == nil then
+    nativeGetActiveWindow = _G.ChatEdit_GetActiveWindow
+    _G.ChatEdit_GetActiveWindow = activeWindowReplacement
+    table.insert(installed, "ChatEdit_GetActiveWindow")
+  end
 
   registeredLinkHooks = true
   recordDebug("hooks: " .. table.concat(installed, " "))
