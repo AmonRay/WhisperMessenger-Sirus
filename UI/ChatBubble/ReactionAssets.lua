@@ -39,14 +39,18 @@ function ReactionAssets.GetTexCoords(key)
   return TEX_COORDS[key]
 end
 
--- Inline glyphs use the message's line box; picker/badge sizes stay separate.
+-- Inline glyphs scale with the message font; picker/badge sizes stay
+-- separate. A messenger emoji reads as an emoji, not as a small icon next to
+-- the text, so it is half again the font size.
+local INLINE_ICON_SCALE = 1.5
+
 local function inlineIconSize(fontSize)
   -- Only message bubbles supply a font size. Other surfaces keep their
   -- existing sizing (previews, quotes and picker copy text).
   if tonumber(fontSize) == nil then
     return ReactionAssets.GetIconSize()
   end
-  return math.max(1, math.floor(tonumber(fontSize) + 4 + 0.5))
+  return math.max(1, math.floor(tonumber(fontSize) * INLINE_ICON_SCALE + 0.5))
 end
 
 local INLINE_TEXTURE_DIR = "Interface\\AddOns\\WhisperMessenger\\Media\\emoji\\"
