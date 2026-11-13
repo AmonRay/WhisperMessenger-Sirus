@@ -25,6 +25,8 @@ local BUILT_INS = {
   { id = 23, labelKey = "World Defense" },
   { id = 26, labelKey = "Looking for Group" },
 }
+-- The game's own Looking for Group channel.
+local LFG_ZONE_ID = 26
 -- Custom channel slugs are "c:<lowercased name>".
 local CUSTOM_SLUG_PATTERN = "^c:."
 
@@ -120,9 +122,18 @@ function ChannelPicker.Create(factory, frame, anchor, options)
 
   function section.refresh()
     local visible = {}
+    -- Sirus keeps its world chat in the game's LFG slot: there is no separate
+    -- Looking for Group channel, so its row would only confuse (the "Мир" row
+    -- below controls that chat).
+    local hideLfg = WorldChannels.ReplacesLookingForGroup()
+    local lfgSlug = ChannelKey.ZONE_CHANNEL_IDS[LFG_ZONE_ID]
     for _, entry in ipairs(builtInRows) do
       entry.toggle.setValue(isEnabled(entry.slug))
-      visible[#visible + 1] = entry
+      if hideLfg and entry.slug == lfgSlug then
+        entry.toggle.row:Hide()
+      else
+        visible[#visible + 1] = entry
+      end
     end
     -- Sirus: Мир for Horde/Alliance, Мир(А) + Мир(О) for a Renegade.
     local custom = WorldChannels.Arrange(JoinedChannels.Custom())

@@ -141,6 +141,18 @@ function WorldChannels.IsWorldChannel(channelBaseName)
   return slug ~= nil and worldSlugs()[slug] ~= nil
 end
 
+-- Sirus has no Looking for Group channel of its own: the game's LFG slot runs
+-- the world chat ("Мир"), so a separate Looking for Group row would control
+-- nothing. True while the character is in a world channel.
+function WorldChannels.ReplacesLookingForGroup()
+  for _, row in ipairs(ChannelIndex.Joined() or {}) do
+    if not row.disabled and WorldChannels.IsWorldChannel(row.name) then
+      return true
+    end
+  end
+  return false
+end
+
 -- The channel fixes its language regardless of the character's faction.
 function WorldChannels.RequiresLanguage(channelBaseName)
   local slug = slugFor(channelBaseName)

@@ -147,6 +147,41 @@ return function()
     assert(calls[#calls].value["c:craftscan"] == nil, "unticking it removes the channel")
   end)
 
+  -- test_no_look_for_group_row_where_that_channel_is_the_world_chat
+  -- Sirus has no Looking for Group channel of its own: the game's LFG slot runs
+  -- the world chat, so a separate toggle would control nothing.
+  withGlobals({
+    C_FactionManager = {
+      GetFactionOverride = function()
+        return 0
+      end,
+    },
+    GetChannelList = function()
+      return 1, "Общий", false, 2, "Торговля", false, 4, "Мир", false
+    end,
+    EnumerateServerChannels = function()
+      return "Общий", "Торговля", "Мир"
+    end,
+  }, function()
+    local result = create({})
+    local lfgRow = FindUI.byLabel(result.frame, "Looking for Group")
+    assert(lfgRow:IsShown() == false, "no Looking for Group row when that channel is the world chat")
+    assert(FindUI.byLabel(result.frame, "Мир"):IsShown() == true, "the world channel keeps its row")
+  end)
+
+  -- test_look_for_group_row_stays_without_a_world_channel
+  withGlobals({
+    GetChannelList = function()
+      return 1, "General", false
+    end,
+    EnumerateServerChannels = function()
+      return "General"
+    end,
+  }, function()
+    local result = create({})
+    assert(FindUI.byLabel(result.frame, "Looking for Group"):IsShown() == true, "the row stays where the game has that channel")
+  end)
+
   -- test_built_ins_only_without_the_channel_api
   withGlobals({ GetChannelList = false }, function()
     rawset(_G, "GetChannelList", nil)
