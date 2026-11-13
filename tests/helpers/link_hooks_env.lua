@@ -158,6 +158,16 @@ function LinkHooksEnv.New(opts)
 
   unloadModule()
   env.LinkHooks = require(MODULE)
+  -- The messenger window frame: what says whether a composer is on screen.
+  env.hostShown = true
+  env.LinkHooks.SetHostFrame({
+    IsShown = function()
+      return env.hostShown
+    end,
+  })
+  function env.SetHostShown(value)
+    env.hostShown = value
+  end
 
   function env.NewInput()
     local input = { focused = false, shown = true, scripts = {} }

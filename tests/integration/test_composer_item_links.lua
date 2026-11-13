@@ -1,4 +1,5 @@
 local Composer = require("WhisperMessenger.UI.Composer")
+local LinkHooks = require("WhisperMessenger.UI.Composer.LinkHooks")
 local FakeUI = require("tests.helpers.fake_ui")
 
 return function()
@@ -90,6 +91,8 @@ return function()
   composer.frame:Show()
   composer.input:Show()
   composer.input:SetFocus()
+  -- The window frame gates shift-clicks, as the window runtime sets it up.
+  LinkHooks.SetHostFrame(parent)
 
   assert(_G.ChatEdit_GetActiveWindow == preLoadGetActiveWindow, "ChatEdit_GetActiveWindow must stay Blizzard's while focused")
   assert(_G.ChatEdit_InsertLink == preLoadInsertLink, "ChatEdit_InsertLink must stay Blizzard's while focused")
@@ -119,15 +122,9 @@ return function()
     "expected classic quest text to be rewritten to hyperlink, got: " .. tostring(composer.input:GetText())
   )
 
-  -- Nothing lands when the composer is hidden
+  -- Nothing lands when the window is hidden
+  -- (the composer's own frame still reports itself shown, as it does in game)
   composer.input:SetText("")
-  composer.input:Hide()
-  insertLinkHook(itemLink)
-  assert(composer.input:GetText() == "", "expected no link inserted when composer hidden")
-  composer.input:Show()
-
-  -- Nothing lands when the parent window is hidden
-  -- (input itself is still "shown" but not visible because ancestor is hidden)
   parent:Hide()
   insertLinkHook(itemLink)
   assert(composer.input:GetText() == "", "expected no link inserted when parent hidden")
@@ -141,6 +138,7 @@ return function()
   assert(composer.input:GetText() == questTextFromChat, "expected SetItemRef to insert quest hyperlink text")
 
   -- Cleanup
+  LinkHooks.SetHostFrame(nil)
   rawset(_G, "hooksecurefunc", savedHooksecurefunc)
   _G.ChatEdit_GetActiveWindow = savedChatEditGetActiveWindow
   _G.ChatEdit_InsertLink = savedChatEditInsertLink

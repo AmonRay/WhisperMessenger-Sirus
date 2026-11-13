@@ -10,6 +10,7 @@ local SelectionSync = ns.MessengerWindowSelectionSync or require("WhisperMesseng
 local SelectionController = ns.MessengerWindowSelectionController
   or require("WhisperMessenger.UI.MessengerWindow.MessengerWindow.SelectionController")
 local WindowAlpha = ns.MessengerWindowWindowAlpha or require("WhisperMessenger.UI.MessengerWindow.MessengerWindow.WindowAlpha")
+local LinkHooks = ns.ComposerLinkHooks or require("WhisperMessenger.UI.Composer.LinkHooks")
 
 local ComposerRuntime = {}
 
@@ -40,6 +41,9 @@ function ComposerRuntime.Create(factory, options)
   end, options.closeWindow, function()
     return settingsConfig.doubleEscapeToClose == true or settingsConfig.escapeClosesWindow == false
   end, windowOptions.onTyping, composerOptions)
+  -- Shift-clicked links only land while the window is on screen; the composer
+  -- itself sits under panes the layout hides and reshows.
+  LinkHooks.SetHostFrame(frame)
   options.settingsRuntime.setThemeTargets(conversation, composer)
   messageActions.bind(conversation, composer)
 

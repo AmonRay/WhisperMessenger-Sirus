@@ -70,20 +70,25 @@ return function()
     assert(env.inserts[1] == itemLink, "expected the item link, got: " .. tostring(env.inserts[1]))
   end
 
-  -- test_insert_link_skips_a_hidden_composer
+  -- test_insert_link_needs_the_messenger_window
+  -- The composer sits under panes the layout hides and reshows (the options
+  -- page hides the conversation panes), so the window frame is what tells a
+  -- composer the player can see from one that only kept its focus.
   do
     reset(true)
-    input.shown = false
+    env.SetHostShown(false)
     _G.ChatEdit_InsertLink(itemLink)
-    assert(#env.inserts == 0, "a hidden composer must not receive the link, got " .. #env.inserts)
+    assert(#env.inserts == 0, "a closed messenger window must not take the link, got " .. #env.inserts)
+    env.SetHostShown(true)
+    _G.ChatEdit_InsertLink(itemLink)
+    assert(#env.inserts == 1, "an open window takes it again, got " .. #env.inserts)
   end
 
-  -- test_insert_link_skips_an_unfocused_hidden_composer
+  -- test_insert_link_skips_an_unfocused_composer
   do
     reset(false)
-    input.shown = false
     _G.ChatEdit_InsertLink(itemLink)
-    assert(#env.inserts == 0, "a composer that is neither focused nor shown must not receive the link, got " .. #env.inserts)
+    assert(#env.inserts == 0, "an unfocused composer must not receive the link, got " .. #env.inserts)
   end
 
   -- test_insert_link_does_nothing_while_suspended
