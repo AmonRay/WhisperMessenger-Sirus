@@ -97,19 +97,6 @@ local function findInputForInsertion(allowVisibleWithoutFocus)
   return nil
 end
 
--- Diagnostic trail for in-game reports: `/dump WMLinkDebug` lists which
--- Blizzard path ran and why the link was dropped. Always on, bounded, and it
--- only ever holds the last few shift-clicks.
-local DEBUG_TRAIL_LIMIT = 12
-local debugTrail = {}
-local function recordDebug(message)
-  if #debugTrail >= DEBUG_TRAIL_LIMIT then
-    table.remove(debugTrail, 1)
-  end
-  table.insert(debugTrail, message)
-  rawset(_G, "WMLinkDebug", debugTrail)
-end
-
 local function tryInsertLink(link, options)
   if link == nil then
     return false
@@ -118,25 +105,6 @@ local function tryInsertLink(link, options)
   options = options or {}
   local input = findInputForInsertion(options.allowVisibleWithoutFocus == true)
   if input == nil then
-    local focused = 0
-    for _, candidate in ipairs(linkedInputs) do
-      if isInputFocused(candidate) then
-        focused = focused + 1
-      end
-    end
-    recordDebug(
-      "no composer for "
-        .. tostring(link)
-        .. " (registered="
-        .. #linkedInputs
-        .. ", focused="
-        .. focused
-        .. ", window="
-        .. tostring(hostShown())
-        .. ", active="
-        .. tostring(activeInput ~= nil)
-        .. ")"
-    )
     return false
   end
 
@@ -169,15 +137,12 @@ local function tryInsertLink(link, options)
   -- would land twice. Classic sends plain "[Name (id)]" quest text, which the
   -- rewrite above turned into a hyperlink: replace it rather than add to it.
   if endsWith(before, insertable) then
-    recordDebug("already in the composer")
     return true
   end
   if link ~= insertable and endsWith(before, link) and type(input.SetText) == "function" then
     input:SetText(string.sub(before, 1, #before - #link) .. insertable)
-    recordDebug("rewrote the composer link")
     return true
   end
-  recordDebug("inserting into the composer")
   input:Insert(insertable)
   -- A client whose EditBox:Insert leaves the text alone (seen on 3.3.5a with a
   -- focused custom box) would silently swallow the shift-click.
@@ -261,21 +226,16 @@ local function blizzardChatBoxActive()
   return active ~= nil and not isOurInput(active)
 end
 
-local function insertFromBlizzard(link, source)
-  source = source or "blizzard"
+local function insertFromBlizzard(link)
   if _G._wmSuspended then
-    recordDebug(source .. ": suspended")
     return
   end
   if type(link) ~= "string" or link == "" then
-    recordDebug(source .. ": empty link")
     return
   end
   if blizzardChatBoxActive() then
-    recordDebug(source .. ": blizzard chat box took " .. link)
     return
   end
-  recordDebug(source .. ": " .. link)
   tryInsertLink(link, { allowVisibleWithoutFocus = false })
 end
 
@@ -386,34 +346,26 @@ local function registerLinkHooks()
   -- or bank shift-click through them. Their post-hooks hand us the link
   -- directly; the per-frame dedupe keeps a click that reaches both to one
   -- insert.
-  local function insertFromChatLinkClick(link, source)
+  local function insertFromChatLinkClick(link)
     if not ChatLinkSources.IsChatLinkClick() then
-      recordDebug((source or "click") .. ": not a chat-link click")
       return
     end
-    insertFromBlizzard(link, source)
+    insertFromBlizzard(link)
   end
 
-  local installed = {}
   local function installGlobal(name, handler)
-    if safeHookGlobal(name, handler) then
-      table.insert(installed, name)
-    else
-      table.insert(installed, name .. "!")
-    end
+    safeHookGlobal(name, handler)
   end
 
-  if safeHookMethod(_G.ChatFrameUtil, "InsertLink", insertFromBlizzard) then
-    table.insert(installed, "ChatFrameUtil.InsertLink")
-  end
+  safeHookMethod(_G.ChatFrameUtil, "InsertLink", insertFromBlizzard)
   installGlobal("ChatEdit_InsertLink", function(link)
-    insertFromBlizzard(link, "ChatEdit_InsertLink")
+    insertFromBlizzard(link)
   end)
   installGlobal("ChatEdit_TryInsertChatLink", function(link)
-    return insertFromChatLinkClick(link, "ChatEdit_TryInsertChatLink")
+    return insertFromChatLinkClick(link)
   end)
   installGlobal("HandleModifiedItemClick", function(link)
-    return insertFromChatLinkClick(link, "HandleModifiedItemClick")
+    return insertFromChatLinkClick(link)
   end)
   ChatLinkSources.Register(insertFromBlizzard)
 
@@ -421,11 +373,9 @@ local function registerLinkHooks()
   if type(_G.ChatEdit_GetActiveWindow) == "function" and nativeGetActiveWindow == nil then
     nativeGetActiveWindow = _G.ChatEdit_GetActiveWindow
     _G.ChatEdit_GetActiveWindow = activeWindowReplacement
-    table.insert(installed, "ChatEdit_GetActiveWindow")
   end
 
   registeredLinkHooks = true
-  recordDebug("hooks: " .. table.concat(installed, " "))
 end
 
 function LinkHooks.RegisterInput(input)

@@ -112,17 +112,5 @@ return function()
     assert(text == itemLink, "a client that ignores Insert still gets the link, got " .. tostring(text))
   end
 
-  -- test_shift_click_trail_is_recorded_without_any_flag
-  do
-    reset()
-    rawset(_G, "WMLinkDebug", nil)
-    _G.HandleModifiedItemClick(itemLink)
-    local trail = _G.WMLinkDebug
-    assert(type(trail) == "table" and #trail > 0, "a shift-click must leave a trail for /dump WMLinkDebug")
-    local text = table.concat(trail, " | ")
-    assert(text:find("HandleModifiedItemClick", 1, true), "the trail names the Blizzard path: " .. text)
-    rawset(_G, "WMLinkDebug", nil)
-  end
-
   env.Restore()
 end
