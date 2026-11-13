@@ -544,6 +544,8 @@ local German = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "In Gilde einladen",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "Strg+C drücken, um den Befehl zu kopieren, und ihn dann in den Chat einfügen.",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "Unterhaltung in M+, Schlachtfeldern und Arenen sperren",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "Wenn aktiviert, sendet Whisper Messenger in Mythisch+-Dungeons, Schlachtfeldern und Arenen keine Nachrichten. Standardmäßig aus; die Beschränkungen des Spiels gelten weiterhin.",
 }
 
 ns.Locale_deDE = German

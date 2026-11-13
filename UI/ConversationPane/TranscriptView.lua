@@ -210,6 +210,11 @@ function TranscriptView.RenderTranscript(transcript, messages, renderOptions)
 end
 
 function TranscriptView.RefreshViewport(transcript)
+  -- A metrics refresh is still sizing the viewport; re-rendering from its own
+  -- slider update would undo the width and height it just computed.
+  if transcript._metricsRefreshing then
+    return false
+  end
   -- A render skipped at zero width (hidden on 3.3.5a) kept the messages
   -- without rows. Bind them as soon as the viewport has a real width, and
   -- only then: a scroll must not re-render a bound or empty transcript.

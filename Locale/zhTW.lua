@@ -544,6 +544,8 @@ local TraditionalChinese = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "邀請加入公會",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "按 Ctrl+C 複製指令，然後貼到聊天框中。",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "禁止在 M+、戰場和競技場中對話",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "啟用後，Whisper Messenger 不會在傳奇+地城、戰場和競技場中傳送訊息。預設關閉；遊戲本身的限制始終生效。",
 }
 
 ns.Locale_zhTW = TraditionalChinese

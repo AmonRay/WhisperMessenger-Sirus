@@ -544,6 +544,8 @@ local Korean = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "길드 초대",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "Ctrl+C를 눌러 명령어를 복사한 다음 대화창에 붙여넣으세요.",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "M+, 전장, 투기장에서 대화 차단",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "사용하면 Whisper Messenger가 신화+ 던전, 전장, 투기장에서 메시지를 보내지 않습니다. 기본값은 꺼짐이며, 게임 자체 제한은 항상 적용됩니다.",
 }
 
 ns.Locale_koKR = Korean

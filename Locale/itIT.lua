@@ -544,6 +544,8 @@ local Italian = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "Invita nella gilda",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "Premi Ctrl+C per copiare il comando, poi incollalo nella chat.",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "Blocca la conversazione in M+, campi di battaglia e arene",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "Se attivo, Whisper Messenger non invia messaggi nelle spedizioni M+, nei campi di battaglia e nelle arene. Disattivato per impostazione predefinita; le restrizioni del gioco valgono comunque.",
 }
 
 ns.Locale_itIT = Italian

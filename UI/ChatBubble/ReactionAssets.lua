@@ -49,7 +49,27 @@ local function inlineIconSize(fontSize)
   return math.max(1, math.floor(tonumber(fontSize) + 4 + 0.5))
 end
 
+local INLINE_TEXTURE_DIR = "Interface\\AddOns\\WhisperMessenger\\Media\\emoji\\"
+local INLINE_TEXTURES = {}
+for _, key in ipairs(KEYS) do
+  INLINE_TEXTURES[key] = INLINE_TEXTURE_DIR .. key .. ".tga"
+end
+
+-- 3.3.5a's |T markup cannot crop an atlas (no texcoords), so a subrect there
+-- draws the whole sheet squeezed into the icon box and the glyph looks tiny.
+-- Each key therefore ships as its own square texture; the atlas stays for the
+-- picker and badges that can set texcoords on a texture object.
+function ReactionAssets.GetInlineTexture(key)
+  return INLINE_TEXTURES[key]
+end
+
 function ReactionAssets.GetInlineTextureMarkup(key, fontSize)
+  local size = inlineIconSize(fontSize)
+  local texture = INLINE_TEXTURES[key]
+  if texture ~= nil then
+    return string.format("|T%s:%d:%d|t", texture, size, size)
+  end
+
   local coords = ReactionAssets.GetTexCoords(key)
   if coords == nil then
     return nil
@@ -60,7 +80,6 @@ function ReactionAssets.GetInlineTextureMarkup(key, fontSize)
   local right = math.floor(coords[2] * textureWidth + 0.5)
   local top = math.floor(coords[3] * textureHeight + 0.5)
   local bottom = math.floor(coords[4] * textureHeight + 0.5)
-  local size = inlineIconSize(fontSize)
   return string.format(
     "|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t",
     ReactionAssets.TEXTURE,

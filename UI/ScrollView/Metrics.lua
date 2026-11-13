@@ -239,7 +239,12 @@ function Metrics.RefreshMetrics(view, contentHeight, snapToEnd)
   end
 
   local targetOffset = snapToEnd and Metrics.GetRange(view) or Metrics.GetOffset(view)
+  -- Setting the slider fires its OnValueChanged, whose post-scroll hook would
+  -- re-render the transcript at the width this refresh just set and put the
+  -- content back to a pre-overflow height. Suppress it for this call only.
+  view._metricsRefreshing = true
   Navigation.SetVerticalScroll(view, targetOffset)
+  view._metricsRefreshing = nil
   if snapToEnd then
     scheduleSnapToEndRetry(view, Navigation, targetOffset, snapGeneration)
   end

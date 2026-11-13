@@ -2,6 +2,16 @@ local FakeUI = require("tests.helpers.fake_ui")
 local BubbleFrame = require("WhisperMessenger.UI.ChatBubble.BubbleFrame")
 local Fonts = require("WhisperMessenger.UI.Theme.Fonts")
 
+-- Reads both inline forms: the per-key texture (|Tpath:w:h|t, the one a
+-- 3.3.5a client can draw) and the atlas subrect (w:h:0:0:...:x1:x2:y1:y2).
+local function inlineIcons(display)
+  local icons = {}
+  for path, width, height in string.gmatch(display, "|T([^:|]+):(%d+):(%d+)") do
+    icons[#icons + 1] = { path = path, width = tonumber(width), height = tonumber(height) }
+  end
+  return icons
+end
+
 return function()
   local savedSize = Fonts.GetFontSize()
   local ok, err = pcall(function()
@@ -22,18 +32,18 @@ return function()
       }
       local bubble = BubbleFrame.CreateBubble(factory, parent, message, { paneWidth = 600, showIcon = false })
       local display = bubble.frame._textFS:GetText()
-      local count = 0
+      local icons = inlineIcons(display)
+      assert(#icons == 2, "both inline emoji tokens must render inside the actual chat bubble")
       local iconSize
-      for height, width in display:gmatch("|T.-:(%d+):(%d+):") do
-        height, width = tonumber(height), tonumber(width)
-        count = count + 1
-        assert(height == width and height >= size, "inline emoji must be square and no smaller than message text")
+      for _, icon in ipairs(icons) do
+        assert(icon.width == icon.height, "inline emoji must be square")
+        assert(icon.height >= size, "inline emoji must not be smaller than the message text")
+        assert(icon.path:find("Media\\emoji\\", 1, true), "3.3.5a needs a per-key texture, got " .. icon.path)
         if size == 12 then
-          assert(height > 12, "default inline emoji must be enlarged beyond the old 12px presentation")
+          assert(icon.height > 12, "default inline emoji must be enlarged beyond the old 12px presentation")
         end
-        iconSize = height
+        iconSize = icon.height
       end
-      assert(count == 2, "both inline emoji tokens must render inside the actual chat bubble")
       if previousSize then
         assert(iconSize > previousSize, "inline emoji must grow when the message font grows")
       end
@@ -51,7 +61,9 @@ return function()
       channel = "WOW",
       text = link .. " :heart:",
     }, { paneWidth = 600, showIcon = false })
-    assert(bubble.frame._textFS:GetText():find(link, 1, true), "emoji display formatting must preserve player hyperlinks")
+    local linked = bubble.frame._textFS:GetText()
+    assert(linked:find(link, 1, true), "emoji display formatting must preserve player hyperlinks")
+    assert(#inlineIcons(linked) == 1, "the emoji after a hyperlink must still render")
   end)
   Fonts.SetFontSize(savedSize)
   assert(ok, err)

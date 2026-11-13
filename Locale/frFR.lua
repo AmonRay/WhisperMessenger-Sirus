@@ -544,6 +544,8 @@ local French = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "Inviter dans la guilde",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "Appuyez sur Ctrl+C pour copier la commande, puis collez-la dans le chat.",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "Bloquer la conversation en M+, champs de bataille et arènes",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "Si activé, Whisper Messenger n'envoie aucun message dans les donjons M+, les champs de bataille et les arènes. Désactivé par défaut ; les restrictions du jeu restent appliquées.",
 }
 
 ns.Locale_frFR = French

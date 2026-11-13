@@ -85,18 +85,12 @@ return function()
       )
       assert(
         Hyperlinks.FormatTextForDisplay(":" .. region.key .. ":")
-          == string.format(
-            "|TInterface\\AddOns\\WhisperMessenger\\Media\\reactions.tga:12:12:0:0:1024:256:%d:%d:%d:%d|t",
-            region.left,
-            region.right,
-            region.top,
-            region.bottom
-          ),
-        "reaction key should render complete inline atlas markup: " .. region.key
+          == "|TInterface\\AddOns\\WhisperMessenger\\Media\\emoji\\" .. region.key .. ".tga:12:12|t",
+        "reaction key should render its own inline texture: " .. region.key
       )
     end
 
-    local heartSprite = "|TInterface\\AddOns\\WhisperMessenger\\Media\\reactions.tga:12:12:0:0:1024:256:28:100:28:100|t"
+    local heartSprite = "|TInterface\\AddOns\\WhisperMessenger\\Media\\emoji\\heart.tga:12:12|t"
     assert(Hyperlinks.FormatTextForDisplay("nice :heart:") == "nice " .. heartSprite, "known emoji token should render as a heart sprite")
     assert(Hyperlinks.FormatTextForDisplay("keep :rocket: literal") == "keep :rocket: literal", "unknown emoji token should remain literal")
 

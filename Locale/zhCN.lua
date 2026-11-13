@@ -544,6 +544,8 @@ local SimplifiedChinese = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "邀请加入公会",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "按 Ctrl+C 复制命令，然后粘贴到聊天框中。",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "禁止在 M+、战场和竞技场中对话",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "启用后，Whisper Messenger 不会在史诗+地下城、战场和竞技场中发送消息。默认关闭；游戏自身的限制始终生效。",
 }
 
 ns.Locale_zhCN = SimplifiedChinese

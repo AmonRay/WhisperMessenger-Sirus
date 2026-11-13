@@ -27,8 +27,8 @@ return function()
   assert(preview.frame.shown == true, "preview should show after setting content")
   assert(preview.senderLabel.text == "Jaina-Proudmoore", "sender label should render sender name")
   assert(
-    preview.messageLabel.text == "Need assistance? |TInterface\\AddOns\\WhisperMessenger\\Media\\reactions.tga:12:12:0:0:1024:256:28:100:28:100|t",
-    "message label should render known reaction shortcodes as atlas markup"
+    preview.messageLabel.text == "Need assistance? |TInterface\\AddOns\\WhisperMessenger\\Media\\emoji\\heart.tga:12:12|t",
+    "message label should render known reaction shortcodes as an inline texture"
   )
 
   local onClick = preview.dismissButton:GetScript("OnClick")

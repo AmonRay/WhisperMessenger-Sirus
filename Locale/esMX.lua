@@ -548,6 +548,8 @@ local Spanish = {
   -- Contact menu: Guild invite
   ["Guild invite"] = "Invitar a la hermandad",
   ["Press Ctrl+C to copy the command, then paste it into chat."] = "Presiona Ctrl+C para copiar el comando y pégalo en el chat.",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "Bloquear la conversación en M+, campos de batalla y arenas",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "Si está activado, Whisper Messenger no envía mensajes en mazmorras M+, campos de batalla ni arenas. Desactivado por defecto; las restricciones del juego siguen aplicándose.",
 }
 
 ns.Locale_esMX = Spanish
