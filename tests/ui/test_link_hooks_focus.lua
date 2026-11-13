@@ -57,12 +57,33 @@ return function()
     assert(#env.inserts == 0, "an unfocused composer must not receive the link, got " .. #env.inserts)
   end
 
-  -- test_insert_link_skips_hidden_composer
+  -- test_insert_link_lands_in_a_focused_composer_whose_isvisible_lies
+  -- The 3.3.5a client answers IsVisible false for the composer the player is
+  -- typing in, so a shift-click from a bag was dropped as "no composer" while
+  -- the box was on screen and focused. IsShown is the honest signal there.
+  do
+    reset(true)
+    input.shown = true
+    input.visible = false
+    _G.ChatEdit_InsertLink(itemLink)
+    assert(#env.inserts == 1, "a focused composer must take the link even when IsVisible lies, got " .. #env.inserts)
+    assert(env.inserts[1] == itemLink, "expected the item link, got: " .. tostring(env.inserts[1]))
+  end
+
+  -- test_insert_link_skips_a_hidden_composer
   do
     reset(true)
     input.shown = false
-    _G.ChatFrameUtil.InsertLink(itemLink)
+    _G.ChatEdit_InsertLink(itemLink)
     assert(#env.inserts == 0, "a hidden composer must not receive the link, got " .. #env.inserts)
+  end
+
+  -- test_insert_link_skips_an_unfocused_hidden_composer
+  do
+    reset(false)
+    input.shown = false
+    _G.ChatEdit_InsertLink(itemLink)
+    assert(#env.inserts == 0, "a composer that is neither focused nor shown must not receive the link, got " .. #env.inserts)
   end
 
   -- test_insert_link_does_nothing_while_suspended

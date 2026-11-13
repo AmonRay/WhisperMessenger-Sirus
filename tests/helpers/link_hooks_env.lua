@@ -161,7 +161,12 @@ function LinkHooksEnv.New(opts)
 
   function env.NewInput()
     local input = { focused = false, shown = true, scripts = {} }
+    -- visible = false simulates the 3.3.5a lie: the box is on screen
+    -- (IsShown true) yet IsVisible answers false.
     function input.IsVisible(self)
+      if self.visible ~= nil then
+        return self.visible
+      end
       return self.shown
     end
     function input.IsShown(self)

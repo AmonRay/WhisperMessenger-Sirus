@@ -21,14 +21,26 @@ local focusedInputs = setmetatable({}, { __mode = "k" })
 -- box and the link is silently dropped.
 local activeInput = nil
 
+-- IsVisible is not asked: the 3.3.5a client answers false for the composer the
+-- player is typing in, which dropped every bag shift-click as "no composer".
+-- A box that is really off screen says so through IsShown, on itself or on a
+-- hidden frame above it (a closed window hides its pane and input's own
+-- OnHide never fires), so the chain is what gets walked.
+local SHOWN_CHAIN_LIMIT = 16
 local function isInputShown(input)
-  if type(input.IsVisible) == "function" then
-    return input:IsVisible() == true
+  local frame = input
+  local depth = 0
+  while frame ~= nil and depth < SHOWN_CHAIN_LIMIT do
+    if type(frame.IsShown) == "function" and frame:IsShown() ~= true then
+      return false
+    end
+    if type(frame.GetParent) ~= "function" then
+      return true
+    end
+    frame = frame:GetParent()
+    depth = depth + 1
   end
-  if type(input.IsShown) ~= "function" then
-    return true
-  end
-  return input:IsShown() == true
+  return true
 end
 
 local function isInputFocused(input)
@@ -41,13 +53,19 @@ local function isInputFocused(input)
   return input:HasFocus() == true
 end
 
+local function canInsert(input)
+  return input ~= nil and type(input.Insert) == "function"
+end
+
 local function preferredInput()
+  -- The composer the player is typing in wins, even when the client's
+  -- IsVisible check (see isInputShown) disagrees about it being on screen.
   for _, input in ipairs(linkedInputs) do
-    if input ~= nil and type(input.Insert) == "function" and isInputShown(input) and isInputFocused(input) then
+    if canInsert(input) and isInputShown(input) and isInputFocused(input) then
       return input
     end
   end
-  if activeInput ~= nil and type(activeInput.Insert) == "function" and isInputShown(activeInput) then
+  if canInsert(activeInput) and isInputShown(activeInput) then
     return activeInput
   end
   return nil
@@ -60,7 +78,7 @@ local function findInputForInsertion(allowVisibleWithoutFocus)
   end
 
   for _, candidate in ipairs(linkedInputs) do
-    if candidate ~= nil and type(candidate.Insert) == "function" and isInputShown(candidate) then
+    if canInsert(candidate) and isInputShown(candidate) then
       return candidate
     end
   end
@@ -89,10 +107,13 @@ local function tryInsertLink(link, options)
   options = options or {}
   local input = findInputForInsertion(options.allowVisibleWithoutFocus == true)
   if input == nil then
-    local focused = 0
+    local focused, shown = 0, 0
     for _, candidate in ipairs(linkedInputs) do
       if isInputFocused(candidate) then
         focused = focused + 1
+      end
+      if isInputShown(candidate) then
+        shown = shown + 1
       end
     end
     recordDebug(
@@ -102,6 +123,8 @@ local function tryInsertLink(link, options)
         .. #linkedInputs
         .. ", focused="
         .. focused
+        .. ", shown="
+        .. shown
         .. ", active="
         .. tostring(activeInput ~= nil)
         .. ")"

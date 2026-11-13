@@ -9,7 +9,7 @@
 ## SavedVariablesPerCharacter: WhisperMessengerCharacterDB
 ## X-Sirus-Update: https://github.com/AmonRay/WhisperMessenger-Sirus/tree/master
 ## X-Sirus-Category: 1
-## X-Build: 2026-11-13.13
+## X-Build: 2026-11-13.14
 ## OptionalDeps: EllesmereUI
 ## X-Curse-Project-ID: 1494311
 ## X-Wago-ID: jK8gze6y
