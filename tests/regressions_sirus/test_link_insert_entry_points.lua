@@ -71,6 +71,31 @@ return function()
     assert(#env.inserts == 0, "Blizzard's open chat box keeps the link, got " .. #env.inserts)
   end
 
+  -- test_shift_click_still_lands_after_the_click_moved_keyboard_focus
+  -- Blizzard's own chat box stays active the same way: the click that opens a
+  -- bag or a quest takes the keyboard focus before the link is inserted.
+  do
+    reset()
+    env.Fire(input, "OnEditFocusGained")
+    input.focused = false
+    env.Fire(input, "OnEditFocusLost")
+    _G.ChatEdit_TryInsertChatLink(itemLink)
+    assert(#env.inserts == 1, "the composer the player was typing in must keep the link, got " .. #env.inserts)
+  end
+
+  -- test_remembered_composer_is_forgotten_when_the_window_hides
+  do
+    reset()
+    env.Fire(input, "OnEditFocusGained")
+    input.focused = false
+    env.Fire(input, "OnEditFocusLost")
+    input.shown = false
+    env.Fire(input, "OnHide")
+    _G.ChatEdit_TryInsertChatLink(itemLink)
+    assert(#env.inserts == 0, "a closed messenger must not collect links, got " .. #env.inserts)
+    input.shown = true
+  end
+
   -- test_insert_falls_back_when_the_client_editbox_ignores_insert
   do
     reset()

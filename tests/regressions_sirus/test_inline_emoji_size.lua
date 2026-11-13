@@ -38,7 +38,7 @@ return function()
       for _, icon in ipairs(icons) do
         assert(icon.width == icon.height, "inline emoji must be square")
         assert(icon.height >= size, "inline emoji must not be smaller than the message text")
-        assert(icon.height >= math.floor(size * 1.4), "inline emoji must read as an emoji, well above the font size, got " .. icon.height)
+        assert(icon.height >= math.floor(size * 1.8), "inline emoji must read as an emoji, twice the font size, got " .. icon.height)
         assert(icon.path:find("Media\\emoji\\", 1, true), "3.3.5a needs a per-key texture, got " .. icon.path)
         if size == 12 then
           assert(icon.height > 12, "default inline emoji must be enlarged beyond the old 12px presentation")

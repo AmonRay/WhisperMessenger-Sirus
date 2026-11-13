@@ -14,6 +14,12 @@ local lastInsertFrameTime = nil
 -- The 3.3.5a UI patches do not always answer EditBox:HasFocus for a custom
 -- box, so the input's own focus events are tracked alongside it.
 local focusedInputs = setmetatable({}, { __mode = "k" })
+-- Blizzard keeps its own chat box active while the player clicks a bag or a
+-- quest, so the shift-click still lands there after the click moved the
+-- keyboard focus. Remember the composer the player was typing in for the same
+-- reason: without it a shift-click from anywhere in the world finds no focused
+-- box and the link is silently dropped.
+local activeInput = nil
 
 local function isInputShown(input)
   if type(input.IsVisible) == "function" then
@@ -35,21 +41,46 @@ local function isInputFocused(input)
   return input:HasFocus() == true
 end
 
-local function findInputForInsertion(allowVisibleWithoutFocus)
-  local fallbackVisibleInput = nil
-
+local function preferredInput()
   for _, input in ipairs(linkedInputs) do
-    if input ~= nil and type(input.Insert) == "function" and isInputShown(input) then
-      if isInputFocused(input) then
-        return input
-      end
-      if allowVisibleWithoutFocus and fallbackVisibleInput == nil then
-        fallbackVisibleInput = input
-      end
+    if input ~= nil and type(input.Insert) == "function" and isInputShown(input) and isInputFocused(input) then
+      return input
+    end
+  end
+  if activeInput ~= nil and type(activeInput.Insert) == "function" and isInputShown(activeInput) then
+    return activeInput
+  end
+  return nil
+end
+
+local function findInputForInsertion(allowVisibleWithoutFocus)
+  local input = preferredInput()
+  if input ~= nil or not allowVisibleWithoutFocus then
+    return input
+  end
+
+  for _, candidate in ipairs(linkedInputs) do
+    if candidate ~= nil and type(candidate.Insert) == "function" and isInputShown(candidate) then
+      return candidate
     end
   end
 
-  return fallbackVisibleInput
+  return nil
+end
+
+-- Diagnostic trail for in-game reports. Off unless the player enables it:
+-- `/run WM_LINK_DEBUG=true`, one shift-click, then `/dump WMLinkDebug` lists
+-- which Blizzard path ran and why the link was dropped.
+local debugTrail = {}
+local function recordDebug(message)
+  if _G.WM_LINK_DEBUG ~= true then
+    return
+  end
+  if #debugTrail >= 12 then
+    table.remove(debugTrail, 1)
+  end
+  table.insert(debugTrail, message)
+  rawset(_G, "WMLinkDebug", debugTrail)
 end
 
 local function tryInsertLink(link, options)
@@ -60,6 +91,7 @@ local function tryInsertLink(link, options)
   options = options or {}
   local input = findInputForInsertion(options.allowVisibleWithoutFocus == true)
   if input == nil then
+    recordDebug("no composer for " .. tostring(link))
     return false
   end
 
@@ -84,6 +116,7 @@ local function tryInsertLink(link, options)
   lastInsertFrameTime = now
 
   local before = type(input.GetText) == "function" and input:GetText() or nil
+  recordDebug("inserting into the composer")
   input:Insert(insertable)
   -- A client whose EditBox:Insert leaves the text alone (seen on 3.3.5a with a
   -- focused custom box) would silently swallow the shift-click.
@@ -130,9 +163,17 @@ local function blizzardChatBoxActive()
 end
 
 local function insertFromBlizzard(link)
-  if _G._wmSuspended or type(link) ~= "string" or link == "" or blizzardChatBoxActive() then
+  if _G._wmSuspended then
     return
   end
+  if type(link) ~= "string" or link == "" then
+    return
+  end
+  if blizzardChatBoxActive() then
+    recordDebug("blizzard chat box took " .. link)
+    return
+  end
+  recordDebug("link " .. link)
   tryInsertLink(link, { allowVisibleWithoutFocus = false })
 end
 
@@ -264,12 +305,16 @@ function LinkHooks.RegisterInput(input)
   if type(input.HookScript) == "function" then
     input:HookScript("OnEditFocusGained", function(self)
       focusedInputs[self] = true
+      activeInput = self
     end)
     input:HookScript("OnEditFocusLost", function(self)
       focusedInputs[self] = nil
     end)
     input:HookScript("OnHide", function(self)
       focusedInputs[self] = nil
+      if activeInput == self then
+        activeInput = nil
+      end
     end)
   end
   registerLinkHooks()

@@ -41,8 +41,8 @@ end
 
 -- Inline glyphs scale with the message font; picker/badge sizes stay
 -- separate. A messenger emoji reads as an emoji, not as a small icon next to
--- the text, so it is half again the font size.
-local INLINE_ICON_SCALE = 1.5
+-- the text, so it is twice the font size.
+local INLINE_ICON_SCALE = 2
 
 local function inlineIconSize(fontSize)
   -- Only message bubbles supply a font size. Other surfaces keep their
