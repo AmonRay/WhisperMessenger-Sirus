@@ -98,11 +98,26 @@ function Localization.GetEffectiveLanguage(languageOverride)
   return language
 end
 
+-- Symbolic keys and their English text. A catalog may translate either the
+-- symbolic key or the English text, so older translations keep working.
+local ENGLISH = {
+  BLOCK_CHAT_IN_INSTANCES = "Block chat in Mythic+, battlegrounds and arenas",
+  BLOCK_CHAT_IN_INSTANCES_TOOLTIP = "When enabled, prevent sending messages there. Off by default; game chat restrictions still apply.",
+}
+Localization.ENGLISH = ENGLISH
+
 function Localization.Text(key, languageOverride)
   local effective = Localization.GetEffectiveLanguage(languageOverride)
   local catalog = catalogs[effective]
   if catalog and catalog[key] then
     return catalog[key]
+  end
+  local english = ENGLISH[key]
+  if english ~= nil then
+    if catalog and catalog[english] then
+      return catalog[english]
+    end
+    return english
   end
   return key
 end

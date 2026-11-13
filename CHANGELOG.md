@@ -6,6 +6,11 @@ All releases: **2.1.x (current)** · [2.0.x](archive/changelog/2.0.md) · [1.4.x
 
 ## [Unreleased]
 
+## [2.1.11] - 2026-11-13
+
+- The "Block chat in Mythic+, battlegrounds and arenas" setting now has its own translation keys, so its name and tooltip show correctly in Russian. It is still off by default.
+- Fixed: Three luacheck warnings in the instance detection code (unused variables).
+
 ## [2.1.10] - 2026-11-13
 
 - Fixed: World channels on Sirus now resolve their current joined channel correctly. Мир(А) always uses Common and Мир(О) always uses Orcish.

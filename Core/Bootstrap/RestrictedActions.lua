@@ -55,22 +55,28 @@ function RestrictedActions.BlockChatInInstances(runtime)
   return type(settings) == "table" and settings.blockChatInInstances == true
 end
 
+-- One GetInstanceInfo() return (2 = instance type, 4 = difficulty ID), or
+-- nil when the API is missing or errors.
+local function instanceInfoField(index)
+  if type(_G.GetInstanceInfo) ~= "function" then
+    return nil
+  end
+  local results = { pcall(_G.GetInstanceInfo) }
+  if results[1] ~= true then
+    return nil
+  end
+  return results[index + 1]
+end
+
 -- Provisional Sirus M+ probe: difficulty 8 is NOT confirmed on this server.
 -- Keep the Wrath flavor flag out of this probe; validate the ID in game.
 function RestrictedActions.InMythicInstance()
-  if type(_G.GetInstanceInfo) ~= "function" then
-    return false
-  end
-  local ok, _name, _instanceType, difficultyID = pcall(_G.GetInstanceInfo)
-  return ok and difficultyID == 8
+  return instanceInfoField(4) == 8
 end
 
 local function inPvPInstance()
-  if type(_G.GetInstanceInfo) ~= "function" then
-    return false
-  end
-  local ok, _name, instanceType = pcall(_G.GetInstanceInfo)
-  return ok and (instanceType == "pvp" or instanceType == "arena")
+  local instanceType = instanceInfoField(2)
+  return instanceType == "pvp" or instanceType == "arena"
 end
 
 function RestrictedActions.IsMythicLockdown(runtime, bootstrap)

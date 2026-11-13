@@ -103,14 +103,14 @@ function ToggleSpecs.Build(config, onChange)
     },
     {
       key = "blockChatInInstances",
-      labelKey = "Block chat in Mythic+, battlegrounds and arenas",
+      labelKey = "BLOCK_CHAT_IN_INSTANCES",
       initial = config.blockChatInInstances == true,
       onChange = function(value)
         onChange("blockChatInInstances", value == true)
       end,
       tooltipLines = {
-        text("Block chat in Mythic+, battlegrounds and arenas"),
-        text("When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."),
+        text("BLOCK_CHAT_IN_INSTANCES"),
+        text("BLOCK_CHAT_IN_INSTANCES_TOOLTIP"),
       },
     },
     {

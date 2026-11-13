@@ -132,6 +132,8 @@ local Russian = {
 
   -- Behavior settings
   ["Block chat in Mythic+, battlegrounds and arenas"] = "Запрещать переписку в М+, на полях боя и аренах",
+  ["BLOCK_CHAT_IN_INSTANCES"] = "Запрещать переписку в М+, на полях боя и аренах",
+  ["BLOCK_CHAT_IN_INSTANCES_TOOLTIP"] = "Если включено, Whisper Messenger не отправляет сообщения в эпохальных+ подземельях, на полях боя и аренах. По умолчанию выключено; ограничения самой игры действуют всегда.",
   ["When enabled, prevent sending messages there. Off by default; game chat restrictions still apply."] = "При включении запрещает отправку сообщений там. По умолчанию выключено; ограничения игры продолжают действовать.",
   ["Control how the messenger window behaves."] = "Настройте поведение окна мессенджера.",
   ["Compact window"] = "Компактное окно",
