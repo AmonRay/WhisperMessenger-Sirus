@@ -11,6 +11,9 @@ local LinkHooks = {}
 local registeredLinkHooks = false
 local linkedInputs = {}
 local lastInsertFrameTime = nil
+-- The 3.3.5a UI patches do not always answer EditBox:HasFocus for a custom
+-- box, so the input's own focus events are tracked alongside it.
+local focusedInputs = setmetatable({}, { __mode = "k" })
 
 local function isInputShown(input)
   if type(input.IsVisible) == "function" then
@@ -23,6 +26,9 @@ local function isInputShown(input)
 end
 
 local function isInputFocused(input)
+  if focusedInputs[input] == true then
+    return true
+  end
   if type(input.HasFocus) ~= "function" then
     return false
   end
@@ -77,7 +83,19 @@ local function tryInsertLink(link, options)
   end
   lastInsertFrameTime = now
 
+  local before = type(input.GetText) == "function" and input:GetText() or nil
   input:Insert(insertable)
+  -- A client whose EditBox:Insert leaves the text alone (seen on 3.3.5a with a
+  -- focused custom box) would silently swallow the shift-click.
+  if before ~= nil and input:GetText() == before then
+    local combined = before .. insertable
+    if type(input.SetText) == "function" then
+      input:SetText(combined)
+      if type(input.SetCursorPosition) == "function" then
+        pcall(input.SetCursorPosition, input, #combined)
+      end
+    end
+  end
   return true
 end
 
@@ -220,8 +238,22 @@ local function registerLinkHooks()
     tryInsertLink(linkToInsert, { allowVisibleWithoutFocus = false })
   end)
 
+  -- Gated click handlers only reach ChatEdit_InsertLink while one of
+  -- Blizzard's own chat boxes is open, so a focused composer never sees a bag
+  -- or bank shift-click through them. Their post-hooks hand us the link
+  -- directly; the per-frame dedupe keeps a click that reaches both to one
+  -- insert.
+  local function insertFromChatLinkClick(link)
+    if not ChatLinkSources.IsChatLinkClick() then
+      return
+    end
+    insertFromBlizzard(link)
+  end
+
   safeHookMethod(_G.ChatFrameUtil, "InsertLink", insertFromBlizzard)
   safeHookGlobal("ChatEdit_InsertLink", insertFromBlizzard)
+  safeHookGlobal("ChatEdit_TryInsertChatLink", insertFromChatLinkClick)
+  safeHookGlobal("HandleModifiedItemClick", insertFromChatLinkClick)
   ChatLinkSources.Register(insertFromBlizzard)
 
   registeredLinkHooks = true
@@ -229,6 +261,17 @@ end
 
 function LinkHooks.RegisterInput(input)
   table.insert(linkedInputs, 1, input)
+  if type(input.HookScript) == "function" then
+    input:HookScript("OnEditFocusGained", function(self)
+      focusedInputs[self] = true
+    end)
+    input:HookScript("OnEditFocusLost", function(self)
+      focusedInputs[self] = nil
+    end)
+    input:HookScript("OnHide", function(self)
+      focusedInputs[self] = nil
+    end)
+  end
   registerLinkHooks()
 end
 

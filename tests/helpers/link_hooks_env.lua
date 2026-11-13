@@ -29,6 +29,8 @@ local WATCHED_GLOBALS = {
   "SetItemRef",
   "ChatEdit_GetActiveWindow",
   "ChatEdit_InsertLink",
+  "ChatEdit_TryInsertChatLink",
+  "HandleModifiedItemClick",
   "ChatFrameUtil",
   "QuestLogTitleButton_OnClick",
   "AchievementButton_OnClick",
@@ -117,10 +119,26 @@ function LinkHooksEnv.New(opts)
   env.originalInsertLink = function(_text)
     return false
   end
+  -- The game's own gated handlers: with no Blizzard chat box open they never
+  -- reach ChatEdit_InsertLink, exactly like the live client.
+  local function gatedInsertLink(link)
+    if type(_G.IsModifiedClick) == "function" and _G.IsModifiedClick("CHATLINK") and _G.ChatEdit_GetActiveWindow() and link then
+      return _G.ChatEdit_InsertLink(link)
+    end
+    return nil
+  end
+
   env.globals = {
     SetItemRef = function(_link, _text, _button, _frame) end,
     ChatEdit_GetActiveWindow = env.originalGetActiveWindow,
     ChatEdit_InsertLink = opts.globalInsertLink or env.originalInsertLink,
+    ChatEdit_TryInsertChatLink = gatedInsertLink,
+    HandleModifiedItemClick = function(link)
+      if _G.IsModifiedClick("CHATLINK") and _G.ChatEdit_InsertLink(link) then
+        return true
+      end
+      return false
+    end,
     QuestLogTitleButton_OnClick = function(_button, _mouseButton) end,
   }
   if opts.chatFrameUtil ~= false then
