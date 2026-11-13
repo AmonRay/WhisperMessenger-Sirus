@@ -1,3 +1,4 @@
+local ChannelKey = require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
 local WorldChannels = require("WhisperMessenger.Transport.WorldChannels")
 local ChatGateway = require("WhisperMessenger.Transport.ChatGateway")
 local ChannelType = require("WhisperMessenger.Model.Identity.ChannelType")
@@ -95,8 +96,8 @@ return function()
   -- Arrange: drop world channels of the wrong faction, add the missing ones.
   withSirus(2, function()
     local arranged = WorldChannels.Arrange({
-      { slug = "c:" .. string.lower("Мир(А)"), label = "Мир(А)", joined = true },
-      { slug = "c:" .. string.lower("Мир"), label = "Мир", joined = true },
+      { slug = "c:" .. ChannelKey.LowerName("Мир(А)"), label = "Мир(А)", joined = true },
+      { slug = "c:" .. ChannelKey.LowerName("Мир"), label = "Мир", joined = true },
       { slug = "c:craftscan", label = "CraftScan", joined = true },
     })
     local labels = {}
@@ -107,12 +108,12 @@ return function()
       table.concat(labels, ",") == "Мир(А),Мир,CraftScan,Мир(О)",
       "joined world channels remain visible: " .. table.concat(labels, ",")
     )
-    assert(arranged[4].slug == "c:" .. string.lower("Мир(О)"), "added row should use the custom-channel slug")
+    assert(arranged[4].slug == "c:" .. ChannelKey.LowerName("Мир(О)"), "added row should use the custom-channel slug")
   end)
   withSirus(0, function()
     local arranged = WorldChannels.Arrange({
-      { slug = "c:" .. string.lower("Мир(А)"), label = "Мир(А)", joined = true },
-      { slug = "c:" .. string.lower("Мир(О)"), label = "Мир(О)", joined = true },
+      { slug = "c:" .. ChannelKey.LowerName("Мир(А)"), label = "Мир(А)", joined = true },
+      { slug = "c:" .. ChannelKey.LowerName("Мир(О)"), label = "Мир(О)", joined = true },
     })
     assert(
       #arranged == 3 and arranged[1].label == "Мир(А)" and arranged[2].label == "Мир(О)" and arranged[3].label == "Мир",

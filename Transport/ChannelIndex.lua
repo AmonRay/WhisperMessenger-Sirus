@@ -7,7 +7,9 @@ local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.C
 
 -- Resolve live membership at send time; never trust a saved channel number.
 local ChannelIndex = {}
-local lower = string.lower
+-- ChannelKey.LowerName, not string.lower: the locale-dependent one mangles
+-- Cyrillic channel names on a Russian Windows.
+local lower = ChannelKey.LowerName
 
 local function sameChannel(name, wanted)
   if wanted == "Мир" or wanted == "Мир(А)" or wanted == "Мир(О)" then

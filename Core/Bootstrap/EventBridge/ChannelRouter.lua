@@ -46,6 +46,11 @@ function ChannelRouter.RouteChannelEvent(runtime, eventName, ...)
     return nil
   end
   local text, playerName, _, channelName, _, _, zoneChannelID, channelIndex, channelBaseName, _, lineID, guid = ...
+  -- The Wrath client sends no channel base name: fall back to the name the
+  -- line itself carries, or a world channel could never be keyed.
+  if ChannelKey.BaseName(channelBaseName) == nil then
+    channelBaseName = ChannelKey.BaseNameFromChannelName(channelName)
+  end
   local channelLabel = channelLabelFor(channelName)
   if ChannelKey.IsUnknownZoneID(zoneChannelID) then
     PerfCounters.Increment("unknownChannelIDs")

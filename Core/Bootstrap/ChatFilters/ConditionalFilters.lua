@@ -92,9 +92,13 @@ function ConditionalFilters.New(runtime)
   local filters = {}
 
   -- Blizzard passes (frame, event, ...payload): payload arg N is parameter N + 2.
-  function filters.Channel(_frame, _event, text, playerName, _, _, _, _, zoneChannelID, _, channelBaseName, _, lineID, guid)
+  function filters.Channel(_frame, _event, text, playerName, _, channelName, _, _, zoneChannelID, _, channelBaseName, _, lineID, guid)
     if isSecret(channelBaseName) or isUnsafe(text, playerName, guid) then
       return false
+    end
+    -- The Wrath client sends no channel base name; the channel name stands in.
+    if ChannelKey.BaseName(channelBaseName) == nil then
+      channelBaseName = ChannelKey.BaseNameFromChannelName(channelName)
     end
     if hidesChannel(runtime, zoneChannelID, channelBaseName) then
       return true
