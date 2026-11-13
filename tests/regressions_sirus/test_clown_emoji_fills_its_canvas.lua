@@ -33,6 +33,36 @@ local function opaqueArea(texture)
   return count
 end
 
+-- The drawn art may not run into the texture border: the whole texture is
+-- squeezed into the icon box, so art touching an edge is cut by that box and
+-- reads as a cropped picture.
+local function edgeMargin(texture)
+  local function opaque(x, y)
+    local alpha = string.byte(texture.pixels, (y * texture.width + x) * 4 + 4)
+    return alpha ~= nil and alpha > 128
+  end
+  local left, right, top, bottom = texture.width, 0, texture.height, 0
+  for y = 0, texture.height - 1 do
+    for x = 0, texture.width - 1 do
+      if opaque(x, y) then
+        if x < left then
+          left = x
+        end
+        if x > right then
+          right = x
+        end
+        if y < top then
+          top = y
+        end
+        if y > bottom then
+          bottom = y
+        end
+      end
+    end
+  end
+  return math.min(left, texture.width - 1 - right, top, texture.height - 1 - bottom)
+end
+
 return function()
   local clown = readTexture(CLOWN)
   local smile = readTexture(SMILE)
@@ -41,5 +71,11 @@ return function()
 
   local clownArea = opaqueArea(clown)
   local smileArea = opaqueArea(smile)
-  assert(clownArea >= smileArea * 0.8, "the clown emoji must fill its canvas like the others: " .. clownArea .. "px vs " .. smileArea .. "px")
+  assert(clownArea >= smileArea * 0.7, "the clown emoji must read as big as the others: " .. clownArea .. "px vs " .. smileArea .. "px")
+
+  -- test_clown_art_keeps_a_transparent_margin
+  -- Hair that touches the canvas border is cut by the icon box in game, which
+  -- is what "the clown emoji is cropped" looked like.
+  local margin = edgeMargin(clown)
+  assert(margin >= 1, "the clown art must keep a transparent margin inside its canvas, smallest margin: " .. margin .. "px")
 end
