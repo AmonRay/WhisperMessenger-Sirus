@@ -7,6 +7,8 @@ end
 -- the box before the text lands, so while this runs our own edit-box hooks
 -- must leave the box alone: a whisper target still sitting in it would
 -- otherwise pull the prefill into the messenger.
+local FlavorCompat = ns.FlavorCompat or require("WhisperMessenger.Core.FlavorCompat")
+
 local ChatPrefill = {}
 
 local opening = false
@@ -49,8 +51,9 @@ end
 -- make when the player presses Enter (ADDON_ACTION_FORBIDDEN). So a slash
 -- command is safe to prefill only when nothing is waiting to be moved and the
 -- game already moved it securely. A protected command (/use, /target) is never
--- safe: the player's Enter on a box we prefilled is still blocked (seen in
--- game), and those commands are not in hash_SlashCmdList anyway.
+-- safe on retail and the later Classic clients: the player's Enter on a box we
+-- prefilled is still blocked (seen in game). The Sirus 3.3.5a client still
+-- runs it, so there the old prefill stays.
 local function slashCommandSafe(text)
   local command = string.match(text, "^(/[^%s]+)")
   local hash = _G.hash_SlashCmdList
@@ -60,7 +63,7 @@ local function slashCommandSafe(text)
     return false
   end
   if ChatPrefill.IsProtectedCommand(command) then
-    return false
+    return FlavorCompat.isWrath335 == true
   end
   if type(hash) ~= "table" or type(isSecure) ~= "function" then
     return false

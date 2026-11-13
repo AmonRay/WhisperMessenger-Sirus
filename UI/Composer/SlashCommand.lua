@@ -9,11 +9,13 @@ end
 -- updates the sticky chat type and clears the box. The edit box is passed to
 -- the handler explicitly, so the text is read from and cleared on that box.
 -- A protected command (/use, /target, /cast, ...) is the exception: run from
--- addon code the game blocks it (ADDON_ACTION_FORBIDDEN). Prefilling the chat
--- box from addon code does not help either: the player's Enter on that box is
--- still blocked (seen in game). So it goes to the copy dialog for the player
--- to paste into chat.
+-- addon code the game blocks it (ADDON_ACTION_FORBIDDEN). On retail and the
+-- later Classic clients the player's Enter on a box addon code prefilled is
+-- blocked too, so the command goes to the copy dialog for the player to paste
+-- into chat. The Sirus 3.3.5a client still runs that Enter, so it keeps the
+-- chat hand-off instead of a copy dialog for every command.
 local ChatPrefill = ns.ChatPrefill or require("WhisperMessenger.Util.ChatPrefill")
+local FlavorCompat = ns.FlavorCompat or require("WhisperMessenger.Core.FlavorCompat")
 -- stylua: ignore start
 local PopupUI = ns.ChatBubbleContextMenuManualCopyPopupUI or require("WhisperMessenger.UI.ChatBubble.ContextMenu.ManualCopy.PopupUI")
 -- stylua: ignore end
@@ -58,10 +60,18 @@ function SlashCommand.Run(command)
   if isRestricted() then
     return false
   end
+  local editBox, handler = resolveEnterHandler()
+  if ChatPrefill.IsProtectedCommand(command) and FlavorCompat.isWrath335 == true then
+    if editBox == nil or handler == nil then
+      return false
+    end
+    editBox:SetText(command)
+    handler(editBox)
+    return true
+  end
   if ChatPrefill.IsProtectedCommand(command) then
     return PopupUI.ShowManualCopyDialog(command, { prompt = COMMAND_PROMPT }) == true
   end
-  local editBox, handler = resolveEnterHandler()
   if editBox == nil or handler == nil then
     return false
   end
