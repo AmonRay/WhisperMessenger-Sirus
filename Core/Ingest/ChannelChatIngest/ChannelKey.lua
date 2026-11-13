@@ -81,13 +81,35 @@ function ChannelKey.BaseNameFromChannelName(channelName)
   return ChannelKey.BaseName(label) or label
 end
 
+-- Sirus' world channels are server channels, but the game reports Sirus'
+-- world chat under the Looking for Group zone ID: keying by that ID alone made
+-- "Мир" read as "lfg", so the "Мир" toggle in the settings controlled nothing
+-- and only the Looking for Group one let the messages through. The name the
+-- picker saves wins, and these three names are the world channels.
+local WORLD_CHANNEL_NAMES = {
+  ["мир"] = true,
+  ["мир(а)"] = true,
+  ["мир(о)"] = true,
+}
+
+function ChannelKey.IsWorldChannelName(channelBaseName)
+  local baseName = ChannelKey.BaseName(channelBaseName)
+  return baseName ~= nil and WORLD_CHANNEL_NAMES[ChannelKey.LowerName(baseName)] == true
+end
+
 -- The slug behind "CHANNEL::<slug>", or nil when the line names no channel.
 function ChannelKey.Slug(zoneChannelID, channelBaseName)
+  local baseName = ChannelKey.BaseName(channelBaseName)
+  if baseName ~= nil then
+    local lowerName = ChannelKey.LowerName(baseName)
+    if WORLD_CHANNEL_NAMES[lowerName] then
+      return CUSTOM_PREFIX .. lowerName
+    end
+  end
   local builtIn = ChannelKey.ZONE_CHANNEL_IDS[zoneChannelID]
   if builtIn ~= nil then
     return builtIn
   end
-  local baseName = ChannelKey.BaseName(channelBaseName)
   return baseName and (CUSTOM_PREFIX .. ChannelKey.LowerName(baseName)) or nil
 end
 
