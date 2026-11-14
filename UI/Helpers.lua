@@ -7,10 +7,14 @@ local Base = ns.UIHelpersBase or require("WhisperMessenger.UI.Helpers.Base")
 local Shapes = ns.UIHelpersShapes or require("WhisperMessenger.UI.Helpers.Shapes")
 local Controls = ns.UIHelpersControls or require("WhisperMessenger.UI.Helpers.Controls")
 local DisabledState = ns.UIHelpersDisabledState or require("WhisperMessenger.UI.Helpers.DisabledState")
+local ClientBoolean = ns.ClientBoolean or require("WhisperMessenger.Util.ClientBoolean")
 
--- Strictly true: a stubbed or odd return value never counts as shift.
+-- The client's own answer: 1 on 3.3.5a, true elsewhere, off for anything else.
 local function isShiftDown()
-  return type(_G.IsShiftKeyDown) == "function" and _G.IsShiftKeyDown() == true
+  if type(_G.IsShiftKeyDown) ~= "function" then
+    return false
+  end
+  return ClientBoolean.IsTrue(_G.IsShiftKeyDown())
 end
 
 -- An on/off option read through an optional getter: a missing getter or any

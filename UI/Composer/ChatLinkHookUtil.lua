@@ -5,11 +5,18 @@ end
 
 -- Shared helpers for the chat-link source hooks. They only ever post-hook
 -- through hooksecurefunc and skip anything the running flavor does not have.
+local ClientBoolean = ns.ClientBoolean or require("WhisperMessenger.Util.ClientBoolean")
+
 local ChatLinkHookUtil = {}
 
+-- The client answers 1 on 3.3.5a and true elsewhere; anything else is a plain
+-- click.
 function ChatLinkHookUtil.IsChatLinkClick()
   local isModifiedClick = _G.IsModifiedClick
-  return type(isModifiedClick) == "function" and isModifiedClick("CHATLINK") == true
+  if type(isModifiedClick) ~= "function" then
+    return false
+  end
+  return ClientBoolean.IsTrue(isModifiedClick("CHATLINK"))
 end
 
 function ChatLinkHookUtil.HookGlobal(functionName, handler)

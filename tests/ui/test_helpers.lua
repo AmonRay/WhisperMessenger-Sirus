@@ -177,7 +177,10 @@ return function()
   assert(icon.texture.width == 46, "texture should be ~15% larger (40 * 1.15 = 46)")
   assert(icon.texture.mask == "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask", "texture should have circular mask")
 
-  -- test_is_shift_down_is_strictly_true_only_when_shift_held
+  -- test_is_shift_down_reads_the_clients_one_as_shift
+  -- 3.3.5a (the Sirus client included) answers 1 from IsShiftKeyDown, not true,
+  -- so the strict comparison never saw a held shift and every shift-click did
+  -- nothing there.
   do
     local saved = rawget(_G, "IsShiftKeyDown")
     rawset(_G, "IsShiftKeyDown", nil)
@@ -185,7 +188,15 @@ return function()
     rawset(_G, "IsShiftKeyDown", function()
       return 1
     end)
-    assert(UIHelpers.isShiftDown() == false, "a non-true return is not shift")
+    assert(UIHelpers.isShiftDown() == true, "1 is the client's own true")
+    rawset(_G, "IsShiftKeyDown", function()
+      return 0
+    end)
+    assert(UIHelpers.isShiftDown() == false, "0 is not shift")
+    rawset(_G, "IsShiftKeyDown", function()
+      return false
+    end)
+    assert(UIHelpers.isShiftDown() == false, "false is not shift")
     rawset(_G, "IsShiftKeyDown", function()
       return true
     end)
