@@ -10,6 +10,9 @@ local UrlFormatter = ns.UIHyperlinksUrlFormatter or require("WhisperMessenger.UI
 local LinkHooks = {}
 local registeredLinkHooks = false
 local linkedInputs = {}
+-- The window's own composer. Other boxes (the reply preview row) register
+-- after it, so "the newest input" is not the one the player is looking at.
+local primaryInputs = {}
 local lastInsertFrameTime = nil
 -- The 3.3.5a UI patches do not always answer EditBox:HasFocus for a custom
 -- box, so the input's own focus events are tracked alongside it.
@@ -86,6 +89,15 @@ local function findInputForInsertion(allowVisibleWithoutFocus)
   local input = preferredInput()
   if input ~= nil or not allowVisibleWithoutFocus then
     return input
+  end
+
+  -- Nothing is focused: the window composer is where a click inside the
+  -- window belongs. Falling back to the newest input sent the name into the
+  -- reply preview's box, which the player could not see (seen in game).
+  for _, candidate in ipairs(primaryInputs) do
+    if canInsert(candidate) then
+      return candidate
+    end
   end
 
   for _, candidate in ipairs(linkedInputs) do
@@ -389,8 +401,11 @@ local function registerLinkHooks()
   registeredLinkHooks = true
 end
 
-function LinkHooks.RegisterInput(input)
+function LinkHooks.RegisterInput(input, isPrimary)
   table.insert(linkedInputs, 1, input)
+  if isPrimary == true then
+    table.insert(primaryInputs, 1, input)
+  end
   if type(input.HookScript) == "function" then
     input:HookScript("OnEditFocusGained", function(self)
       focusedInputs[self] = true

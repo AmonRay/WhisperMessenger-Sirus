@@ -114,7 +114,9 @@ function Composer.Create(factory, parent, selectedContact, onSend, onEscape, get
     surface.apply(placeholder)
   end
 
-  LinkHooks.RegisterInput(input)
+  -- The window's composer: with nothing focused it is where a shift-clicked
+  -- name or link belongs, ahead of the reply preview's box.
+  LinkHooks.RegisterInput(input, true)
 
   local function relayoutLauncher(width)
     ComposerLayout.Apply(layoutParts, width)

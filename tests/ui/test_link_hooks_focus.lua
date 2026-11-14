@@ -297,5 +297,34 @@ return function()
     assert(#env.inserts == 0, "SetItemRef hook should not insert our URL links, got: " .. tostring(env.inserts[1]))
   end
 
+  -- test_shift_click_without_a_focused_box_reaches_the_window_composer
+  -- The reply preview registers its own edit box after the composer, and a
+  -- shift-clicked name used to land in the newest one: a box the player could
+  -- not see, so the click looked like it did nothing. With nothing focused the
+  -- window composer has to win.
+  do
+    local function countingInput()
+      local box = env.NewInput()
+      box.hits = 0
+      function box.Insert(self, text)
+        box.hits = box.hits + 1
+        table.insert(env.inserts, text)
+      end
+      return box
+    end
+    local composer = countingInput()
+    env.LinkHooks.RegisterInput(composer, true)
+    local preview = countingInput()
+    env.LinkHooks.RegisterInput(preview)
+    env.SetHostShown(true)
+    input.focused = false
+    composer.focused = false
+    preview.focused = false
+    env.Reset()
+    assert(env.LinkHooks.InsertPlayerName("Tsukoyomi", true) == true, "a shift-clicked name must report handled")
+    assert(composer.hits == 1, "expected the window composer to take the name, got " .. composer.hits)
+    assert(preview.hits == 0, "the reply preview must not take a shift-clicked name, got " .. preview.hits)
+  end
+
   env.Restore()
 end
