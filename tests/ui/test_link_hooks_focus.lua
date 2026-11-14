@@ -211,6 +211,41 @@ return function()
     assert(took == false and #env.inserts == 0, "a plain click must not insert the name, got: " .. tostring(env.inserts[1]))
   end
 
+  -- test_insert_player_name_takes_a_plain_name_without_the_click_modifier
+  -- The messenger's own sender labels insert on shift + left-click; by the time
+  -- the click arrives the shift is already known, so the plain name goes in.
+  do
+    reset(true)
+    local took = env.LinkHooks.InsertPlayerName("Ambush Rasit")
+    assert(took == true, "a plain name should reach the focused composer")
+    assert(env.inserts[1] == "Ambush Rasit", "expected the name in the composer, got: " .. tostring(env.inserts[1]))
+  end
+
+  -- test_insert_player_name_from_the_window_skips_the_shown_gate
+  -- 3.3.5a answers IsShown unreliably for the window, so a click that came from
+  -- inside it inserts even when the window claims to be hidden.
+  do
+    reset(false)
+    env.SetHostShown(false)
+    assert(env.LinkHooks.InsertPlayerName("Ambush Rasit") == false, "a click from outside needs a shown window")
+    assert(#env.inserts == 0, "nothing is inserted while the window is hidden")
+    local took = env.LinkHooks.InsertPlayerName("Ambush Rasit", true)
+    assert(took == true, "a click inside the window knows a composer is there")
+    assert(env.inserts[1] == "Ambush Rasit", "expected the name in the composer, got: " .. tostring(env.inserts[1]))
+    env.SetHostShown(true)
+  end
+
+  -- test_insert_player_name_refuses_empty_and_suspended
+  do
+    reset(true)
+    assert(env.LinkHooks.InsertPlayerName("") == false, "an empty name inserts nothing")
+    assert(env.LinkHooks.InsertPlayerName(nil) == false, "a missing name inserts nothing")
+    rawset(_G, "_wmSuspended", true)
+    local took = env.LinkHooks.InsertPlayerName("Ambush Rasit")
+    rawset(_G, "_wmSuspended", nil)
+    assert(took == false and #env.inserts == 0, "a suspended addon inserts nothing")
+  end
+
   -- test_insert_clicked_player_name_does_nothing_while_suspended
   do
     reset(true)

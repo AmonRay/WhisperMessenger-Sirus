@@ -258,12 +258,23 @@ end
 -- the focused composer and returns true, so the caller can keep the click
 -- away from Blizzard's SetItemRef (with no Blizzard chat box open it sends a
 -- /who for the name). Returns false when the composer did not take it.
-function LinkHooks.InsertClickedPlayerName(link)
-  local playerName = playerNameFromLink(link)
-  if playerName == nil or _G._wmSuspended or not ChatLinkSources.IsChatLinkClick() then
+-- A plain character name (never a |Hplayer link: the server refuses those in
+-- a sent message). Callers decide when a click inserts one.
+-- fromWindow: the click came from inside our own window, which proves a
+-- composer is on screen; 3.3.5a answers IsShown unreliably for the window, so
+-- that gate is skipped rather than dropping the click.
+function LinkHooks.InsertPlayerName(name, fromWindow)
+  if type(name) ~= "string" or name == "" or _G._wmSuspended then
     return false
   end
-  return tryInsertLink(playerName, { allowVisibleWithoutFocus = false })
+  return tryInsertLink(name, { allowVisibleWithoutFocus = fromWindow == true }) == true
+end
+
+function LinkHooks.InsertClickedPlayerName(link)
+  if not ChatLinkSources.IsChatLinkClick() then
+    return false
+  end
+  return LinkHooks.InsertPlayerName(playerNameFromLink(link))
 end
 
 local function wouldPassByteCap(input, current, text)

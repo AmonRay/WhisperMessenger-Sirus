@@ -9,6 +9,7 @@ local BubbleStructure = ns.ChatBubbleBubbleStructure or require("WhisperMessenge
 local LinkOverlay = ns.ChatBubbleLinkOverlay or require("WhisperMessenger.UI.ChatBubble.LinkOverlay")
 local BubbleIcon = ns.ChatBubbleBubbleIcon or require("WhisperMessenger.UI.ChatBubble.BubbleIcon")
 local ContextMenu = ns.ChatBubbleContextMenu or require("WhisperMessenger.UI.ChatBubble.ContextMenu")
+local PlayerMenuClick = ns.ChatBubblePlayerMenuClick or require("WhisperMessenger.UI.ChatBubble.PlayerMenuClick")
 local HoverCopy = ns.ChatBubbleHoverCopy or require("WhisperMessenger.UI.ChatBubble.HoverCopy")
 local Hyperlinks = ns.UIHyperlinks or require("WhisperMessenger.UI.Hyperlinks")
 local MessageReactions = ns.MessageReactions or require("WhisperMessenger.Model.MessageReactions")
@@ -131,6 +132,11 @@ local function bubbleOnMouseDown(self, button)
 end
 
 local function bubbleOnMouseUp(self, button)
+  -- Shift + left-click on the message inserts its sender's name into the
+  -- composer, the same as shift-clicking the name above it.
+  if button == "LeftButton" and PlayerMenuClick.InsertOnShiftClick(self._wmMessage) then
+    return
+  end
   if button ~= "RightButton" then
     return
   end
