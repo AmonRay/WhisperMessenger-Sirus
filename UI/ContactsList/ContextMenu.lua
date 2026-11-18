@@ -3,13 +3,7 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
-local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 local ContactsTabFilter = ns.ContactsTabFilter or require("WhisperMessenger.UI.ContactsList.ContactsTabFilter")
-local ContactPrefsDialog = ns.ContactsListContactPrefsDialog or require("WhisperMessenger.UI.ContactsList.ContactPrefsDialog")
-local NotifyMenuEntries = ns.ContactsListNotifyMenuEntries or require("WhisperMessenger.UI.ContactsList.NotifyMenuEntries")
-local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
-local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 local BlockMenuEntry = ns.ContactsListBlockMenuEntry or require("WhisperMessenger.UI.ContactsList.BlockMenuEntry")
 local ExportMenuEntry = ns.ContactsListExportMenuEntry or require("WhisperMessenger.UI.ContactsList.ExportMenuEntry")
 local AddFriendMenuEntry = ns.ContactsListAddFriendMenuEntry or require("WhisperMessenger.UI.ContactsList.AddFriendMenuEntry")
@@ -17,79 +11,12 @@ local GuildInviteMenuEntry = ns.ContactsListGuildInviteMenuEntry or require("Whi
 local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.PickerPopup")
 local ProfileLinksMenuEntry = ns.ContactsListProfileLinksMenuEntry or require("WhisperMessenger.UI.ContactsList.ProfileLinksMenuEntry")
 local ProtectedMenuEntries = ns.ContactsListProtectedMenuEntries or require("WhisperMessenger.UI.ContactsList.ProtectedMenuEntries")
+local SectionEntries = ns.ContactsListSectionEntries or require("WhisperMessenger.UI.ContactsList.SectionEntries")
+local LegacyMenu = ns.ContactsListLegacyMenu or require("WhisperMessenger.UI.ContactsList.LegacyMenu")
 
 local ContextMenu = {}
 
-local function hasUnansweredIncoming(item)
-  if type(item.conversation) == "table" then
-    return Store.CountUnansweredIncoming(item.conversation) > 0
-  end
-  return (tonumber(item.unansweredCount) or 0) > 0
-end
-
 local registeredModernMenu = nil
-
-local function addMarkUnreadButton(rootDescription, item, onMarkUnread)
-  if type(onMarkUnread) ~= "function" then
-    return
-  end
-  local button = rootDescription:CreateButton(Localization.Text("Mark last messages as unread"), function()
-    onMarkUnread(item)
-  end)
-  if button and type(button.SetEnabled) == "function" then
-    button:SetEnabled(hasUnansweredIncoming(item))
-  end
-end
-
--- Mute/Unmute for every row; nickname, note and the notify entries for
--- whispers only.
-local function addPrefsButtons(rootDescription, item, onUpdatePrefs, isGroup)
-  if type(onUpdatePrefs) ~= "function" then
-    return
-  end
-  local muted = item.muted == true
-  rootDescription:CreateButton(Localization.Text(muted and "Unmute" or "Mute"), function()
-    onUpdatePrefs(item, { muted = not muted })
-  end)
-  if isGroup then
-    return
-  end
-  rootDescription:CreateButton(Localization.Text("Set nickname…"), function()
-    ContactPrefsDialog.ShowNickname(item, function(text)
-      onUpdatePrefs(item, { nickname = text })
-    end)
-  end)
-  rootDescription:CreateButton(Localization.Text("Edit note…"), function()
-    ContactPrefsDialog.ShowNote(item, function(text)
-      onUpdatePrefs(item, { note = text })
-    end)
-  end)
-  NotifyMenuEntries.Add(rootDescription, item, onUpdatePrefs)
-end
-
--- Pin/Unpin and Remove: the row's hover-button actions, through the same
--- handlers, so they are reachable in the collapsed rail too (no hover
--- buttons there). rowActions: { onPin(item), onRemove(item) }.
-local function addRowActionButtons(rootDescription, item, rowActions)
-  if type(rowActions) ~= "table" then
-    return
-  end
-  if type(rowActions.onPin) == "function" then
-    rootDescription:CreateButton(Localization.Text(item.pinned and "Unpin" or "Pin to top"), function()
-      rowActions.onPin(item)
-    end)
-  end
-  if type(rowActions.onRemove) == "function" then
-    rootDescription:CreateButton(Localization.Text("Remove"), function()
-      rowActions.onRemove(item)
-    end)
-  end
-end
-
-local function hasRowActions(rowActions)
-  return type(rowActions) == "table"
-    and (type(rowActions.onPin) == "function" or type(rowActions.onRemove) == "function" or type(rowActions.onIgnorePlayer) == "function")
-end
 
 -- Menu.ModifyMenu hook on Blizzard's FRIEND / BN_FRIEND player menus. Only
 -- acts when the menu was opened from one of our rows (contextData carries
@@ -103,12 +30,14 @@ local function addWhisperMessengerEntries(_owner, rootDescription, contextData)
   end
   local item = contextData.whisperMessengerItem
   ProtectedMenuEntries.Fix(rootDescription, item)
-  local onMarkUnread = contextData.whisperMessengerOnMarkUnread
-  local onUpdatePrefs = contextData.whisperMessengerOnUpdatePrefs
-  local rowActions = contextData.whisperMessengerRowActions
   local profileLinks = ProfileLinksMenuEntry.Links(item)
   -- No entries: skip the section rather than show it empty.
-  if type(onMarkUnread) ~= "function" and type(onUpdatePrefs) ~= "function" and not hasRowActions(rowActions) and #profileLinks == 0 then
+  if
+    type(contextData.whisperMessengerOnMarkUnread) ~= "function"
+    and type(contextData.whisperMessengerOnUpdatePrefs) ~= "function"
+    and not SectionEntries.HasRowActions(contextData.whisperMessengerRowActions)
+    and #profileLinks == 0
+  then
     return
   end
   -- Divider + gold title mark our entries apart from Blizzard's.
@@ -116,16 +45,16 @@ local function addWhisperMessengerEntries(_owner, rootDescription, contextData)
     rootDescription:CreateDivider()
   end
   if type(rootDescription.CreateTitle) == "function" then
-    rootDescription:CreateTitle(UIHelpers.colorEscape(Theme.TAG_GOLD) .. "Whisper Messenger|r")
+    rootDescription:CreateTitle(SectionEntries.TITLE)
   end
-  addMarkUnreadButton(rootDescription, item, onMarkUnread)
+  SectionEntries.AddMarkUnread(rootDescription, item, contextData.whisperMessengerOnMarkUnread)
   ExportMenuEntry.Add(rootDescription, item)
-  addPrefsButtons(rootDescription, item, onUpdatePrefs, false)
+  SectionEntries.AddPrefs(rootDescription, item, contextData.whisperMessengerOnUpdatePrefs, false)
   AddFriendMenuEntry.Add(rootDescription, item)
   GuildInviteMenuEntry.Add(rootDescription, item)
-  BlockMenuEntry.Add(rootDescription, item, rowActions)
+  BlockMenuEntry.Add(rootDescription, item, contextData.whisperMessengerRowActions)
   ProfileLinksMenuEntry.Add(rootDescription, profileLinks)
-  addRowActionButtons(rootDescription, item, rowActions)
+  SectionEntries.AddRowActions(rootDescription, item, contextData.whisperMessengerRowActions)
 end
 
 local function ensureModernMenu()
@@ -165,10 +94,10 @@ local function openGroupMenu(item, anchorFrame, onMarkUnread, onUpdatePrefs, row
     return false
   end
   menuUtil.CreateContextMenu(anchorFrame, function(_owner, rootDescription)
-    addMarkUnreadButton(rootDescription, item, onMarkUnread)
+    SectionEntries.AddMarkUnread(rootDescription, item, onMarkUnread)
     ExportMenuEntry.Add(rootDescription, item)
-    addPrefsButtons(rootDescription, item, onUpdatePrefs, true)
-    addRowActionButtons(rootDescription, item, rowActions)
+    SectionEntries.AddPrefs(rootDescription, item, onUpdatePrefs, true)
+    SectionEntries.AddRowActions(rootDescription, item, rowActions)
   end)
   return true
 end
@@ -215,6 +144,15 @@ local function openMenu(item, anchorFrame, onMarkUnread, onUpdatePrefs, rowActio
     return true
   end
 
+  -- 3.3.5a builds its player menu from UnitPopup_ShowMenu and cannot be
+  -- extended afterwards, so the section is armed just before the menu opens.
+  LegacyMenu.Arm({
+    item = item,
+    onMarkUnread = onMarkUnread,
+    onUpdatePrefs = onUpdatePrefs,
+    rowActions = rowActions,
+  })
+
   if item.channel == "BN" then
     if type(_G.FriendsFrame_ShowBNDropdown) == "function" then
       _G.FriendsFrame_ShowBNDropdown(
@@ -233,6 +171,7 @@ local function openMenu(item, anchorFrame, onMarkUnread, onUpdatePrefs, rowActio
       )
       return true
     end
+    LegacyMenu.Disarm()
   elseif type(_G.FriendsFrame_ShowDropdown) == "function" then
     _G.FriendsFrame_ShowDropdown(
       name,
@@ -249,6 +188,8 @@ local function openMenu(item, anchorFrame, onMarkUnread, onUpdatePrefs, rowActio
     )
     return true
   end
+
+  LegacyMenu.Disarm()
 
   if type(_G.UnitPopup_OpenMenu) == "function" then
     _G.UnitPopup_OpenMenu(which, {

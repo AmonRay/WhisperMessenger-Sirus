@@ -268,6 +268,8 @@ UI\ContactsList\AddFriendMenuEntry.lua
 UI\ContactsList\GuildInviteMenuEntry.lua
 UI\ContactsList\NotifyMenuEntries.lua
 UI\ContactsList\ProtectedMenuEntries.lua
+UI\ContactsList\SectionEntries.lua
+UI\ContactsList\LegacyMenu.lua
 UI\ContactsList\ContextMenu.lua
 UI\ContactsList\HoverPointer.lua
 UI\ContactsList\RowHoverOverlay.lua
