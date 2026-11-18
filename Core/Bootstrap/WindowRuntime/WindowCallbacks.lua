@@ -107,6 +107,15 @@ function WindowCallbacks.Create(options)
     return nil
   end
 
+  local function sendPayload(payload)
+    if groupSendPolicy and groupSendPolicy.shouldRoutePayload(payload) then
+      return groupSendPolicy.sendPayload(payload)
+    end
+    local sent = sendHandler.HandleSend(runtime, payload, refreshWindow)
+    -- Queued or failed: the text is safe in history, so the composer clears.
+    return sent or payload.deliveryRecorded == true
+  end
+
   return {
     onTabModeChanged = function(mode)
       characterState.contactsTabMode = mode
@@ -126,19 +135,15 @@ function WindowCallbacks.Create(options)
       end)
     end,
 
-    onSend = whoTriggers.wrapSend(function(payload)
-      if groupSendPolicy and groupSendPolicy.shouldRoutePayload(payload) then
-        return groupSendPolicy.sendPayload(payload)
-      end
-      local sent = sendHandler.HandleSend(runtime, payload, refreshWindow)
-      -- Queued or failed: the text is safe in history, so the composer clears.
-      return sent or payload.deliveryRecorded == true
-    end),
+    onSend = whoTriggers.wrapSend(sendPayload),
     -- Delivery menu: "send_now" / "discard" / "retry" (sends again).
     onMessageAction = function(selectedContact, message, action)
       local key = type(selectedContact) == "table" and selectedContact.conversationKey or nil
       if key == nil then
         return false
+      end
+      if action == "resend" then
+        return QueuedSends.Repeat(runtime, key, message, sendPayload)
       end
       return QueuedSends.HandleAction(runtime, key, message, action, sendHandler, refreshWindow)
     end,

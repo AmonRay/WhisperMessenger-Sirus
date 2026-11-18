@@ -3,7 +3,7 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
+local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Model.Identity.ChannelKey")
 local ChannelIndex = ns.ChannelIndex or require("WhisperMessenger.Transport.ChannelIndex")
 
 -- Sirus world channels. Horde and Alliance use "Мир"; Renegades join

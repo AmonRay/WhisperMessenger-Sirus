@@ -204,7 +204,7 @@ return function()
 
     local contactsMin, contactsMax = rangeLabels(settings, MAX_CONTACTS)
     assert(contactsMin and contactsMin.text == "10", "min label should be '10', got: " .. tostring(contactsMin and contactsMin.text))
-    assert(contactsMax and contactsMax.text == "100", "max label should be '100', got: " .. tostring(contactsMax and contactsMax.text))
+    assert(contactsMax and contactsMax.text == "500", "max label should be '500', got: " .. tostring(contactsMax and contactsMax.text))
   end
 
   -- test_reset_button_exists
@@ -247,11 +247,11 @@ return function()
 
     -- Sliders should be back to defaults
     assert(maxMessages:GetValue() == 200, "maxMessages should reset to 200, got: " .. tostring(maxMessages:GetValue()))
-    assert(maxContacts:GetValue() == 100, "maxConversations should reset to 100, got: " .. tostring(maxContacts:GetValue()))
+    assert(maxContacts:GetValue() == 500, "maxConversations should reset to 500, got: " .. tostring(maxContacts:GetValue()))
 
     -- onChange should have fired for each
     assert(changes.maxMessagesPerConversation == 200, "should fire onChange for maxMessagesPerConversation=200")
-    assert(changes.maxConversations == 100, "should fire onChange for maxConversations=100")
+    assert(changes.maxConversations == 500, "should fire onChange for maxConversations=500")
     assert(changes.messageMaxAge == 86400, "should fire onChange for messageMaxAge=86400")
   end
 

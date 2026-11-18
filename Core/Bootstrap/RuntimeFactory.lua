@@ -99,10 +99,15 @@ function RuntimeFactory.CreateRuntimeState(accountState, characterState, localPr
   local nowFn = options.now or currentTime
   local nowValue = nowFn()
   local saved = accountState.settings or {}
+  -- The old contacts ceiling/default was 100; lift it once to the new 500 so
+  -- existing installs see the larger list without touching the slider.
+  if saved.maxConversations == 100 then
+    saved.maxConversations = 500
+  end
   local messageMaxAge = options.messageMaxAge or saved.messageMaxAge or 86400
   local store = Store.New({
     maxMessagesPerConversation = options.maxMessagesPerConversation or saved.maxMessagesPerConversation or 200,
-    maxConversations = options.maxConversations or saved.maxConversations or 100,
+    maxConversations = options.maxConversations or saved.maxConversations or 500,
     messageMaxAge = messageMaxAge,
     conversationMaxAge = options.conversationMaxAge or messageMaxAge,
   }, nowFn)

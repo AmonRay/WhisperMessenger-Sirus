@@ -1,4 +1,4 @@
-local ChannelKey = require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
+local ChannelKey = require("WhisperMessenger.Model.Identity.ChannelKey")
 local WorldChannels = require("WhisperMessenger.Transport.WorldChannels")
 local ChatGateway = require("WhisperMessenger.Transport.ChatGateway")
 local ChannelType = require("WhisperMessenger.Model.Identity.ChannelType")

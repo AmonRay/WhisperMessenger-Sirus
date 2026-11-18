@@ -473,6 +473,7 @@ local Russian = {
   ["Discard"] = "Удалить",
   ["Retry"] = "Повторить",
   ["Reply"] = "Ответить",
+  ["Repeat message"] = "Повторить сообщение",
   ["Replying to %s"] = "Ответ для %s",
   ["1 queued message is waiting — open the messenger to send or discard."] = "В очереди ждёт 1 сообщение — откройте мессенджер, чтобы отправить или удалить его.",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "Сообщений в очереди: %d — откройте мессенджер, чтобы отправить или удалить их.",

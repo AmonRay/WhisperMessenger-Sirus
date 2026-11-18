@@ -4,7 +4,7 @@ if type(ns) ~= "table" then
 end
 
 local UrlFormatter = ns.UIHyperlinksUrlFormatter or require("WhisperMessenger.UI.Hyperlinks.UrlFormatter")
-local QuestLinkClassic = ns.UIHyperlinksQuestLinkClassic or require("WhisperMessenger.UI.Hyperlinks.QuestLinkClassic")
+local QuestLinkText = ns.QuestLinkText or require("WhisperMessenger.Model.QuestLinkText")
 local CombatItemRef = ns.UIHyperlinksCombatItemRef
 if CombatItemRef == nil and type(require) == "function" then
   local ok, loaded = pcall(require, "WhisperMessenger.UI.Hyperlinks.CombatItemRef")
@@ -114,7 +114,7 @@ end
 
 -- senderName (optional): author of the text, used to gate personal emojis.
 function Hyperlinks.FormatTextForDisplay(text, senderName, fontSize)
-  local value = QuestLinkClassic.Rewrite(tostring(text or ""))
+  local value = QuestLinkText.Rewrite(tostring(text or ""))
   if value == "" then
     return ""
   end

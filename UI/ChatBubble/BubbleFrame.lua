@@ -109,6 +109,13 @@ local function openBubbleMenu(frame)
       onReply(message)
     end
   end
+  options.onResend = nil
+  local onResend, canResend = frame._wmOnResend, frame._wmCanResend
+  if type(onResend) == "function" and type(canResend) == "function" and canResend(message) then
+    options.onResend = function()
+      onResend(message)
+    end
+  end
   options.onIgnoreSender = nil
   local onIgnoreSender, canIgnoreSender = frame._wmOnIgnoreSender, frame._wmCanIgnoreSender
   if type(onIgnoreSender) == "function" and type(canIgnoreSender) == "function" and canIgnoreSender(message) then
@@ -187,6 +194,8 @@ function BubbleFrame.CreateBubble(factory, parent, message, options)
   frame._wmCanReact = options.canReact
   frame._wmOnReply = options.onReply
   frame._wmCanReply = options.canReply
+  frame._wmOnResend = options.onResend
+  frame._wmCanResend = options.canResend
   frame._wmOnIgnoreSender = options.onIgnoreSender
   frame._wmCanIgnoreSender = options.canIgnoreSender
   frame._wmPersistentFactory = options.persistentFactory or factory

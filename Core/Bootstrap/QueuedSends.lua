@@ -40,9 +40,8 @@ function QueuedSends.OnLockStateChanged(runtime)
   return true
 end
 
--- Sends an unsent message's original text to its original target.
-local function resend(runtime, conversationKey, message, sendHandler, refreshWindow)
-  local payload = {
+local function payloadFor(conversationKey, message)
+  return {
     conversationKey = conversationKey,
     target = message.target or message.playerName,
     displayName = message.playerName or message.target,
@@ -53,6 +52,11 @@ local function resend(runtime, conversationKey, message, sendHandler, refreshWin
     text = message.text,
     replyTo = message.replyTo,
   }
+end
+
+-- Sends an unsent message's original text to its original target.
+local function resend(runtime, conversationKey, message, sendHandler, refreshWindow)
+  local payload = payloadFor(conversationKey, message)
   local sent = sendHandler.HandleSend(runtime, payload, refreshWindow)
   -- A new failed record replaces this one; otherwise it stays queued.
   if sent or payload.deliveryRecorded then
@@ -68,6 +72,18 @@ local function sendNow(runtime, conversationKey, message, sendHandler, refreshWi
     return false
   end
   return resend(runtime, conversationKey, message, sendHandler, refreshWindow)
+end
+
+-- Sends a sent message's text again as a new message; the original stays in
+-- history. `send` is the window's send path (group routing included).
+function QueuedSends.Repeat(runtime, conversationKey, message, send)
+  if type(message) ~= "table" or conversationKey == nil or type(send) ~= "function" then
+    return false
+  end
+  if type(message.text) ~= "string" or message.text == "" then
+    return false
+  end
+  return send(payloadFor(conversationKey, message)) == true
 end
 
 -- action: "send_now" | "discard" | "retry". Retry sends a failed message

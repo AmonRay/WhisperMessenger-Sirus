@@ -20,7 +20,7 @@ local PADDING = Theme.CONTENT_PADDING
 
 local DEFAULTS = {
   maxMessagesPerConversation = 200,
-  maxConversations = 100,
+  maxConversations = 500,
   clearOnLogout = false,
   hideMessagePreview = false,
   hideBattleTagNumbers = true,
@@ -109,9 +109,9 @@ function GeneralSettings.Create(factory, parent, config, options)
     SettingsControls.CreateSliderRow(factory, frame, {
       label = text("Max Contacts"),
       min = 10,
-      max = 100,
+      max = 500,
       step = 10,
-      initial = config.maxConversations or 100,
+      initial = config.maxConversations or 500,
       onChange = function(value)
         onChange("maxConversations", value)
       end,

@@ -1,6 +1,6 @@
 local ChatGateway = require("WhisperMessenger.Transport.ChatGateway")
 local ChannelIndex = require("WhisperMessenger.Transport.ChannelIndex")
-local ChannelKey = require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
+local ChannelKey = require("WhisperMessenger.Model.Identity.ChannelKey")
 local GroupSendPolicy = require("WhisperMessenger.Core.Bootstrap.WindowRuntime.GroupSendPolicy")
 
 return function()

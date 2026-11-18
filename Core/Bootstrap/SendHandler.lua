@@ -252,6 +252,7 @@ function SendHandler.HandleSend(runtime, payload, refreshWindow)
     local normalizedSource = canonicalReactionText(normalizeOutgoingText(payload, reactionControl.sourceText or ""))
     payload.text = MessageReactionProtocol.BuildFallback(operation.key, operation.operation, normalizedSource, reactionControl.hintSuffix)
   else
+    richText = payload.text
     payload.text = normalizeOutgoingText(payload, payload.text)
     local parts = SendParts.Split(payload)
     if parts then
@@ -261,6 +262,9 @@ function SendHandler.HandleSend(runtime, payload, refreshWindow)
 
   local wireId
   local reactionAddonPayload
+  -- Keep the text as typed (with its |H...|h links) for history and the copy
+  -- dialog; the wire text below is serialized for the Classic protocol.
+  local richText
   if reactionControl then
     local operation = reactionControl.operation or {}
     reactionAddonPayload = MessageReactionProtocol.EncodeReaction(
@@ -284,6 +288,7 @@ function SendHandler.HandleSend(runtime, payload, refreshWindow)
     wireId = wireId,
     reactionControl = reactionControl,
     replyTo = payload.replyTo,
+    richText = richText,
   })
   if not sendWhisper(runtime, payload, payload.text) then
     local pending = runtime.pendingOutgoing[pendingConversationKey]

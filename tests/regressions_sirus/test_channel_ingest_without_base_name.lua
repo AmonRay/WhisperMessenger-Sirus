@@ -72,7 +72,7 @@ return function()
   -- bytes of "Мир" into garbage, so the key the picker saved ("c:мир") never
   -- matched the key an incoming line built.
   do
-    local ChannelKey = require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
+    local ChannelKey = require("WhisperMessenger.Model.Identity.ChannelKey")
     assert(ChannelKey.Slug(4, "Мир") == "c:мир", "the world channel keeps its saved key")
     assert(ChannelKey.Slug(5, "Мир(А)") == "c:мир(а)", "Мир(А) lowercases byte for byte")
     assert(ChannelKey.Slug(0, "Trade") == "c:trade", "ASCII names still lowercase")

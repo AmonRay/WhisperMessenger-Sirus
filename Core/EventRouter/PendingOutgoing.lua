@@ -189,6 +189,7 @@ function PendingOutgoing.Record(state, target, text, metadata)
     reactionControl = metadata.reactionControl,
     replyTo = metadata.replyTo,
     fullText = metadata.fullText,
+    richText = metadata.richText,
   }
   MessageParts.ApplyMetadata(entry, metadata)
   table.insert(state.pendingOutgoing[conversationKey], entry)
@@ -234,7 +235,7 @@ function PendingOutgoing.Resolve(state, conversationKey, payload, sentAt)
   if entry == nil then
     return false, nil
   end
-  return true, entry.text, entry
+  return true, entry.richText or entry.text, entry
 end
 
 -- Drop entries past the echo window as of `now`.

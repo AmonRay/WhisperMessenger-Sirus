@@ -33,6 +33,18 @@ function TranscriptSetup.BindMessageActions(transcript, view, onMessageAction)
   transcript.onReply = function(message)
     return onMessageAction(view._selectedContact, message, "reply")
   end
+  -- "Repeat message": send the same text to the same chat again. Only the
+  -- player's own user messages qualify; system lines and reactions do not.
+  transcript.canResend = function(message)
+    return type(message) == "table"
+      and message.direction == "out"
+      and message.kind == "user"
+      and type(message.text) == "string"
+      and message.text ~= ""
+  end
+  transcript.onResend = function(message)
+    return onMessageAction(view._selectedContact, message, "resend")
+  end
 end
 
 -- Whisper chats have one other player, ignored from the contact row menu.

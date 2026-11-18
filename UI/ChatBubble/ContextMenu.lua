@@ -69,6 +69,9 @@ local function openModernMenu(normalized, anchorFrame, options)
     if type(options.onReply) == "function" then
       rootDescription:CreateButton(Localization.Text("Reply"), options.onReply)
     end
+    if type(options.onResend) == "function" then
+      rootDescription:CreateButton(Localization.Text("Repeat message"), options.onResend)
+    end
     rootDescription:CreateButton(Localization.Text("Copy text"), function()
       ContextMenu.CopyText(normalized)
     end)
@@ -105,7 +108,7 @@ function ContextMenu.Open(text, anchorFrame, options)
     end
   end
 
-  local hasMenuActions = type(options.onReply) == "function" or type(options.onIgnoreSender) == "function"
+  local hasMenuActions = type(options.onReply) == "function" or type(options.onResend) == "function" or type(options.onIgnoreSender) == "function"
   if hasMenuActions and openModernMenu(normalized, anchorFrame, options) then
     return true
   end
@@ -136,6 +139,16 @@ function ContextMenu.Open(text, anchorFrame, options)
       minWidth = 1,
       fontObject = Theme.FONTS.icon_label,
       func = options.onReply,
+    })
+  end
+  if type(options.onResend) == "function" then
+    table.insert(menu, type(options.onReply) == "function" and 2 or 1, {
+      text = styleMenuText(Localization.Text("Repeat message")),
+      notCheckable = true,
+      padding = 0,
+      minWidth = 1,
+      fontObject = Theme.FONTS.icon_label,
+      func = options.onResend,
     })
   end
 

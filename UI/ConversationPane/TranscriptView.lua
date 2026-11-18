@@ -163,6 +163,8 @@ local function layoutOptions(transcript)
   options.onMessageAction = transcript.onMessageAction
   options.onReply = transcript.onReply
   options.canReply = transcript.canReply
+  options.onResend = transcript.onResend
+  options.canResend = transcript.canResend
   options.onIgnoreSender = transcript.onIgnoreSender
   options.canIgnoreSender = transcript.canIgnoreSender
   options.onQuoteClick = transcript.onQuoteClick
