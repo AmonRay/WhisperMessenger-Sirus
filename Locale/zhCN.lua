@@ -471,6 +471,7 @@ local SimplifiedChinese = {
   ["Discard"] = "丢弃",
   ["Retry"] = "重试",
   ["Reply"] = "回复",
+  ["Repeat message"] = "重复消息",
   ["Replying to %s"] = "回复 %s",
   ["1 queued message is waiting — open the messenger to send or discard."] = "有 1 条排队消息等待处理 — 打开信使即可发送或丢弃。",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "有 %d 条排队消息等待处理 — 打开信使即可发送或丢弃。",

@@ -34,7 +34,10 @@ function Competitive.handleChallengeModeEvent(Bootstrap, event)
     -- window-visibility state with the already-hidden window.
     if not restrictions.flag("mythic") then
       restrictions.setFlag("mythic", true)
-      if Bootstrap.runtime and Bootstrap.runtime.suspend then
+      -- Sirus: the legacy CHALLENGE_MODE events only pause when the addon's
+      -- instance policy is on. The 12.0 ADDON_RESTRICTION_STATE_CHANGED path
+      -- is the game's own restriction and always pauses.
+      if Bootstrap.runtime and Bootstrap.runtime.suspend and RestrictedActions.BlockChatInInstances(Bootstrap.runtime) then
         Bootstrap.runtime.suspend()
       end
     end

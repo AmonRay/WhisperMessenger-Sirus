@@ -471,6 +471,7 @@ local Korean = {
   ["Discard"] = "삭제",
   ["Retry"] = "다시 시도",
   ["Reply"] = "답장",
+  ["Repeat message"] = "메시지 반복",
   ["Replying to %s"] = "%s님에게 답장",
   ["1 queued message is waiting — open the messenger to send or discard."] = "대기 중인 메시지가 1개 있습니다 — 메신저를 열어 보내거나 삭제하세요.",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "대기 중인 메시지가 %d개 있습니다 — 메신저를 열어 보내거나 삭제하세요.",

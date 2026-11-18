@@ -214,8 +214,11 @@ function Presence.handlePlayerEnteringWorld(Bootstrap, deps)
   local ContentDetector = deps.getContentDetector()
   local restrictions = RestrictedActions.For(Bootstrap)
   local wasMythic = restrictions.flag("mythic")
-  local isMythic = ContentDetector and ContentDetector.IsMythicRestricted(_G.GetInstanceInfo) or false
-  local isCompetitive = ContentDetector and ContentDetector.IsCompetitiveContent(_G.GetInstanceInfo) or false
+  -- Sirus: the detector is our instance policy, so with the policy off it
+  -- neither flags the instance nor raises the pause notice.
+  local detectInstance = RestrictedActions.BlockChatInInstances(Bootstrap.runtime)
+  local isMythic = detectInstance and ContentDetector and ContentDetector.IsMythicRestricted(_G.GetInstanceInfo) or false
+  local isCompetitive = detectInstance and ContentDetector and ContentDetector.IsCompetitiveContent(_G.GetInstanceInfo) or false
   restrictions.setFlag("mythic", isMythic)
   restrictions.setFlag("competitive", isCompetitive)
   restrictions.setFlag("encounter", false)
@@ -234,7 +237,9 @@ function Presence.handlePlayerEnteringWorld(Bootstrap, deps)
   Common.notifyCompetitiveState(Bootstrap)
 
   if isMythic and not wasMythic then
-    if Bootstrap.runtime and Bootstrap.runtime.suspend then
+    -- Sirus: the detector is the addon's own instance policy; the game's
+    -- restriction events pause on their own.
+    if Bootstrap.runtime and Bootstrap.runtime.suspend and RestrictedActions.BlockChatInInstances(Bootstrap.runtime) then
       Bootstrap.runtime.suspend()
     end
     return true

@@ -36,7 +36,7 @@ local function isFrameShown(frame)
   return true
 end
 
-local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+local WrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
 
 local function scheduleManualCopyRefocus(dialog, text, delaySeconds)
   if type(WrathTimer) ~= "table" or type(WrathTimer.Schedule) ~= "function" then

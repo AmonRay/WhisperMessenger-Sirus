@@ -21,6 +21,7 @@ end
 local function holdOne()
   local restore = FakeChatLines.Install({ [7] = readable() })
   local runtime = ReplayRuntime.New()
+  runtime.accountState = { settings = { blockChatInInstances = true } }
   local Bootstrap = { runtime = runtime }
   -- One instance for both, as Bootstrap.Initialize wires it.
   runtime.restrictedActions = RestrictedActions.For(Bootstrap)

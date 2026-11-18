@@ -3,7 +3,7 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+local WrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
 
 local EventRouter = ns.EventRouter or require("WhisperMessenger.Core.EventRouter")
 local AlertPolicy = ns.AlertPolicy or require("WhisperMessenger.Model.AlertPolicy")

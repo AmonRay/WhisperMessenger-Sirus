@@ -3,7 +3,7 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+local WrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
 
 local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 local SeenLevel = ns.SeenLevel or require("WhisperMessenger.Model.SeenLevel")

@@ -174,17 +174,26 @@ local function inPvPInstance()
 end
 
 function RestrictedActions.IsMythicLockdown(runtime, bootstrap)
+  local ra = runtime and runtime.restrictedActions
+  -- The game's own Mythic+/ChallengeMode restriction is not ours to drop.
+  if ra ~= nil and type(ra.isMythic) == "function" and ra.isMythic() then
+    return true
+  end
   if not RestrictedActions.BlockChatInInstances(runtime) then
     return false
   end
-  local ra = runtime and runtime.restrictedActions
-  return (ra ~= nil and ra.isMythic()) or RestrictedActions.InMythicInstance() or (bootstrap ~= nil and bootstrap._inMythicContent == true)
+  return RestrictedActions.InMythicInstance() or (bootstrap ~= nil and bootstrap._inMythicContent == true)
 end
 
 function RestrictedActions.IsCompetitiveContent(runtime, bootstrap)
   local ra = runtime and runtime.restrictedActions
   -- Never turn off a genuine chat restriction when changing the addon policy.
   if (runtime and runtime.isChatLocked and runtime.isChatLocked()) or (ra and ra.isChatLocked()) or RestrictedActions.ChatApiLocked() then
+    return true
+  end
+  -- Encounter/PvP/challenge flags and the 12.0 cache hold chat even when the
+  -- addon's own instance policy is off; that part is the game's, not ours.
+  if ra ~= nil and type(ra.isCompetitive) == "function" and ra.isCompetitive() then
     return true
   end
   if not RestrictedActions.BlockChatInInstances(runtime) then

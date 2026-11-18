@@ -471,6 +471,7 @@ local German = {
   ["Discard"] = "Verwerfen",
   ["Retry"] = "Erneut versuchen",
   ["Reply"] = "Antworten",
+  ["Repeat message"] = "Nachricht wiederholen",
   ["Replying to %s"] = "Antwort an %s",
   ["1 queued message is waiting — open the messenger to send or discard."] = "1 Nachricht in der Warteschlange wartet – öffne den Messenger, um sie zu senden oder zu verwerfen.",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "%d Nachrichten in der Warteschlange warten – öffne den Messenger, um sie zu senden oder zu verwerfen.",

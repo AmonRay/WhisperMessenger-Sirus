@@ -112,7 +112,7 @@ function SettingsTabs.Wire(options)
     -- a follow-up tick that lands after layout settles. C_Timer is
     -- absent in fake_ui — the synchronous attempt above is the only
     -- path the tests exercise.
-    local wrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+    local wrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
     if type(wrathTimer) == "table" and type(wrathTimer.Schedule) == "function" then
       wrathTimer.Schedule(0, function()
         applyVisibleTabContentHeight(visiblePanel)

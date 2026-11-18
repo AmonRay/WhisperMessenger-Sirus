@@ -471,6 +471,7 @@ local Spanish = {
   ["Discard"] = "Descartar",
   ["Retry"] = "Reintentar",
   ["Reply"] = "Responder",
+  ["Repeat message"] = "Repetir mensaje",
   ["Replying to %s"] = "Respondiendo a %s",
   ["1 queued message is waiting — open the messenger to send or discard."] = "Hay 1 mensaje en cola: abre el mensajero para enviarlo o descartarlo.",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "Hay %d mensajes en cola: abre el mensajero para enviarlos o descartarlos.",

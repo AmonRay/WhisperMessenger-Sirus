@@ -33,9 +33,9 @@ function LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
       Bootstrap._inCompetitiveContent = detector.IsCompetitiveContent(_G.GetInstanceInfo)
     end
   else
-    Bootstrap._inMythicContent = false
-    Bootstrap._inCompetitiveContent = false
-    Bootstrap._inEncounter = false
+    -- Keep the flags the game's own events set (ChallengeMode owns mythic,
+    -- encounter/PvP own theirs): with the policy off they no longer answer
+    -- the runtime checks, but a later flag reader must not see them cleared.
   end
   if enabled and Bootstrap._inMythicContent then
     if runtime.suspend then
@@ -158,17 +158,17 @@ end
 
 function LifecycleHandlers.Handle(Bootstrap, event, deps, ...)
   local handled = handle(Bootstrap, event, deps, ...)
+  -- Zone and world entry handlers re-derive the instance state themselves.
+  -- With the Sirus instance policy on, a restriction event also re-syncs.
   if
-    event == "PLAYER_ENTERING_WORLD"
-    or event == "ZONE_CHANGED_NEW_AREA"
-    or event == "ADDON_RESTRICTION_STATE_CHANGED"
-    or event == "CHALLENGE_MODE_START"
-    or event == "CHALLENGE_MODE_COMPLETED"
-    or event == "CHALLENGE_MODE_RESET"
+    (
+      event == "ADDON_RESTRICTION_STATE_CHANGED"
+      or event == "CHALLENGE_MODE_START"
+      or event == "CHALLENGE_MODE_COMPLETED"
+      or event == "CHALLENGE_MODE_RESET"
+    ) and RestrictedActions.BlockChatInInstances(Bootstrap.runtime)
   then
-    if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" or not RestrictedActions.BlockChatInInstances(Bootstrap.runtime) then
-      LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
-    end
+    LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
   end
   return handled
 end

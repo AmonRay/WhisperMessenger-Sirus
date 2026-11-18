@@ -39,12 +39,9 @@ function MythicSuspendController.Attach(runtime, deps)
   end
 
   runtime.suspend = function()
-    if not RestrictedActions.BlockChatInInstances(runtime) then
-      if runtime._instanceChatSuspended or _G._wmSuspended then
-        runtime.resume()
-      end
-      return
-    end
+    -- Callers decide whether a restriction actually applies (the instance
+    -- policy, a ChallengeMode/encounter event, the game's chat lock), so a
+    -- call here always means business.
     if runtime._instanceChatSuspended then
       return
     end

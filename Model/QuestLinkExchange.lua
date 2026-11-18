@@ -3,7 +3,7 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local WrathTimer = ns.WrathCompatTimer or (type(require) == "function" and require("WhisperMessenger.Core.WrathCompat.Timer"))
+local WrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
 
 -- Side-channel for quest links over character whispers.
 --
@@ -144,7 +144,7 @@ local function scheduleCleanup(state, recordedAt)
 
   state.questLinkCleanupScheduled = true
   WrathTimer.AfterOn(timer, INBOX_TTL_SECONDS + 1, function()
-    state.questLinkCleanupScheduled = nil
+    state.questLinkCleanupScheduled = false
     local now = cleanupNow(state, recordedAt + INBOX_TTL_SECONDS + 1)
     purgeExpiredInbox(state, now)
     if hasInboxEntries(state) then

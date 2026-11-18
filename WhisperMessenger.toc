@@ -17,6 +17,11 @@
 
 Core\FlavorCompat.lua
 Core\Loader.lua
+Core\WrathCompat\Timer.lua
+Core\WrathCompat\ChatInfo.lua
+Core\WrathCompat\Social.lua
+Core\WrathCompat\Widgets.lua
+Core\WrathCompat.lua
 Core\KeySettle.lua
 Core\Bindings.lua
 Core\Constants.lua
@@ -114,6 +119,7 @@ Transport\AddonComm.lua
 Transport\WhisperGateway.lua
 Transport\ChannelIndex.lua
 Transport\JoinedChannels.lua
+Transport\WorldChannels.lua
 Transport\ChatGateway.lua
 Transport\BNetResolver\AccountName.lua
 Transport\BNetResolver\GameAccountProbe.lua
@@ -191,6 +197,7 @@ UI\Helpers\ToggleSwitch.lua
 UI\Helpers\DisabledState.lua
 UI\Helpers\NativeControls.lua
 UI\Helpers\Controls.lua
+Util\ClientBoolean.lua
 UI\Helpers.lua
 UI\LevelColor.lua
 UI\Badge.lua
@@ -203,14 +210,17 @@ UI\Shared\CloseGlyphButton.lua
 UI\Shared\RelationshipMark.lua
 UI\Hyperlinks\UrlFormatter.lua
 UI\Hyperlinks\CombatItemRef.lua
+Model\RestrictedEmojis.lua
 UI\ChatBubble\ReactionAssets.lua
 UI\Hyperlinks.lua
 UI\ScrollView\Metrics.lua
 UI\ScrollView\Navigation.lua
 UI\ScrollView\RetailSkin.lua
+UI\ScrollView\WheelGate.lua
 UI\ScrollView\Factory.lua
 UI\ScrollView\ScrollView.lua
 UI\ChatBubble\Grouping.lua
+UI\ChatBubble\LinkOverlay.lua
 UI\ChatBubble\BubbleStructure.lua
 UI\ChatBubble\PlayerMenuClick.lua
 UI\ChatBubble\BubbleIcon.lua
@@ -259,6 +269,8 @@ UI\ContactsList\ContactPrefsDialog.lua
 UI\ContactsList\MenuEntries.lua
 UI\ContactsList\GuildInviteMenuEntry.lua
 UI\ContactsList\ProtectedMenuEntries.lua
+UI\ContactsList\SectionEntries.lua
+UI\ContactsList\LegacyMenu.lua
 UI\ContactsList\ContextMenu.lua
 UI\ContactsList\HoverPointer.lua
 UI\ContactsList\RowHoverOverlay.lua
@@ -564,17 +576,5 @@ Core\PublicApi\Queries.lua
 Core\PublicApi\Connect.lua
 Core\Bootstrap\WindowRuntime\IntegrationAccess.lua
 Core\PublicApi.lua
-Core\WrathCompat\Timer.lua
-Core\WrathCompat\ChatInfo.lua
-Core\WrathCompat\Social.lua
-Core\WrathCompat\Widgets.lua
-Core\WrathCompat.lua
-Util\ClientBoolean.lua
-Model\RestrictedEmojis.lua
-Transport\WorldChannels.lua
-UI\ScrollView\WheelGate.lua
-UI\ChatBubble\LinkOverlay.lua
-UI\ContactsList\SectionEntries.lua
-UI\ContactsList\LegacyMenu.lua
 Bootstrap.lua
 

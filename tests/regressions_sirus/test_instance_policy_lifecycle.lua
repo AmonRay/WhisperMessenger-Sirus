@@ -1,3 +1,4 @@
+local unpack = table.unpack or unpack
 local LifecycleHandlers = require("WhisperMessenger.Core.Bootstrap.LifecycleHandlers")
 local SuspendController = require("WhisperMessenger.Core.Bootstrap.MythicSuspendController")
 local RestrictedActions = require("WhisperMessenger.Core.Bootstrap.RestrictedActions")

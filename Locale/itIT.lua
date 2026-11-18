@@ -471,6 +471,7 @@ local Italian = {
   ["Discard"] = "Scarta",
   ["Retry"] = "Riprova",
   ["Reply"] = "Rispondi",
+  ["Repeat message"] = "Ripeti messaggio",
   ["Replying to %s"] = "Risposta a %s",
   ["1 queued message is waiting — open the messenger to send or discard."] = "1 messaggio in coda è in attesa: apri il messenger per inviarlo o scartarlo.",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "%d messaggi in coda sono in attesa: apri il messenger per inviarli o scartarli.",

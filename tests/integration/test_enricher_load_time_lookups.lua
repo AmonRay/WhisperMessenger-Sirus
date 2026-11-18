@@ -56,10 +56,13 @@ local function loadAddon(onRead)
   local proxied = {}
   for line in io.lines("WhisperMessenger.toc") do
     if line ~= "" and string.sub(line, 1, 2) ~= "##" and not string.match(line, "%.xml$") then
-      local watched = WATCHED[line] or line == RELATIONSHIP
+      -- The Sirus TOC spells paths with backslashes; the watched list below
+      -- uses slashes, so normalize before matching.
+      local normalized = string.gsub(line, "\\", "/")
+      local watched = WATCHED[normalized] or normalized == RELATIONSHIP
       local chunk = assert(loadfile(line))
-      chunk("WhisperMessenger", watched and watchedNamespace(ns, line, onRead) or ns)
-      proxied[line] = watched or nil
+      chunk("WhisperMessenger", watched and watchedNamespace(ns, normalized, onRead) or ns)
+      proxied[normalized] = watched or nil
     end
   end
   assertAllWatchedLoaded(proxied)

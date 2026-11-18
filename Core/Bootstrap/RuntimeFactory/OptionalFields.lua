@@ -46,6 +46,9 @@ local OptionalFields = {
   -- the widget icon), ensureWindow (reply-to-last falls back to toggle).
   "isConversationOpen",
   "isWindowVisible",
+  -- Sirus instance policy: wired by MythicSuspendController, absent in tests.
+  "syncInstanceChatPolicy",
+  "_instanceChatSuspended",
   "isChatLocked",
   "getActivePreviewSurface",
   "ensureWindow",

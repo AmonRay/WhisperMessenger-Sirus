@@ -10,6 +10,9 @@ local RestrictedActions = require("WhisperMessenger.Core.Bootstrap.RestrictedAct
 local function newBootstrap(runtimeFields)
   local calls = { suspend = 0, resume = 0 }
   local runtime = runtimeFields or {}
+  -- The Sirus instance policy is off by default; this test covers the
+  -- detector mechanics, so turn it on.
+  runtime.accountState = runtime.accountState or { settings = { blockChatInInstances = true } }
   runtime.suspend = function()
     calls.suspend = calls.suspend + 1
   end

@@ -471,6 +471,7 @@ local Portuguese = {
   ["Discard"] = "Descartar",
   ["Retry"] = "Tentar de novo",
   ["Reply"] = "Responder",
+  ["Repeat message"] = "Repetir mensagem",
   ["Replying to %s"] = "Respondendo a %s",
   ["1 queued message is waiting — open the messenger to send or discard."] = "1 mensagem na fila está aguardando — abra o mensageiro para enviar ou descartar.",
   ["%d queued messages are waiting — open the messenger to send or discard."] = "%d mensagens na fila estão aguardando — abra o mensageiro para enviar ou descartar.",

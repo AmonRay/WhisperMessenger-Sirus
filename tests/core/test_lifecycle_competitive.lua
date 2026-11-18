@@ -10,6 +10,7 @@ local function makeHarness()
   local calls = { suspend = 0, resume = 0 }
   local Bootstrap = {
     runtime = {
+      accountState = { settings = { blockChatInInstances = true } },
       suspend = function()
         calls.suspend = calls.suspend + 1
       end,
@@ -28,7 +29,7 @@ return function()
     local calls = { setWindowVisible = 0 }
     local Bootstrap = {
       runtime = {
-        accountState = { settings = { hideOnCombat = hideOnCombat } },
+        accountState = { settings = { hideOnCombat = hideOnCombat, blockChatInInstances = true } },
         isWindowVisible = function()
           return state.visible
         end,

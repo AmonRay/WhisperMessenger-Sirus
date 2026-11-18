@@ -9,6 +9,7 @@ local function L(key)
 end
 local QueuedSends = ns.BootstrapQueuedSends or require("WhisperMessenger.Core.Bootstrap.QueuedSends")
 local RestrictedActions = ns.BootstrapRestrictedActions or require("WhisperMessenger.Core.Bootstrap.RestrictedActions")
+local WrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
 local Common = {}
 
 Common.COMPETITIVE_NOTICE = "Messages are paused in competitive content and will resume when you leave."

@@ -4,6 +4,7 @@ if type(ns) ~= "table" then
 end
 
 local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Model.Identity.ChannelKey")
+local ChannelIndex = ns.ChannelIndex or require("WhisperMessenger.Transport.ChannelIndex")
 
 -- The custom chat channels the character has joined, read from the game.
 local JoinedChannels = {}
