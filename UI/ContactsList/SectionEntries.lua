@@ -6,7 +6,8 @@ end
 local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
 local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 local ContactPrefsDialog = ns.ContactsListContactPrefsDialog or require("WhisperMessenger.UI.ContactsList.ContactPrefsDialog")
-local NotifyMenuEntries = ns.ContactsListNotifyMenuEntries or require("WhisperMessenger.UI.ContactsList.NotifyMenuEntries")
+local MenuEntries = ns.ContactsListMenuEntries or require("WhisperMessenger.UI.ContactsList.MenuEntries")
+local GuildInviteMenuEntry = ns.ContactsListGuildInviteMenuEntry or require("WhisperMessenger.UI.ContactsList.GuildInviteMenuEntry")
 local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
 local UIHelpers = ns.UIHelpers or require("WhisperMessenger.UI.Helpers")
 
@@ -60,7 +61,7 @@ function SectionEntries.AddPrefs(description, item, onUpdatePrefs, isGroup)
       onUpdatePrefs(item, { note = text })
     end)
   end)
-  NotifyMenuEntries.Add(description, item, onUpdatePrefs)
+  MenuEntries.Notify.Add(description, item, onUpdatePrefs)
 end
 
 -- Pin/Unpin and Remove: the row's hover-button actions, through the same
@@ -107,8 +108,13 @@ function SectionEntries.AddTitled(description, contextData, isGroup)
     description:CreateTitle(SectionEntries.TITLE)
   end
   SectionEntries.AddMarkUnread(description, contextData.item, contextData.onMarkUnread)
+  MenuEntries.Export.Add(description, contextData.item)
   SectionEntries.AddPrefs(description, contextData.item, contextData.onUpdatePrefs, isGroup)
   if not isGroup then
+    MenuEntries.AddFriend.Add(description, contextData.item)
+    GuildInviteMenuEntry.Add(description, contextData.item)
+    MenuEntries.Block.Add(description, contextData.item, contextData.rowActions)
+    MenuEntries.ProfileLinks.Add(description, MenuEntries.ProfileLinks.Links(contextData.item))
     SectionEntries.AddRowActions(description, contextData.item, contextData.rowActions)
   end
 end

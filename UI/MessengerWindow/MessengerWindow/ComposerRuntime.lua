@@ -25,7 +25,15 @@ function ComposerRuntime.Create(factory, options)
   local messageActions = options.messageActions
   local composerSelectedContact = {}
 
+  local heightListener
+  local function reportHeight(height)
+    if heightListener then
+      heightListener(height)
+    end
+  end
+
   local composerOptions = {
+    onHeightChanged = reportHeight,
     nativeChrome = layout.nativeChrome == true,
     onDraftChanged = windowOptions.onDraftChanged,
     onReplyChanged = messageActions.onReplyChanged,
@@ -101,6 +109,10 @@ function ComposerRuntime.Create(factory, options)
     refreshSelection = refreshSelection,
     showWithoutComposerFocus = showWithoutComposerFocus,
     isComposerFocusHeld = isComposerFocusHeld,
+    bindHeightChanged = function(listener)
+      heightListener = listener
+    end,
+    reportHeight = reportHeight,
   }
 end
 

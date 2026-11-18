@@ -4,15 +4,18 @@ if type(ns) ~= "table" then
 end
 
 local ContactsTabFilter = ns.ContactsTabFilter or require("WhisperMessenger.UI.ContactsList.ContactsTabFilter")
-local BlockMenuEntry = ns.ContactsListBlockMenuEntry or require("WhisperMessenger.UI.ContactsList.BlockMenuEntry")
-local ExportMenuEntry = ns.ContactsListExportMenuEntry or require("WhisperMessenger.UI.ContactsList.ExportMenuEntry")
-local AddFriendMenuEntry = ns.ContactsListAddFriendMenuEntry or require("WhisperMessenger.UI.ContactsList.AddFriendMenuEntry")
+local MenuEntries = ns.ContactsListMenuEntries or require("WhisperMessenger.UI.ContactsList.MenuEntries")
 local GuildInviteMenuEntry = ns.ContactsListGuildInviteMenuEntry or require("WhisperMessenger.UI.ContactsList.GuildInviteMenuEntry")
 local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.PickerPopup")
-local ProfileLinksMenuEntry = ns.ContactsListProfileLinksMenuEntry or require("WhisperMessenger.UI.ContactsList.ProfileLinksMenuEntry")
 local ProtectedMenuEntries = ns.ContactsListProtectedMenuEntries or require("WhisperMessenger.UI.ContactsList.ProtectedMenuEntries")
 local SectionEntries = ns.ContactsListSectionEntries or require("WhisperMessenger.UI.ContactsList.SectionEntries")
 local LegacyMenu = ns.ContactsListLegacyMenu or require("WhisperMessenger.UI.ContactsList.LegacyMenu")
+
+local ExportMenuEntry = MenuEntries.Export
+local NotifyMenuEntries = MenuEntries.Notify
+local AddFriendMenuEntry = MenuEntries.AddFriend
+local BlockMenuEntry = MenuEntries.Block
+local ProfileLinksMenuEntry = MenuEntries.ProfileLinks
 
 local ContextMenu = {}
 

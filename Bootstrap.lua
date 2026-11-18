@@ -169,6 +169,16 @@ function Bootstrap.Initialize(factory, options)
     now = options.now,
   })
 
+  -- The one owner of restricted-content state, created before anything can
+  -- ask it: the 12.0 restriction cache, filled from
+  -- ADDON_RESTRICTION_STATE_CHANGED payloads, plus the three detection
+  -- flags. Their values live on the Bootstrap table, so they outlive this
+  -- instance, but only the instance reads or writes them. Pre-12.0 clients
+  -- never get the event, so there the flags alone answer.
+  local restrictions = RestrictedActions.New(Bootstrap)
+  Bootstrap.restrictions = restrictions
+  runtime.restrictedActions = restrictions
+
   local windowRuntime = WindowRuntime.Create({
     runtime = runtime,
     accountState = accountState,
@@ -184,19 +194,18 @@ function Bootstrap.Initialize(factory, options)
     windowRuntime.buildContacts()
   end
 
-  -- 12.0+ authoritative restriction cache, populated from
-  -- ADDON_RESTRICTION_STATE_CHANGED payload. On pre-12.0 clients the
-  -- instance exists but never receives events — isCompetitive falls back
-  -- to the legacy flag model below.
-  runtime.restrictedActions = RestrictedActions.New()
   -- Seam for the lockdown catcher; nil until one is installed.
   runtime.lockdownCatcher = Bootstrap._lockdownCatcher
 
+  -- Assigned here, not next to the instance: until this point RuntimeFactory's
+  -- defaults answer (the instance-type check, never competitive, no
+  -- isChatLocked), which is what building the window above ran against.
   runtime.isChatLocked = function()
-    return runtime.restrictedActions.isChatLocked()
+    return restrictions.isChatLocked()
   end
 
-  -- A chat lock behaves exactly like restricted content.
+  -- Sirus policy: "blockChatInInstances" decides whether an instance counts as
+  -- restricted at all; a real client restriction always wins.
   runtime.isCompetitiveContent = function()
     return RestrictedActions.IsCompetitiveContent(runtime, Bootstrap)
   end
@@ -269,7 +278,10 @@ function Bootstrap.Initialize(factory, options)
     toggle = runtime.toggle,
     replyToLast = ReplyToLast.Create({ runtime = runtime, windowRuntime = windowRuntime }),
     perf = function()
-      for _, line in ipairs(PerfCounters.Lines(addonName)) do
+      local function getConversations()
+        return runtime.store.conversations
+      end
+      for _, line in ipairs(PerfCounters.Lines(addonName, getConversations)) do
         ChatPrint.Print(line)
       end
     end,

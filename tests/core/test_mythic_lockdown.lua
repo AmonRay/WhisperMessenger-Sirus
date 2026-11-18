@@ -1,3 +1,4 @@
+local RestrictionState = require("tests.helpers.restriction_state")
 local EventBridge = require("WhisperMessenger.Core.Bootstrap.EventBridge")
 local SendHandler = require("WhisperMessenger.Core.Bootstrap.SendHandler")
 local Availability = require("WhisperMessenger.Transport.Availability")
@@ -6,7 +7,7 @@ return function()
   -- test_event_bridge_drops_events_when_caller_guards_mythic
 
   -- RouteLiveEvent no longer checks mythic lockdown itself — the caller
-  -- (Bootstrap OnEvent) guards via Bootstrap._inMythicContent and never
+  -- (Bootstrap OnEvent) guards via the mythic flag and never
   -- calls RouteLiveEvent during mythic. We verify nil-runtime still works.
   do
     local refreshCalls = 0
@@ -124,9 +125,7 @@ return function()
       accountState = {
         schemaVersion = 1,
         conversations = {},
-        contacts = {},
-        pendingHydration = {},
-        settings = { hideFromDefaultChat = true, blockChatInInstances = true },
+        settings = { hideFromDefaultChat = true },
       },
       characterState = {
         window = { x = 0, y = 0, width = 900, height = 560 },
@@ -219,8 +218,6 @@ return function()
       accountState = {
         schemaVersion = 1,
         conversations = {},
-        contacts = {},
-        pendingHydration = {},
         settings = {},
       },
       characterState = {
@@ -231,7 +228,7 @@ return function()
 
     -- Simulate mythic lockdown then call refreshWindow on the open window
     runtime.toggle()
-    Bootstrap._inMythicContent = true
+    RestrictionState.Set(Bootstrap, { mythic = true })
     availabilityRequests = {}
     buildSelectionCalls = 0
     runtime.refreshWindow()
@@ -240,7 +237,7 @@ return function()
     assert(buildSelectionCalls == 1, "should still rebuild contact selection state during mythic refresh, got " .. buildSelectionCalls)
 
     -- Cleanup
-    Bootstrap._inMythicContent = false
+    RestrictionState.Set(Bootstrap, {})
     rawset(ContactEnricher, "BuildWindowSelectionState", originalBuildState)
     if savedRequestCanLocal then
       _G.C_ChatInfo.RequestCanLocalWhisperTarget = savedRequestCanLocal
@@ -293,7 +290,7 @@ return function()
     -- armed guild contact.
     for _, inMythic in ipairs({ true, false }) do
       local armed = { ["wow::a"] = { channel = "WOW", guid = "Player-A", notifyZone = true } }
-      local Bootstrap = { runtime = { store = { conversations = armed } }, _inMythicContent = inMythic }
+      local Bootstrap = RestrictionState.Set({ runtime = { store = { conversations = armed } } }, { mythic = inMythic })
       LifecycleHandlers.Handle(Bootstrap, "GUILD_ROSTER_UPDATE", deps)
       LifecycleHandlers.Handle(Bootstrap, "CLUB_MEMBER_UPDATED", deps)
 
@@ -317,7 +314,7 @@ return function()
   do
     -- The RouteLiveEvent function should NOT call isMythicLockdown()
     -- (which invokes GetInstanceInfo). The caller guards via
-    -- Bootstrap._inMythicContent so RouteLiveEvent is never called
+    -- the mythic flag so RouteLiveEvent is never called
     -- during mythic. Verify isMythicLockdown is never invoked even
     -- when present on the runtime.
     local Store = require("WhisperMessenger.Model.ConversationStore")
@@ -383,8 +380,6 @@ return function()
       accountState = {
         schemaVersion = 1,
         conversations = {},
-        contacts = {},
-        pendingHydration = {},
         settings = {},
       },
       characterState = {
@@ -433,9 +428,7 @@ return function()
       accountState = {
         schemaVersion = 1,
         conversations = {},
-        contacts = {},
-        pendingHydration = {},
-        settings = { blockChatInInstances = true },
+        settings = {},
       },
       characterState = {
         window = { x = 0, y = 0, width = 900, height = 560 },
@@ -515,9 +508,7 @@ return function()
             },
           },
         },
-        contacts = {},
-        pendingHydration = {},
-        settings = { compactLayout = false, blockChatInInstances = true },
+        settings = { compactLayout = false },
       },
       characterState = {
         window = { x = 0, y = 0, width = 900, height = 560 },

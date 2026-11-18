@@ -11,9 +11,27 @@ end
 -- NOT re-queried via C_RestrictedActions.IsAddOnRestrictionActive, because
 -- that API returns false during dispatch of its own event.
 --
--- Pre-12.0 clients don't have C_RestrictedActions. We fall back to the
--- existing flag-based approach (Bootstrap._inCompetitiveContent, etc.).
+-- Pre-12.0 clients don't have C_RestrictedActions. There the three detection
+-- flags below are the only source, so an instance answers from the cache
+-- and the flags together.
 local RestrictedActions = {}
+
+-- Flag name -> field of the flag store. Only an instance reads or writes
+-- these fields; everything else goes through setFlag and flag.
+local FLAG_FIELDS = {
+  mythic = "_inMythicContent",
+  competitive = "_inCompetitiveContent",
+  encounter = "_inEncounter",
+}
+
+-- A misspelled name must not read as "not restricted".
+local function fieldOf(name)
+  local field = FLAG_FIELDS[name]
+  if field == nil then
+    error("unknown restriction flag: " .. tostring(name), 3)
+  end
+  return field
+end
 
 -- Mirrors Enum.AddOnRestrictionType
 RestrictedActions.TYPES = {
@@ -49,14 +67,90 @@ function RestrictedActions.ChatApiLocked()
   return locked == true
 end
 
+-- flagStore: the table that holds the detection flags under FLAG_FIELDS.
+-- Bootstrap passes itself; without one the instance keeps its own.
+function RestrictedActions.New(flagStore)
+  local cached = {}
+  local updates = {}
+  local flags = flagStore or {}
+  local self = {}
+
+  -- name: "mythic", "competitive" or "encounter"; any other name is an
+  -- error. Any truthy value sets the flag, and the store holds a boolean.
+  function self.setFlag(name, value)
+    flags[fieldOf(name)] = value and true or false
+  end
+
+  function self.flag(name)
+    return flags[fieldOf(name)] and true or false
+  end
+
+  function self.updateFromEvent(restrictionType, newState)
+    if type(restrictionType) ~= "number" or type(newState) ~= "number" then
+      return
+    end
+    cached[restrictionType] = newState
+    updates[restrictionType] = (updates[restrictionType] or 0) + 1
+  end
+
+  -- How many updates a type has had, to tell whether a new one arrived since.
+  function self.updateCount(restrictionType)
+    return updates[restrictionType] or 0
+  end
+
+  -- The last state the event reported for a type, or nil if none arrived.
+  function self.cachedState(restrictionType)
+    return cached[restrictionType]
+  end
+
+  function self.isActive(restrictionType)
+    local s = cached[restrictionType]
+    if s ~= nil then
+      return s == RestrictedActions.STATES.Active or s == RestrictedActions.STATES.Activating
+    end
+    local api = _G.C_RestrictedActions
+    if api and type(api.IsAddOnRestrictionActive) == "function" then
+      local ok, result = pcall(api.IsAddOnRestrictionActive, restrictionType)
+      if ok then
+        return result == true
+      end
+    end
+    return false
+  end
+
+  function self.isChatLocked()
+    return self.isActive(RestrictedActions.TYPES.Chat) or RestrictedActions.ChatApiLocked()
+  end
+
+  -- A chat lock behaves exactly like restricted content.
+  function self.isCompetitive()
+    return self.isActive(RestrictedActions.TYPES.Encounter)
+      or self.isActive(RestrictedActions.TYPES.ChallengeMode)
+      or self.isActive(RestrictedActions.TYPES.PvPMatch)
+      or self.isChatLocked()
+      or self.flag("competitive")
+      or self.flag("encounter")
+  end
+
+  function self.isMythic()
+    return self.isActive(RestrictedActions.TYPES.ChallengeMode) or self.flag("mythic")
+  end
+
+  function self.isRestricted()
+    return self.isCompetitive() or self.isMythic()
+  end
+
+  return self
+end
+
 -- Account-wide addon policy; server/API chat restrictions are independent.
 function RestrictedActions.BlockChatInInstances(runtime)
   local settings = runtime and runtime.accountState and runtime.accountState.settings
   return type(settings) == "table" and settings.blockChatInInstances == true
 end
 
--- One GetInstanceInfo() return (2 = instance type, 4 = difficulty ID), or
--- nil when the API is missing or errors.
+-- One GetInstanceInfo() return (2 = instance type, 4 = difficulty ID), or nil
+-- when the API is missing or errors.
 local function instanceInfoField(index)
   if type(_G.GetInstanceInfo) ~= "function" then
     return nil
@@ -102,59 +196,16 @@ function RestrictedActions.IsCompetitiveContent(runtime, bootstrap)
     or (bootstrap ~= nil and bootstrap._inCompetitiveContent == true)
 end
 
-function RestrictedActions.New()
-  local cached = {}
-  local updates = {}
-  local self = {}
-
-  function self.updateFromEvent(restrictionType, newState)
-    if type(restrictionType) ~= "number" or type(newState) ~= "number" then
-      return
-    end
-    cached[restrictionType] = newState
-    updates[restrictionType] = (updates[restrictionType] or 0) + 1
+-- The instance that answers for owner (the Bootstrap table). Bootstrap.Initialize
+-- installs one per runtime. An owner asked before that gets one over its own
+-- flag fields: the lockdown catcher's frame is live before Initialize.
+function RestrictedActions.For(owner)
+  local restrictions = owner.restrictions
+  if restrictions == nil then
+    restrictions = RestrictedActions.New(owner)
+    owner.restrictions = restrictions
   end
-
-  -- How many updates a type has had, to tell whether a new one arrived since.
-  function self.updateCount(restrictionType)
-    return updates[restrictionType] or 0
-  end
-
-  -- The last state the event reported for a type, or nil if none arrived.
-  function self.cachedState(restrictionType)
-    return cached[restrictionType]
-  end
-
-  function self.isActive(restrictionType)
-    local s = cached[restrictionType]
-    if s ~= nil then
-      return s == RestrictedActions.STATES.Active or s == RestrictedActions.STATES.Activating
-    end
-    local api = _G.C_RestrictedActions
-    if api and type(api.IsAddOnRestrictionActive) == "function" then
-      local ok, result = pcall(api.IsAddOnRestrictionActive, restrictionType)
-      if ok then
-        return result == true
-      end
-    end
-    return false
-  end
-
-  function self.isCompetitive()
-    return self.isActive(RestrictedActions.TYPES.Encounter)
-      or self.isActive(RestrictedActions.TYPES.ChallengeMode)
-      or self.isActive(RestrictedActions.TYPES.PvPMatch)
-  end
-
-  function self.isMythic()
-    return self.isActive(RestrictedActions.TYPES.ChallengeMode)
-  end
-
-  function self.isChatLocked()
-    return self.isActive(RestrictedActions.TYPES.Chat) or RestrictedActions.ChatApiLocked()
-  end
-
-  return self
+  return restrictions
 end
 
 ns.BootstrapRestrictedActions = RestrictedActions

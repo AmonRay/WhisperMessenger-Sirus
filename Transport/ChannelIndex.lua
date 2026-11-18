@@ -3,7 +3,7 @@ if type(ns) ~= "table" then
   ns = {}
 end
 
-local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Core.Ingest.ChannelChatIngest.ChannelKey")
+local ChannelKey = ns.ChannelChatIngestChannelKey or require("WhisperMessenger.Model.Identity.ChannelKey")
 
 -- Resolve live membership at send time; never trust a saved channel number.
 local ChannelIndex = {}
