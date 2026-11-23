@@ -110,16 +110,17 @@ function StyledTextInputPopup.Apply(dialog, dialogName, data, options)
   end
   value = tostring(value)
 
-  if options.primeEditBox ~= false then
-    PopupResolvers.primePopupEditBox(dialog, value, dialogName)
-  end
-
   local editBox = resolveEditBox(dialog, dialogName)
   if editBox and savedFaces[editBox] == nil then
     savedFaces[editBox] = GlyphCoverage.UseChatFace(editBox)
   end
   if editBox and (options.fullWidthInput == true or type(options.inputWidth) == "number") then
     applyInputWidth(dialog, editBox, options)
+  end
+
+  -- Primed last: the font and width changes above reset the box's selection.
+  if options.primeEditBox ~= false then
+    PopupResolvers.primePopupEditBox(dialog, value, dialogName)
   end
 
   return editBox

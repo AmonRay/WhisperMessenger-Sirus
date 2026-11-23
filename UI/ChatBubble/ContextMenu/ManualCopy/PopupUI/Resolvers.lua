@@ -174,11 +174,14 @@ function Resolvers.primePopupEditBox(dialog, value, dialogName)
   if editBox.SetText then
     editBox:SetText(value)
   end
-  if editBox.HighlightText then
-    editBox:HighlightText()
-  end
+  -- Focus first, select last: on 3.3.5a SetFocus drops the selection made
+  -- before it, and SetText/SetFont drop it too, so HighlightText has to stay
+  -- the final call or the box shows nothing selected and Ctrl+C copies nothing.
   if editBox.SetFocus then
     editBox:SetFocus()
+  end
+  if editBox.HighlightText then
+    editBox:HighlightText()
   end
 
   return true
