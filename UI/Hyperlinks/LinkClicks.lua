@@ -81,22 +81,46 @@ local function copyExternalUrl(url)
   return false
 end
 
-function LinkClicks.HandleClick(link, text, button, sourceFrame)
-  local externalUrl = UrlFormatter.ExtractExternalUrlFromLink(link)
-  if externalUrl ~= nil then
-    if copyExternalUrl(externalUrl) then
-      return true
-    end
+-- Blizzard's own chat link handler, whichever one this flavor has: the 3.3.5a
+-- client has the global ChatFrame_OnHyperlinkShow, later ones the chat frame
+-- mixin. Both take (frame, link, text, button). Anything else (third-party
+-- addons) is deliberately not consulted: see handleClickFallback.
+local function blizzardChatClickHandler()
+  local mixin = _G.ChatFrameMixin
+  if type(mixin) == "table" and type(mixin.OnHyperlinkClick) == "function" then
+    return mixin.OnHyperlinkClick
+  end
+  if type(_G.ChatFrame_OnHyperlinkShow) == "function" then
+    return _G.ChatFrame_OnHyperlinkShow
+  end
+  return nil
+end
 
-    return false
+local function chatLinkTarget(sourceFrame)
+  if type(sourceFrame) == "table" then
+    return sourceFrame
+  end
+  return _G.DEFAULT_CHAT_FRAME
+end
+
+local function isPlayerLink(link)
+  return type(link) == "string" and string.match(link, "^player%a*:") ~= nil
+end
+
+-- Last resort for links the game's chat handler cannot take. Player links stay
+-- out of the global SetItemRef: DBM-Core and Leatrix Plus replace it, and
+-- Leatrix turns an alt+click on a player name into InviteUnit, a protected call
+-- that is blocked in combat and blamed on the addon whose frame started it.
+-- Our player clicks go to the chat handler above or nowhere.
+local function handleClickFallback(link, text, button, sourceFrame)
+  local handler = blizzardChatClickHandler()
+  if handler ~= nil then
+    handler(chatLinkTarget(sourceFrame), link, text, button)
+    return true
   end
 
-  -- A shift-clicked player name goes straight into the focused composer.
-  -- Blizzard's SetItemRef would also send a /who for it, because none of
-  -- Blizzard's chat boxes is open while our composer has focus.
-  local linkHooks = resolveLinkHooks()
-  if linkHooks ~= nil and linkHooks.InsertClickedPlayerName(link) then
-    return true
+  if isPlayerLink(link) then
+    return false
   end
 
   if type(_G.SetItemRef) == "function" then
@@ -107,12 +131,30 @@ function LinkClicks.HandleClick(link, text, button, sourceFrame)
   return false
 end
 
-local function blizzardChatClickHandler()
-  local mixin = _G.ChatFrameMixin
-  if type(mixin) ~= "table" or type(mixin.OnHyperlinkClick) ~= "function" then
-    return nil
+function LinkClicks.HandleClick(link, text, button, sourceFrame)
+  local externalUrl = UrlFormatter.ExtractExternalUrlFromLink(link)
+  if externalUrl ~= nil then
+    if copyExternalUrl(externalUrl) then
+      return true
+    end
+
+    return false
   end
-  return mixin.OnHyperlinkClick
+
+  link = PlayerLinkCodec.DecodeLink(link)
+  if type(text) == "string" then
+    text = PlayerLinkCodec.DecodeText(text)
+  end
+
+  -- A shift-clicked player name goes straight into the focused composer.
+  -- Blizzard's chat handler would also send a /who for it, because none of
+  -- Blizzard's chat boxes is open while our composer has focus.
+  local linkHooks = resolveLinkHooks()
+  if linkHooks ~= nil and linkHooks.InsertClickedPlayerName(link) then
+    return true
+  end
+
+  return handleClickFallback(link, text, button, sourceFrame)
 end
 
 local function routeClick(frame, link, text, button)

@@ -17,9 +17,19 @@ return function()
   local playerLink = "player:Gæmmer-Kazzak:1:WHISPER"
   local playerText = "|cff3fc7eb|Hplayer:Gæmmer-Kazzak:1:WHISPER|hGæmmer|h|r"
 
+  -- The 3.3.5a client's own chat link handler (there is no chat frame mixin
+  -- there). A click that Blizzard should handle goes here, never to the global
+  -- SetItemRef: other addons replace that one (DBM-Core, Leatrix Plus).
+  local savedChatShow = rawget(_G, "ChatFrame_OnHyperlinkShow")
+  local chatShowCalls = {}
+  rawset(_G, "ChatFrame_OnHyperlinkShow", function(_self, link)
+    table.insert(chatShowCalls, link)
+  end)
+
   local function reset(focused, chatLinkClick)
     env.Reset()
     setItemRefCalls = {}
+    chatShowCalls = {}
     input.focused = focused
     rawset(_G, "IsModifiedClick", function(action)
       return action == "CHATLINK" and chatLinkClick
@@ -35,26 +45,28 @@ return function()
     assert(#setItemRefCalls == 0, "SetItemRef must not run (it sends /who), ran " .. #setItemRefCalls .. " times")
   end
 
-  -- test_shift_clicked_player_name_with_unfocused_composer_goes_to_set_item_ref
+  -- test_shift_clicked_player_name_with_unfocused_composer_goes_to_blizzard
   do
     reset(false, true)
     Hyperlinks.HandleClick(playerLink, playerText, "LeftButton", {})
-    assert(#setItemRefCalls == 1, "an unfocused composer leaves the click to Blizzard")
+    assert(#chatShowCalls == 1, "an unfocused composer leaves the click to Blizzard")
+    assert(#setItemRefCalls == 0, "the click must stay out of any addon's SetItemRef wrapper")
     assert(#env.inserts == 0, "an unfocused composer must not receive the name")
   end
 
-  -- test_plain_player_click_goes_to_set_item_ref
+  -- test_plain_player_click_opens_whisper_through_blizzard
   do
     reset(true, false)
     Hyperlinks.HandleClick(playerLink, playerText, "LeftButton", {})
-    assert(#setItemRefCalls == 1, "a plain click opens a whisper through SetItemRef")
+    assert(#chatShowCalls == 1, "a plain click opens a whisper through Blizzard's handler")
+    assert(#setItemRefCalls == 0, "a player click must never reach SetItemRef (Leatrix alt-click invites from there)")
   end
 
-  -- test_shift_clicked_item_goes_to_set_item_ref
+  -- test_shift_clicked_item_goes_to_blizzard
   do
     reset(true, true)
     Hyperlinks.HandleClick("item:6948", "|Hitem:6948|h[Hearthstone]|h", "LeftButton", {})
-    assert(setItemRefCalls[1] == "item:6948", "other links still go through SetItemRef")
+    assert(chatShowCalls[1] == "item:6948", "other links still go through Blizzard's chat handler")
   end
 
   -- The in-game path: our frames' click script, with Blizzard's chat click
@@ -106,5 +118,6 @@ return function()
   end
 
   rawset(_G, "ChatFrameMixin", savedMixin)
+  rawset(_G, "ChatFrame_OnHyperlinkShow", savedChatShow)
   env.Restore()
 end
