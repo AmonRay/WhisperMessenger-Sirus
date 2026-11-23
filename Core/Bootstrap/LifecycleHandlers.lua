@@ -37,11 +37,16 @@ function LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
     -- encounter/PvP own theirs): with the policy off they no longer answer
     -- the runtime checks, but a later flag reader must not see them cleared.
   end
-  if enabled and Bootstrap._inMythicContent then
+  -- The game's restriction event path suspends on its own; only the Sirus
+  -- instance detection suspends here when nothing else did.
+  local alreadySuspended = RestrictedActions.For(Bootstrap).flag("mythic")
+  if enabled and Bootstrap._inMythicContent and not alreadySuspended then
     if runtime.suspend then
       runtime.suspend()
     end
-  elseif runtime._instanceChatSuspended or _G._wmSuspended then
+  elseif not alreadySuspended and (runtime._instanceChatSuspended or _G._wmSuspended) then
+    -- A pause the game's own restriction (or ChallengeMode) owns is resumed by
+    -- that path, not by leaving an instance the addon no longer flags.
     if runtime.resume then
       runtime.resume()
     end
@@ -77,6 +82,12 @@ local function handle(Bootstrap, event, deps, ...)
   end
 
   if event == "BN_FRIEND_LIST_SIZE_CHANGED" or event == "BN_FRIEND_INFO_CHANGED" then
+    -- The friend list may now know a character it did not know before (a
+    -- friend added, the list loading late, a friend logging on to it), so
+    -- characters it missed are looked up again.
+    if Bootstrap.runtime then
+      Bootstrap.runtime.characterMergeMisses = nil
+    end
     return Presence.handleBNetFriendEvent(Bootstrap, deps)
   end
 
@@ -159,14 +170,12 @@ end
 function LifecycleHandlers.Handle(Bootstrap, event, deps, ...)
   local handled = handle(Bootstrap, event, deps, ...)
   -- Zone and world entry handlers re-derive the instance state themselves.
-  -- With the Sirus instance policy on, a restriction event also re-syncs.
+  -- The game's own ADDON_RESTRICTION_STATE_CHANGED path owns its filters and
+  -- pause (it syncs and suspends on its own), so only the legacy ChallengeMode
+  -- events re-sync the Sirus instance policy here.
   if
-    (
-      event == "ADDON_RESTRICTION_STATE_CHANGED"
-      or event == "CHALLENGE_MODE_START"
-      or event == "CHALLENGE_MODE_COMPLETED"
-      or event == "CHALLENGE_MODE_RESET"
-    ) and RestrictedActions.BlockChatInInstances(Bootstrap.runtime)
+    (event == "CHALLENGE_MODE_START" or event == "CHALLENGE_MODE_COMPLETED" or event == "CHALLENGE_MODE_RESET")
+    and RestrictedActions.BlockChatInInstances(Bootstrap.runtime)
   then
     LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
   end

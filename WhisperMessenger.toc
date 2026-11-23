@@ -14,7 +14,6 @@
 ## X-Curse-Project-ID: 1494311
 ## X-Wago-ID: jK8gze6y
 
-
 Core\FlavorCompat.lua
 Core\Loader.lua
 Core\WrathCompat\Timer.lua
@@ -60,12 +59,16 @@ Model\Identity\ChannelKey.lua
 Model\Identity\Identity.lua
 Model\ProfileLinks.lua
 Model\Retention.lua
-Model\ConversationMerge.lua
-Model\ConversationStore\StoreRetention.lua
 Model\ConversationStore\MessageMetadata.lua
+Model\ConversationMerge.lua
+Model\CharacterMergeMap.lua
+Model\ConversationStore\StoreRetention.lua
 Model\ConversationStore\RepeatCollapse.lua
 Model\ConversationStore\ChronologicalInsert.lua
+Model\ConversationStore\NewRecord.lua
 Model\ConversationStore.lua
+Model\CharacterMergeFold.lua
+Model\CharacterSeparate.lua
 Model\Filters\IgnoreList.lua
 Model\Filters\KeywordRules.lua
 Model\Filters\RulePresets.lua
@@ -73,6 +76,7 @@ Model\Filters\DuplicateCollapse.lua
 Util\ChatReplyState.lua
 Util\ChatPrefill.lua
 Model\ConversationDrafts.lua
+Model\SentHistory.lua
 Model\ContactInfo.lua
 Model\AddonIntegrations.lua
 Model\OutgoingDelivery.lua
@@ -157,6 +161,7 @@ Core\Ingest\GroupChatIngest\InstanceName.lua
 Core\Ingest\GroupChatIngest.lua
 Core\Ingest\IncomingFilter.lua
 Core\Ingest\ChannelChatIngest.lua
+Core\EventRouter\CharacterRedirect.lua
 Core\EventRouter\PendingOutgoing.lua
 Core\EventRouter\FailedWhisper.lua
 Core\EventRouter\PartMerge.lua
@@ -211,6 +216,8 @@ UI\Shared\RelationshipMark.lua
 UI\Hyperlinks\UrlFormatter.lua
 UI\Hyperlinks\CombatItemRef.lua
 Model\RestrictedEmojis.lua
+UI\Hyperlinks\PlayerLinkCodec.lua
+UI\Hyperlinks\LinkClicks.lua
 UI\ChatBubble\ReactionAssets.lua
 UI\Hyperlinks.lua
 UI\ScrollView\Metrics.lua
@@ -287,6 +294,7 @@ UI\ContactsList\TabArrows.lua
 UI\ContactsList\NativeTabToggle.lua
 UI\ContactsList\TabToggle.lua
 UI\ContactsList\RowView.lua
+UI\ContactsList\RowSignature.lua
 UI\ContactsList\ContactsList.lua
 UI\ConversationPane\UnreadDividerPosition.lua
 UI\ConversationPane\TranscriptRows.lua
@@ -318,8 +326,8 @@ UI\Composer\Popover.lua
 UI\Composer\EmojiPicker.lua
 UI\Composer\QuickReplyPicker.lua
 UI\Composer\LauncherButton.lua
-UI\Composer\ComposerLaunchers.lua
 UI\Composer\ComposerLayout.lua
+UI\Composer\ComposerLaunchers.lua
 UI\Composer\ComposerSurface.lua
 UI\Composer\SendButtonStyle.lua
 UI\Composer\ReplyState.lua
@@ -332,6 +340,8 @@ UI\Composer\LineBreaks.lua
 UI\Composer\ComposerRows.lua
 UI\Composer\ComposerInputBox.lua
 UI\Composer\ComposerSubmit.lua
+UI\Composer\ComposerHistory.lua
+UI\Composer\ComposerRelayout.lua
 UI\Composer\Composer.lua
 UI\ToggleIcon\BadgeFilter.lua
 UI\ToggleIcon\PreviewMetrics.lua
@@ -349,6 +359,7 @@ UI\ToggleIcon\Desaturation.lua
 UI\ToggleIcon\IconClick.lua
 UI\ToggleIcon\SquareEffects.lua
 UI\ToggleIcon\IconBorder.lua
+UI\ToggleIcon\AccentGlyph.lua
 UI\ToggleIcon\SquareLook.lua
 UI\ToggleIcon\IconArt.lua
 UI\ToggleIcon\IconInteraction.lua
@@ -521,6 +532,7 @@ Core\Bootstrap\LifecycleHandlers\StaleRestrictions.lua
 Core\Bootstrap\LifecycleHandlers\ScanFieldDiff.lua
 Core\Bootstrap\LifecycleHandlers\ScanSignature.lua
 Core\Bootstrap\LifecycleHandlers\BNetRekey.lua
+Core\Bootstrap\CharacterMergeRemap.lua
 Core\Bootstrap\LifecycleHandlers\Presence.lua
 Core\Bootstrap\LifecycleHandlers\GroupMembership.lua
 Core\Bootstrap\LifecycleHandlers\RelationshipRefresh.lua
@@ -546,6 +558,7 @@ Core\Bootstrap\WindowRuntime\PositionSlots.lua
 Core\Bootstrap\WindowRuntime\WhoTriggers.lua
 Core\Bootstrap\WindowRuntime\AddonAlerts.lua
 Core\Bootstrap\WindowRuntime\ContactPrefsUpdate.lua
+Core\Bootstrap\WindowRuntime\SeparateCallbacks.lua
 Core\Bootstrap\WindowRuntime\WindowCallbacks.lua
 Core\Bootstrap\WindowRuntime\IconRuntime.lua
 Core\Bootstrap\WindowRuntime\MinimapIconRuntime.lua
@@ -577,4 +590,3 @@ Core\PublicApi\Connect.lua
 Core\Bootstrap\WindowRuntime\IntegrationAccess.lua
 Core\PublicApi.lua
 Bootstrap.lua
-

@@ -6,13 +6,11 @@ local LifecycleHandlers = require("WhisperMessenger.Core.Bootstrap.LifecycleHand
 local ContentDetector = require("WhisperMessenger.Core.ContentDetector")
 local FlavorCompat = require("WhisperMessenger.Core.FlavorCompat")
 local RestrictedActions = require("WhisperMessenger.Core.Bootstrap.RestrictedActions")
+local RestrictionPredicates = require("tests.helpers.restriction_predicates")
 
 local function newBootstrap(runtimeFields)
   local calls = { suspend = 0, resume = 0 }
-  local runtime = runtimeFields or {}
-  -- The Sirus instance policy is off by default; this test covers the
-  -- detector mechanics, so turn it on.
-  runtime.accountState = runtime.accountState or { settings = { blockChatInInstances = true } }
+  local runtime = RestrictionPredicates.Add(runtimeFields or {})
   runtime.suspend = function()
     calls.suspend = calls.suspend + 1
   end

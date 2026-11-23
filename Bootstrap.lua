@@ -41,6 +41,7 @@ function Bootstrap.Initialize(factory, options)
   local ReplyKeyBinder = loadModule("WhisperMessenger.Core.Bootstrap.ReplyKeyBinder", "BootstrapReplyKeyBinder")
   local MythicSuspendController = loadModule("WhisperMessenger.Core.Bootstrap.MythicSuspendController", "BootstrapMythicSuspendController")
   local WindowRuntime = loadModule("WhisperMessenger.Core.Bootstrap.WindowRuntime", "BootstrapWindowRuntime")
+  local WhisperIngestFailsafe = loadModule("WhisperMessenger.Core.Bootstrap.WhisperIngestFailsafe", "BootstrapWhisperIngestFailsafe")
   local AutoOpenCoordinator = loadModule("WhisperMessenger.Core.Bootstrap.AutoOpenCoordinator", "BootstrapAutoOpenCoordinator")
   local FirstRunTip = loadModule("WhisperMessenger.Core.Bootstrap.FirstRunTip", "BootstrapFirstRunTip")
   local SavedState = loadModule("WhisperMessenger.Persistence.SavedState", "SavedState")
@@ -187,6 +188,9 @@ function Bootstrap.Initialize(factory, options)
     uiFactory = uiFactory,
     uiParent = _G.UIParent,
     bootstrap = Bootstrap,
+    guardWhisperRefresh = function(lines, run)
+      return WhisperIngestFailsafe.GuardDeferredRefresh(Bootstrap, lines, run)
+    end,
   })
   -- Building the contact list fills DisplayName's BattleTag clash set, so
   -- chat alerts before the first window or icon refresh name the right friend.
@@ -266,9 +270,6 @@ function Bootstrap.Initialize(factory, options)
   local replyKeyBinder = ReplyKeyBinder.New({
     getSettings = function()
       return accountState.settings
-    end,
-    isMythic = function()
-      return runtime.isMythicLockdown and runtime.isMythicLockdown() or false
     end,
   })
   runtime.syncReplyKey = replyKeyBinder.sync

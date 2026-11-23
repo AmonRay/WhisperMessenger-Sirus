@@ -63,7 +63,10 @@ return function()
       text = link .. " :heart:",
     }, { paneWidth = 600, showIcon = false })
     local linked = bubble.frame._textFS:GetText()
-    assert(linked:find(link, 1, true), "emoji display formatting must preserve player hyperlinks")
+    -- Player links are shown encoded (addon:WhisperMessenger:player:…) so the
+    -- game's own handler never sends a /who; the visible name must survive.
+    local linkedBody = string.match(linked, "|H(addon:WhisperMessenger:player:[^|]-)|h%[Thrall%]|h")
+    assert(linkedBody ~= nil, "emoji display formatting must preserve player hyperlinks, got " .. tostring(linked))
     assert(#inlineIcons(linked) == 1, "the emoji after a hyperlink must still render")
   end)
   Fonts.SetFontSize(savedSize)

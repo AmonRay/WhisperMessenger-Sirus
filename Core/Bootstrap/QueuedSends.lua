@@ -15,6 +15,7 @@ local ONE_WAITING_KEY = "1 queued message is waiting — open the messenger to s
 local MANY_WAITING_KEY = "%d queued messages are waiting — open the messenger to send or discard."
 
 function QueuedSends.IsChatLocked(runtime)
+  -- Sirus runtimes keep the older shape without the restriction predicates.
   if type(runtime.isMythicLockdown) == "function" and runtime.isMythicLockdown() then
     return true
   end

@@ -115,6 +115,7 @@ function SectionEntries.AddTitled(description, contextData, isGroup)
     GuildInviteMenuEntry.Add(description, contextData.item)
     MenuEntries.Block.Add(description, contextData.item, contextData.rowActions)
     MenuEntries.ProfileLinks.Add(description, MenuEntries.ProfileLinks.Links(contextData.item))
+    MenuEntries.Separate.Add(description, contextData.item, contextData.rowActions)
     SectionEntries.AddRowActions(description, contextData.item, contextData.rowActions)
   end
 end

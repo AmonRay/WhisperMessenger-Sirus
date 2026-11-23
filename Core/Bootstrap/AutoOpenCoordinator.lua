@@ -13,6 +13,7 @@ local ConversationOps = ns.BootstrapAutoOpenConversationOps or require("WhisperM
 local Poller = ns.BootstrapAutoOpenPoller or require("WhisperMessenger.Core.Bootstrap.AutoOpenCoordinator.Poller")
 local GameChatRead = ns.BootstrapGameChatRead or require("WhisperMessenger.Core.Bootstrap.GameChatRead")
 local WhoLookup = ns.WhoLookup or require("WhisperMessenger.Transport.WhoLookup")
+local RestrictedActions = ns.BootstrapRestrictedActions or require("WhisperMessenger.Core.Bootstrap.RestrictedActions")
 -- stylua: ignore end
 
 local AutoOpenCoordinator = {}
@@ -65,7 +66,7 @@ function AutoOpenCoordinator.Attach(options)
       return type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown()
     end,
     isCompetitive = function()
-      return runtime.isCompetitiveContent and runtime.isCompetitiveContent()
+      return runtime.isCompetitiveContent()
     end,
     ensureWindow = runtime.ensureWindow,
     setWindowVisible = runtime.setWindowVisible,
@@ -129,9 +130,7 @@ function AutoOpenCoordinator.Attach(options)
   runtime.autoOpenHooks = autoOpenHooks
 
   function controller.installPoller()
-    local isSuspended = options.isSuspended or function()
-      return _G._wmSuspended == true
-    end
+    local isSuspended = options.isSuspended or RestrictedActions.IsSuspended
     GameChatRead.InstallTabHook(runtime, isSuspended)
     return Poller.Install(runtime, autoOpenHooks, {
       identity = identity,

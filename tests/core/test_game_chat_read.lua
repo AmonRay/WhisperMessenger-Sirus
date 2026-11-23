@@ -1,4 +1,5 @@
 local GameChatRead = require("WhisperMessenger.Core.Bootstrap.GameChatRead")
+local RestrictionPredicates = require("tests.helpers.restriction_predicates")
 
 local SAVED_GLOBALS = { "hooksecurefunc", "FCF_Tab_OnClick", "ChatFrame3", "ChatFrame4" }
 local saved = {}
@@ -20,7 +21,7 @@ local function newRuntime(unreadCount)
       refreshes = refreshes + 1
     end,
   }
-  return runtime, function()
+  return RestrictionPredicates.Add(runtime), function()
     return refreshes
   end
 end
@@ -78,6 +79,17 @@ return function()
     local conversation = runtime.store.conversations["wow::WOW::thrall"]
     assert(conversation.unreadCount == 0, "the clicked partner's whispers are read")
     assert(refreshCount() == 1, "the window refreshes once")
+  end)
+
+  check("test_tab_click_on_merged_character_marks_battle_net_chat_read", function()
+    local runtime = newRuntime(0)
+    local bnetKey = "bnet::BN::friend#1234"
+    runtime.store.conversations["wow::WOW::thrall"] = nil
+    runtime.store.conversations[bnetKey] = { channel = "BN", unreadCount = 2 }
+    runtime.characterMerges = { merged = { ["wow::WOW::thrall"] = { bnetKey = bnetKey, name = "Thrall" } }, separated = {} }
+    local captured = install(runtime)
+    captured.fn(tab(3), "LeftButton")
+    assert(runtime.store.conversations[bnetKey].unreadCount == 0, "reading a merged character's tab reads B")
   end)
 
   check("test_tab_click_for_other_partner_leaves_unread", function()

@@ -7,6 +7,43 @@ local ChatLinkSources = ns.ComposerChatLinkSources or require("WhisperMessenger.
 local QuestLinkText = ns.QuestLinkText or require("WhisperMessenger.Model.QuestLinkText")
 local UrlFormatter = ns.UIHyperlinksUrlFormatter or require("WhisperMessenger.UI.Hyperlinks.UrlFormatter")
 
+-- Looked up at call time: RestrictedActions loads later in the TOC, and tests
+-- load these hooks before the module sits on ns.
+local function restrictedActions()
+  local actions = ns.BootstrapRestrictedActions
+  if type(actions) == "table" and type(actions.IsSuspended) == "function" then
+    return actions
+  end
+  if type(require) == "function" then
+    local ok, loaded = pcall(require, "WhisperMessenger.Core.Bootstrap.RestrictedActions")
+    if ok and type(loaded) == "table" and type(loaded.IsSuspended) == "function" then
+      return loaded
+    end
+  end
+  return nil
+end
+
+local function isSuspended()
+  if _G._wmSuspended then
+    return true
+  end
+  local actions = restrictedActions()
+  return actions ~= nil and actions.IsSuspended() == true
+end
+
+local OWN_LINK_PREFIX = "addon:WhisperMessenger:"
+
+-- Player links in our own frames are encoded so Blizzard's handlers ignore
+-- them; inserting one means inserting the plain name.
+local function encodedPlayerName(link)
+  if type(link) ~= "string" then
+    return nil
+  end
+  -- Accept both the bare link body and the whole |H…|h[…]|h markup.
+  local body = string.match(link, "^|H(.-)|h") or link
+  return string.match(body, "^" .. OWN_LINK_PREFIX .. "player%a*:([^:]+)")
+end
+
 local LinkHooks = {}
 local registeredLinkHooks = false
 local linkedInputs = {}
@@ -132,8 +169,8 @@ local function tryInsertLink(link, options)
 
   -- ponytail: one insert per frame. A single shift-click fans out into several
   -- Blizzard insert paths (player-link handler, SetItemRef modified-click
-  -- fallback, our SetItemRef post-hook). Only the first — the plain
-  -- whisperable name — should land. GetTime() is constant within a frame.
+  -- fallback, our SetItemRef post-hook). Only the first вЂ” the plain
+  -- whisperable name вЂ” should land. GetTime() is constant within a frame.
   local now = type(_G.GetTime) == "function" and _G.GetTime() or nil
   if now ~= nil and now == lastInsertFrameTime then
     return true -- already inserted this frame; report handled so callers don't fall back
@@ -239,7 +276,7 @@ local function blizzardChatBoxActive()
 end
 
 local function insertFromBlizzard(link)
-  if _G._wmSuspended then
+  if isSuspended() then
     return
   end
   if type(link) ~= "string" or link == "" then
@@ -248,12 +285,33 @@ local function insertFromBlizzard(link)
   if blizzardChatBoxActive() then
     return
   end
+  -- Our own frames hand over encoded player links and insert the plain name
+  -- themselves (InsertClickedPlayerName): a link that reaches InsertLink is
+  -- never inserted, so the server never sees an encoded escape.
+  if encodedPlayerName(link) ~= nil then
+    return
+  end
+  -- Defensive: any other addon:WhisperMessenger link is ours, never inserted raw.
+  if string.find(link, "|H" .. OWN_LINK_PREFIX, 1, true) then
+    return
+  end
   tryInsertLink(link, { allowVisibleWithoutFocus = false })
 end
 
+local PlayerLinkCodec = ns.UIHyperlinksPlayerLinkCodec
+if PlayerLinkCodec == nil and type(require) == "function" then
+  local ok, loaded = pcall(require, "WhisperMessenger.UI.Hyperlinks.PlayerLinkCodec")
+  PlayerLinkCodec = ok and loaded or nil
+end
+
+-- Player links in our own frames arrive encoded (addon:WhisperMessenger:player:…),
+-- so decode before reading the name.
 local function playerNameFromLink(link)
   if type(link) ~= "string" then
     return nil
+  end
+  if PlayerLinkCodec ~= nil and PlayerLinkCodec.IsEncoded(link) then
+    link = PlayerLinkCodec.DecodeLink(link) or link
   end
   return string.match(link, "^player%a*:([^:]+)")
 end
@@ -276,7 +334,7 @@ end
 -- composer is on screen; 3.3.5a answers IsShown unreliably for the window, so
 -- that gate is skipped rather than dropping the click.
 function LinkHooks.InsertPlayerName(name, fromWindow)
-  if type(name) ~= "string" or name == "" or _G._wmSuspended then
+  if type(name) ~= "string" or name == "" or isSuspended() then
     return false
   end
   return tryInsertLink(name, { allowVisibleWithoutFocus = fromWindow == true }) == true
@@ -304,7 +362,7 @@ end
 -- typing in (shown and focused). Returns true only when the input's text really
 -- changed, so a deduped, capped or refused insert reports false.
 function LinkHooks.InsertText(text)
-  if _G._wmSuspended then
+  if isSuspended() then
     return false
   end
   local input = findInputForInsertion(false)
@@ -326,7 +384,12 @@ local function registerLinkHooks()
 
   -- SetItemRef: handles clicking hyperlinks inside chat bubbles / transcript.
   safeHookGlobal("SetItemRef", function(link, text)
-    if _G._wmSuspended then
+    if isSuspended() then
+      return
+    end
+    -- Our own frames hand Blizzard's click handler an encoded player link; the
+    -- plain name is inserted by InsertClickedPlayerName, never from here.
+    if encodedPlayerName(link) ~= nil then
       return
     end
     -- Our URL links only copy their address; they are never inserted.
