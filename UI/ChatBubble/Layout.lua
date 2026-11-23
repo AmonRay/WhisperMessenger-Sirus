@@ -210,6 +210,10 @@ local function layoutMessage(pooledFactory, factory, contentFrame, messages, ind
   bubbleOptions.canReact = options and options.canReact or nil
   bubbleOptions.onReply = options and options.onReply or nil
   bubbleOptions.canReply = options and options.canReply or nil
+  -- "Repeat message" in the bubble's menu needs both of these; without them the
+  -- player's own lines offered no way to send the same text again.
+  bubbleOptions.onResend = options and options.onResend or nil
+  bubbleOptions.canResend = options and options.canResend or nil
   bubbleOptions.onIgnoreSender = options and options.onIgnoreSender or nil
   bubbleOptions.canIgnoreSender = options and options.canIgnoreSender or nil
   bubbleOptions.onQuoteClick = options and options.onQuoteClick or nil
