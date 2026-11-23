@@ -123,6 +123,10 @@ if [[ -n "$TOC_FOREVER" ]]; then
   sed -i "s/^## Interface-Forever: .*/## Interface-Forever: ${TOC_FOREVER}/" WhisperMessenger.toc
 fi
 
+# Sirus (3.3.5a) backport: the 3.3.5a client only understands its own interface
+# number, and the live retail numbers above would mark the addon out of date.
+sed -i "s/^## Interface: .*/## Interface: 30300/" WhisperMessenger.toc
+
 # Update version in TOC
 sed -i "s/^## Version: .*/## Version: ${TAG_VERSION}/" WhisperMessenger.toc
 

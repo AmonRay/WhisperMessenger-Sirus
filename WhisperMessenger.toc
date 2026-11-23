@@ -1,4 +1,4 @@
-## Interface: 120105, 16001
+## Interface: 30300
 ## Title: Whisper Messenger
 ## Notes: Never lose a whisper again. Every whisper in one messenger window with history, online status and unread badges.
 ## Author: F0rty_tw0
