@@ -12,6 +12,18 @@ local LinkClicks = {}
 
 local INLINE_LINK_TEMPLATE = "InlineHyperlinkFrameTemplate"
 
+-- SetScript raises on a widget type the client has no such script for: on
+-- 3.3.5a a plain frame, button or font string has no hyperlink scripts at all.
+-- A link such a surface cannot report is not an error; it just stays inert.
+local function setScriptIfSupported(widget, scriptName, handler)
+  if widget == nil or type(widget.SetScript) ~= "function" then
+    return false
+  end
+  return (pcall(widget.SetScript, widget, scriptName, handler)) == true
+end
+
+LinkClicks.SetScriptIfSupported = setScriptIfSupported
+
 -- Template for a frame that shows links. With InlineHyperlinkFrameTemplate
 -- the game runs its own secure click handler; flavors without it get
 -- extraTemplate alone (may be nil). The second value says which one it is.
@@ -238,7 +250,7 @@ function LinkClicks.BindClick(frame, onLinkClick)
     return
   end
 
-  frame:SetScript("OnHyperlinkClick", function(self, link, text, button)
+  setScriptIfSupported(frame, "OnHyperlinkClick", function(self, link, text, button)
     local routed, err = pcall(routeClick, self, link, text, button)
     if onLinkClick then
       onLinkClick()

@@ -6,6 +6,7 @@ end
 local UrlFormatter = ns.UIHyperlinksUrlFormatter or require("WhisperMessenger.UI.Hyperlinks.UrlFormatter")
 local QuestLinkText = ns.QuestLinkText or require("WhisperMessenger.Model.QuestLinkText")
 local LinkClicks = ns.UIHyperlinksLinkClicks or require("WhisperMessenger.UI.Hyperlinks.LinkClicks")
+local setScriptIfSupported = LinkClicks.SetScriptIfSupported
 local ReactionAssets = ns.ChatBubbleReactionAssets or require("WhisperMessenger.UI.ChatBubble.ReactionAssets")
 local PlayerLinkCodec = ns.UIHyperlinksPlayerLinkCodec or require("WhisperMessenger.UI.Hyperlinks.PlayerLinkCodec")
 
@@ -173,20 +174,15 @@ function Hyperlinks.EnableOn(frame, onLinkClick)
   if frame.SetHyperlinksEnabled then
     frame:SetHyperlinksEnabled(true)
   end
-  frame:SetScript("OnHyperlinkEnter", function(self, link)
+  -- Wrath has no hyperlink scripts on plain frames: its links stay inert there
+  -- instead of stopping the window from building.
+  setScriptIfSupported(frame, "OnHyperlinkEnter", function(self, link)
     Hyperlinks.HandleEnter(self, link)
   end)
-  frame:SetScript("OnHyperlinkLeave", function()
+  setScriptIfSupported(frame, "OnHyperlinkLeave", function()
     Hyperlinks.HandleLeave()
   end)
   LinkClicks.BindClick(frame, onLinkClick)
-end
-
-local function setScriptIfSupported(widget, scriptName, handler)
-  if widget == nil or type(widget.SetScript) ~= "function" then
-    return false
-  end
-  return (pcall(widget.SetScript, widget, scriptName, handler))
 end
 
 Hyperlinks.SetScriptIfSupported = setScriptIfSupported
