@@ -1,7 +1,9 @@
 name: Sirus release
 
 # Every change of "## Version:" in WhisperMessenger.toc pushed to master =
-# a new GitHub Release v<version> with WhisperMessenger-<version>-sirus.zip.
+# a GitHub Release v<version> with WhisperMessenger-<version>-sirus.zip.
+# An existing release for the same version is updated in place, so its asset
+# URL stays stable for the launcher and for players who already have the link.
 # The archive holds a single WhisperMessenger/ folder for Interface/AddOns.
 # Self-contained: no tests, no lint, no secrets, no third-party actions
 # (only actions/checkout, the preinstalled zip and the gh CLI).
@@ -41,8 +43,10 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::notice::Release ${TAG} already exists - recreating it from this commit."
-            gh release delete "$TAG" --cleanup-tag --yes
+            echo "::notice::Release ${TAG} already exists - updating its asset in place."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
@@ -83,8 +87,15 @@ jobs:
             echo
             echo "Unpack into \`World of Warcraft/Interface/AddOns\` - the archive contains a single \`WhisperMessenger\` folder."
           } >> release-notes.md
-          gh release create "$TAG" "${{ steps.pkg.outputs.zip_path }}" \
-            --target "${{ github.sha }}" \
-            --title "WhisperMessenger ${TAG} (Sirus)" \
-            --notes-file release-notes.md \
-            --latest
+          if [ "${{ steps.ver.outputs.exists }}" = "true" ]; then
+            gh release upload "$TAG" "${{ steps.pkg.outputs.zip_path }}" --clobber
+            gh release edit "$TAG" \
+              --title "WhisperMessenger ${TAG} (Sirus)" \
+              --notes-file release-notes.md
+          else
+            gh release create "$TAG" "${{ steps.pkg.outputs.zip_path }}" \
+              --target "${{ github.sha }}" \
+              --title "WhisperMessenger ${TAG} (Sirus)" \
+              --notes-file release-notes.md \
+              --latest
+          fi
