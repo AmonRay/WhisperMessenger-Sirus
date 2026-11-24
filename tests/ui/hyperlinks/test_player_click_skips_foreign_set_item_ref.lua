@@ -9,11 +9,15 @@ local LinkClicks = require("WhisperMessenger.UI.Hyperlinks.LinkClicks")
 local PLAYER_LINK = "player:Thrall:12"
 local ITEM_LINK = "item:6948:0:0:0:0:0:0"
 
-local function newFrame()
-  local factory = FakeUI.NewFactory()
-  local frame = factory.CreateFrame("Frame", nil, nil)
+local function clickLink(link, text)
+  local frame = FakeUI.NewFactory().CreateFrame("Frame", nil, nil)
   frame:EnableMouse(true)
-  return frame
+  LinkClicks.BindClick(frame)
+  frame:GetScript("OnHyperlinkClick")(frame, link, text, "LeftButton")
+end
+
+local function playerText(link)
+  return "|H" .. link .. "|h[Thrall]|h"
 end
 
 -- Installs a SetItemRef that behaves like Leatrix's alt-click wrapper and a
@@ -56,9 +60,7 @@ end
 return function()
   -- test_player_click_never_reaches_a_foreign_set_item_ref
   withStubs({ handler = true }, function(calls)
-    local frame = newFrame()
-    LinkClicks.BindClick(frame)
-    frame:GetScript("OnHyperlinkClick")(frame, PLAYER_LINK, "|H" .. PLAYER_LINK .. "|h[Thrall]|h", "LeftButton")
+    clickLink(PLAYER_LINK, playerText(PLAYER_LINK))
 
     assert(#calls.invite == 0, "alt+click on a player name must never run InviteUnit, got " .. #calls.invite)
     assert(#calls.setItemRef == 0, "a player click must not go through SetItemRef, got " .. tostring(calls.setItemRef[1]))
@@ -68,9 +70,7 @@ return function()
 
   -- test_player_click_does_nothing_without_a_blizzard_handler
   withStubs({ handler = false }, function(calls)
-    local frame = newFrame()
-    LinkClicks.BindClick(frame)
-    frame:GetScript("OnHyperlinkClick")(frame, PLAYER_LINK, "|H" .. PLAYER_LINK .. "|h[Thrall]|h", "LeftButton")
+    clickLink(PLAYER_LINK, playerText(PLAYER_LINK))
 
     assert(#calls.invite == 0, "no InviteUnit without a Blizzard handler either, got " .. #calls.invite)
     assert(#calls.setItemRef == 0, "a player click stays out of SetItemRef, got " .. tostring(calls.setItemRef[1]))
@@ -78,9 +78,7 @@ return function()
 
   -- test_item_click_still_falls_back_to_set_item_ref
   withStubs({ handler = false }, function(calls)
-    local frame = newFrame()
-    LinkClicks.BindClick(frame)
-    frame:GetScript("OnHyperlinkClick")(frame, ITEM_LINK, "|H" .. ITEM_LINK .. "|h[Hearthstone]|h", "LeftButton")
+    clickLink(ITEM_LINK, "|H" .. ITEM_LINK .. "|h[Hearthstone]|h")
 
     assert(#calls.setItemRef == 1, "an item click still needs SetItemRef, got " .. #calls.setItemRef)
     assert(#calls.invite == 0, "an item click is not a player click")

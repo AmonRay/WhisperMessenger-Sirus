@@ -81,6 +81,24 @@ local function copyExternalUrl(url)
   return false
 end
 
+-- Our links carry the player links the addon encodes; the handlers below
+-- want the plain ones. Decoding twice is harmless, so every path can call it.
+local function decodeLink(link, text)
+  link = PlayerLinkCodec.DecodeLink(link)
+  if type(text) == "string" then
+    text = PlayerLinkCodec.DecodeText(text)
+  end
+  return link, text
+end
+
+-- A shift-clicked player name goes straight into the focused composer.
+-- Blizzard's chat handler would also send a /who for it, because none of
+-- Blizzard's chat boxes is open while our composer has focus.
+local function insertClickedPlayerName(link)
+  local linkHooks = resolveLinkHooks()
+  return linkHooks ~= nil and linkHooks.InsertClickedPlayerName(link)
+end
+
 -- Blizzard's own chat link handler, whichever one this flavor has: the 3.3.5a
 -- client has the global ChatFrame_OnHyperlinkShow, later ones the chat frame
 -- mixin. Both take (frame, link, text, button). Anything else (third-party
@@ -134,37 +152,21 @@ end
 function LinkClicks.HandleClick(link, text, button, sourceFrame)
   local externalUrl = UrlFormatter.ExtractExternalUrlFromLink(link)
   if externalUrl ~= nil then
-    if copyExternalUrl(externalUrl) then
-      return true
-    end
-
-    return false
+    return copyExternalUrl(externalUrl)
   end
 
-  link = PlayerLinkCodec.DecodeLink(link)
-  if type(text) == "string" then
-    text = PlayerLinkCodec.DecodeText(text)
-  end
-
-  -- A shift-clicked player name goes straight into the focused composer.
-  -- Blizzard's chat handler would also send a /who for it, because none of
-  -- Blizzard's chat boxes is open while our composer has focus.
-  local linkHooks = resolveLinkHooks()
-  if linkHooks ~= nil and linkHooks.InsertClickedPlayerName(link) then
+  link, text = decodeLink(link, text)
+  if insertClickedPlayerName(link) then
     return true
   end
 
   return handleClickFallback(link, text, button, sourceFrame)
 end
 
+-- Our own frame's click script (see BindClick).
 local function routeClick(frame, link, text, button)
-  link = PlayerLinkCodec.DecodeLink(link)
-  text = PlayerLinkCodec.DecodeText(text)
-
-  -- Our composer has focus: a shift-clicked player name only goes into it.
-  -- Blizzard's handler would also send a /who (none of its chat boxes is open).
-  local linkHooks = resolveLinkHooks()
-  if linkHooks ~= nil and linkHooks.InsertClickedPlayerName(link) then
+  link, text = decodeLink(link, text)
+  if insertClickedPlayerName(link) then
     return
   end
 
