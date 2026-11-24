@@ -8,6 +8,7 @@ local OutgoingDelivery = ns.OutgoingDelivery or require("WhisperMessenger.Model.
 local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 local RosterLookup = ns.RosterLookup or require("WhisperMessenger.Model.RosterLookup")
 local BNetResolver = ns.BNetResolver or require("WhisperMessenger.Transport.BNetResolver")
+local Availability = ns.Availability or require("WhisperMessenger.Transport.Availability")
 
 -- A character whisper to someone offline or nonexistent gets no echo; the
 -- game only prints "No player named '%s' is currently playing.". That line,
@@ -59,6 +60,18 @@ function FailedWhisper.Handle(state, text)
   local sentAt = entry.createdAt or now or 0
   local record = OutgoingDelivery.BuildRecord(entry, sentAt, "failed", "Player not found")
   applyRosterIdentity(state, record)
+  -- The game just said nobody answers to that name, so stop claiming they
+  -- are online. On clients without the whisper check this is the only
+  -- correction a logged-off contact gets.
+  local guid = record.guid or entry.guid
+  if guid ~= nil then
+    state.availabilityByGUID = state.availabilityByGUID or {}
+    local previous = state.availabilityByGUID[guid]
+    state.availabilityByGUID[guid] = Availability.FromStatus("Offline")
+    if (previous == nil or previous.status ~= "Offline") and type(state.onAvailabilityChanged) == "function" then
+      state.onAvailabilityChanged(guid)
+    end
+  end
   Store.AppendOutgoing(state.store, conversationKey, record)
   local conversation = state.store.conversations[conversationKey]
   if conversation then

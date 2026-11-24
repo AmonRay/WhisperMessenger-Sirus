@@ -45,12 +45,9 @@ return function()
     local icon = RowElements.createClassIcon(factory, row, item)
     assert(icon ~= nil, "createClassIcon should return an icon table")
     assert(icon.texture ~= nil, "icon should have a texture")
-    assert(icon.texture.texturePath ~= nil, "icon texture should be set for BNet fallback, got: " .. tostring(icon.texture.texturePath))
     assert(
-      string.find(icon.texture.texturePath, "Toast") ~= nil
-        or string.find(icon.texture.texturePath, "bnet") ~= nil
-        or string.find(icon.texture.texturePath, "Chat") ~= nil,
-      "icon texture should be bnet icon, got: " .. tostring(icon.texture.texturePath)
+      icon.texture.texturePath == Theme.TEXTURES.unknown_avatar,
+      "icon texture should be the neutral avatar, got: " .. tostring(icon.texture.texturePath)
     )
   end
 

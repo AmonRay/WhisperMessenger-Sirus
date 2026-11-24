@@ -93,7 +93,7 @@ function RowElements.createClassIcon(factory, row, item)
   row.classIconFrame:SetPoint("LEFT", row, "LEFT", Theme.LAYOUT.CONTACT_PADDING, 0)
 
   if not (Theme.ApplyClassIcon and Theme.ApplyClassIcon(row.classIcon, item.classTag)) then
-    row.classIcon:SetTexture(Theme.TEXTURES.bnet_icon)
+    Theme.ApplyFallbackIcon(row.classIcon)
   end
 
   return icon

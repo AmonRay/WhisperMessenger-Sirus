@@ -63,6 +63,7 @@ Theme.LAYOUT = Layout
 Theme.TEXTURES = ThemeTextures.TEXTURES
 Theme.ClassIcon = ThemeTextures.ClassIcon
 Theme.ApplyClassIcon = ThemeTextures.ApplyClassIcon
+Theme.ApplyFallbackIcon = ThemeTextures.ApplyFallbackIcon
 Theme.FactionIcon = ThemeTextures.FactionIcon
 Theme.ChannelIcon = ThemeTextures.ChannelIcon
 Theme.RelationshipTint = ThemeTextures.RelationshipTint

@@ -171,7 +171,7 @@ function HeaderView.Refresh(view, selectedContact, conversation, status)
         applied = Theme.ApplyClassIcon(view.headerClassIcon, selectedContact and selectedContact.classTag)
       end
       if not applied then
-        view.headerClassIcon:SetTexture(Theme.TEXTURES.bnet_icon)
+        Theme.ApplyFallbackIcon(view.headerClassIcon)
       end
     end
     if view.headerClassIconFrame and view.headerClassIconFrame.SetShown then

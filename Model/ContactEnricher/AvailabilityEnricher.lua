@@ -64,8 +64,20 @@ local function isFreshWhoAnswer(item)
 end
 
 function AvailabilityEnricher.EnrichContactsAvailability(contacts, runtime)
+  local now = type(runtime.now) == "function" and runtime.now() or 0
   for _, item in ipairs(contacts) do
-    if item.guid and runtime.availabilityByGUID[item.guid] then
+    local cached = item.guid and runtime.availabilityByGUID[item.guid]
+    local staleProof = cached ~= nil and Availability.IsStaleProof(cached, now)
+    -- A whisper only says the player was there when it went through. On
+    -- clients with no whisper check (3.3.5a) nothing else ever replaced it,
+    -- so a contact who logged off hours ago still showed "Online".
+    if staleProof then
+      runtime.availabilityByGUID[item.guid] = nil
+      cached = nil
+    end
+    local provenByWhisper = cached ~= nil and cached.confirmedByWhisper == true
+    local checkedByGame = cached ~= nil and cached.confirmedByWhisper ~= true
+    if cached then
       WoWStatus.ApplyCached(item, runtime)
     elseif item.guid and item.channel ~= "BN" then
       WoWStatus.ApplyPresenceFallback(item, runtime)
@@ -87,6 +99,18 @@ function AvailabilityEnricher.EnrichContactsAvailability(contacts, runtime)
     if item.channel == "WOW" and (status == nil or status == "Offline") and isFreshWhoAnswer(item) then
       local opposite = isOppositeFaction(item.factionName, runtime.localFaction)
       item.availability = Availability.FromStatus(opposite and "XFaction" or "CanWhisper")
+    end
+    -- The friends list is live presence: a friend who logged off must stop
+    -- showing Online, and one who is still on stays visible. Never overrides
+    -- a fresh whisper or an answer from the game's own whisper check.
+    if item.channel == "WOW" and item.guid and not provenByWhisper and not checkedByGame then
+      local friendOnline = OnlineWatch.ReadOnline(runtime, item)
+      if friendOnline == true then
+        local opposite = isOppositeFaction(item.factionName, runtime.localFaction)
+        item.availability = Availability.FromStatus(opposite and "XFaction" or "CanWhisper")
+      elseif friendOnline == false then
+        item.availability = Availability.FromStatus("Offline")
+      end
     end
     -- WoW contacts with no availability after all checks: default to Offline
     if item.availability == nil and item.channel ~= "BN" then

@@ -10,6 +10,11 @@ local Textures = {
   faction_alliance = "Interface\\ICONS\\PVPCurrency-Honor-Alliance",
   faction_horde = "Interface\\ICONS\\PVPCurrency-Honor-Horde",
   bnet_icon = "Interface\\FriendsFrame\\UI-Toast-ChatInviteIcon",
+  -- Neutral portrait for a contact whose class is not known yet (a fresh
+  -- whisper from a player who is offline, for example). The Battle.net
+  -- toast icon this replaces is a chat bubble meant for Battle.net invites,
+  -- and at avatar size it reads as a blurry blue blob.
+  unknown_avatar = "Interface\\AddOns\\WhisperMessenger\\Media\\avatar_unknown.tga",
   addon_icon = "Interface\\AddOns\\WhisperMessenger\\Media\\icon.tga",
   -- Relationship marks. Guild prefers RelationshipAtlas; this shield, tinted
   -- green via RelationshipTint, is its fallback on clients without the atlas.
@@ -61,6 +66,11 @@ local KNOWN_CLASS_TAGS = {
   EVOKER = true,
 }
 
+-- The shared Wrath class sheet has a 1-2 px cell edge (a border line) around
+-- every class portrait. Cropped edge to edge it showed as a strip down the
+-- left side of each icon; pull the crop in by a few percent of the cell.
+local WRATH_CLASS_ICON_INSET = 0.03
+
 local WRATH_CLASS_ICON_SHEET = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes"
 
 local CLASS_ID_TAGS = {
@@ -101,6 +111,20 @@ local function ClassIcon(classTag)
   return Textures.class_icon_prefix .. tag
 end
 
+--- Paint the neutral avatar. Also resets the texture coordinates: the
+-- previous contact's class icon may have left a crop on the same texture,
+-- which made the fallback look cut off when switching conversations.
+local function ApplyFallbackIcon(texture)
+  if texture == nil or type(texture.SetTexture) ~= "function" then
+    return false
+  end
+  texture:SetTexture(Textures.unknown_avatar)
+  if type(texture.SetTexCoord) == "function" then
+    texture:SetTexCoord(0, 1, 0, 1)
+  end
+  return true
+end
+
 local function ApplyClassIcon(texture, classTag)
   local tag = NormalizeClassTag(classTag)
   if texture == nil or tag == nil then
@@ -110,7 +134,9 @@ local function ApplyClassIcon(texture, classTag)
   if coords and type(texture.SetTexture) == "function" then
     texture:SetTexture(WRATH_CLASS_ICON_SHEET)
     if type(texture.SetTexCoord) == "function" then
-      texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
+      local padX = (coords[2] - coords[1]) * WRATH_CLASS_ICON_INSET
+      local padY = (coords[4] - coords[3]) * WRATH_CLASS_ICON_INSET
+      texture:SetTexCoord(coords[1] + padX, coords[2] - padX, coords[3] + padY, coords[4] - padY)
     end
     return true
   end
@@ -198,6 +224,7 @@ local ThemeTextures = {
   RelationshipAtlas = RelationshipAtlas,
   ClassIcon = ClassIcon,
   ApplyClassIcon = ApplyClassIcon,
+  ApplyFallbackIcon = ApplyFallbackIcon,
   NormalizeClassTag = NormalizeClassTag,
   FactionIcon = FactionIcon,
   ChannelIcon = ChannelIcon,

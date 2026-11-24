@@ -36,12 +36,16 @@ function BubbleIcon.CreateIcon(factory, parent, bubbleFrame, message, direction,
     iconPath = "Interface\\CHATFRAME\\UI-ChatIcon-ArmoryChat"
   else
     classTag = message.classTag or message.senderClassTag or options.fallbackClassTag
-    iconPath = Theme.TEXTURES.bnet_icon
+    iconPath = Theme.TEXTURES.unknown_avatar
   end
 
   if not (classTag and Theme.ApplyClassIcon and Theme.ApplyClassIcon(icon, classTag)) then
     if icon.SetTexture then
       icon:SetTexture(iconPath)
+      -- Reset the crop a previous class icon may have left behind.
+      if icon.SetTexCoord then
+        icon:SetTexCoord(0, 1, 0, 1)
+      end
     end
   end
 

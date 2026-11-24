@@ -42,7 +42,7 @@ function HeaderElements.createClassIcon(factory, headerFrame, selectedContact)
   classIconFrame:SetPoint("LEFT", headerFrame, "LEFT", Theme.LAYOUT.TRANSCRIPT_LEFT_GUTTER, 0)
 
   if not (Theme.ApplyClassIcon and Theme.ApplyClassIcon(classIcon, selectedContact and selectedContact.classTag)) then
-    classIcon:SetTexture(Theme.TEXTURES.bnet_icon)
+    Theme.ApplyFallbackIcon(classIcon)
   end
 
   return { frame = classIconFrame, texture = classIcon }

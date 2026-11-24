@@ -35,15 +35,15 @@ return function()
   assert(bubble2.icon ~= nil, "expected icon on incoming user bubble with fallback")
   assert(bubble2.icon.texturePath == Theme.ClassIcon("MAGE"), "expected class icon from fallbackClassTag, got " .. tostring(bubble2.icon.texturePath))
 
-  -- Bubble WITHOUT classTag and WITHOUT fallback gets bnet icon
+  -- Bubble WITHOUT classTag and WITHOUT fallback gets the neutral avatar
   local bubble3 = BubbleFrame.CreateBubble(factory, parent, msgNoClass, {
     paneWidth = 400,
     showIcon = true,
   })
   assert(bubble3.icon ~= nil, "expected icon on incoming user bubble without class")
-  assert(bubble3.icon.texturePath == Theme.TEXTURES.bnet_icon, "expected bnet fallback icon when no classTag")
+  assert(bubble3.icon.texturePath == Theme.TEXTURES.unknown_avatar, "expected neutral avatar when no classTag")
 
-  -- Unknown class tags return nil so callers fall back to the bnet icon
+  -- Unknown class tags return nil so callers fall back to the neutral avatar
   -- instead of pointing SetTexture at a nonexistent path.
   assert(Theme.ClassIcon("NOTACLASS") == nil, "unknown class tag should resolve to nil")
   assert(Theme.ClassIcon("EVOKER") ~= nil, "every real class token should resolve to an icon path")

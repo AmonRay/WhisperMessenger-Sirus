@@ -60,7 +60,7 @@ end
 
 -- A whisper that went through (either way) outranks the whisper check's
 -- "Offline" for this long.
-local WHISPER_PROOF_SECONDS = 5 * 60
+local WHISPER_PROOF_SECONDS = Availability.PROOF_SECONDS
 
 local function isWhisperProofFresh(confirmed, now)
   return confirmed.confirmedAt ~= nil and now - confirmed.confirmedAt < WHISPER_PROOF_SECONDS

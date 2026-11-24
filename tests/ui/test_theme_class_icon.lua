@@ -35,7 +35,11 @@ return function()
   assert(Textures.ClassIcon("PALADIN") == nil, "expected no per-class file on 3.3.5")
   assert(Textures.ApplyClassIcon(texture, "Paladin") == true, "expected the shared sheet to be applied")
   assert(texture.path == SHEET, "expected the character-create sheet")
-  assert(texture.coords[1] == 0.1 and texture.coords[4] == 0.4, "expected the class crop coordinates")
+  -- The shared sheet has a 1-2 px cell edge that showed as a strip down the
+  -- left side of every class icon, so the crop pulls in a little.
+  assert(texture.coords[1] > 0.1 and texture.coords[2] < 0.2, "expected the crop to skip the left and right cell edges")
+  assert(texture.coords[3] > 0.3 and texture.coords[4] < 0.4, "expected the crop to skip the top and bottom cell edges")
+  assert(texture.coords[1] < 0.105 and texture.coords[4] > 0.395, "expected a small inset, not a big crop")
 
   _G.CLASS_ICON_TCOORDS = nil
   assert(Textures.ApplyClassIcon(texture, "PALADIN") == false, "expected no icon when the client has no class art")

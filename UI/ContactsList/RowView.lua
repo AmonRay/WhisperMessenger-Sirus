@@ -65,7 +65,7 @@ function RowView.IconPath(item)
   else
     iconPath = Theme.ClassIcon(item.classTag)
   end
-  return iconPath or Theme.TEXTURES.bnet_icon
+  return iconPath or Theme.TEXTURES.unknown_avatar
 end
 
 local function bindRow(factory, parent, row, index, item, options)
@@ -125,7 +125,7 @@ local function bindRow(factory, parent, row, index, item, options)
         row.classIcon:SetTexCoord(0, 1, 0, 1)
       end
     elseif not (Theme.ApplyClassIcon and Theme.ApplyClassIcon(row.classIcon, item.classTag)) then
-      row.classIcon:SetTexture(Theme.TEXTURES.bnet_icon)
+      Theme.ApplyFallbackIcon(row.classIcon)
     end
   end
 

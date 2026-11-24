@@ -68,6 +68,24 @@ end
 -- these (same as Blizzard chat); clicking still routes through SetItemRef.
 local NO_HOVER_TOOLTIP_TYPES = { trade = true, journal = true }
 
+-- Link types that belong to another addon's group finder and have no
+-- Blizzard tooltip. Hovering one used to show its raw wire text
+-- ("lfglist:4420:1326") in place of a tooltip, which reads as broken.
+local NO_HOVER_TOOLTIP_PREFIXES = { "lfg" }
+
+local function hasNoTooltip(linkType)
+  local key = string.lower(linkType)
+  if NO_HOVER_TOOLTIP_TYPES[key] then
+    return true
+  end
+  for _, prefix in ipairs(NO_HOVER_TOOLTIP_PREFIXES) do
+    if string.sub(key, 1, #prefix) == prefix then
+      return true
+    end
+  end
+  return false
+end
+
 local Hyperlinks = {}
 
 -- senderName (optional): author of the text, used to gate personal emojis.
@@ -114,7 +132,7 @@ function Hyperlinks.HandleEnter(owner, link)
   if type(link) == "string" then
     link = PlayerLinkCodec.DecodeLink(link)
     local linkType = string.match(link, "^|H([^:|]+):") or string.match(link, "^([^:|]+):")
-    if linkType and NO_HOVER_TOOLTIP_TYPES[string.lower(linkType)] then
+    if linkType and hasNoTooltip(linkType) then
       return
     end
   end
@@ -147,11 +165,10 @@ function Hyperlinks.HandleEnter(owner, link)
     end
   end
 
-  if type(tooltip.SetText) == "function" then
-    tooltip:SetText(tostring(link or ""))
-  end
-  if type(tooltip.Show) == "function" then
-    tooltip:Show()
+  -- The client could not render this link, so there is no tooltip to show.
+  -- Printing the raw link ("customgroupfinder:4420:1326") only looks broken.
+  if type(tooltip.Hide) == "function" then
+    tooltip:Hide()
   end
 end
 

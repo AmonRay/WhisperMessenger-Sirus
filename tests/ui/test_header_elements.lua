@@ -37,15 +37,15 @@ return function()
     assert(string.find(path, "ClassIcon_WARRIOR", 1, true) ~= nil, "known class should use its class icon, got: " .. path)
   end
 
-  -- test_create_class_icon_without_class_uses_bnet
+  -- test_create_class_icon_without_class_uses_neutral_avatar
   do
     local headerFrame = HeaderElements.createHeaderFrame(factory, pane, 56)
     local result = HeaderElements.createClassIcon(factory, headerFrame, nil)
     assert(result ~= nil, "createClassIcon should return a result table for nil contact")
     assert(result.texture ~= nil, "result should have a texture")
     assert(
-      result.texture.texturePath == Theme.TEXTURES.bnet_icon,
-      "no class should fall back to the Battle.net icon, got: " .. tostring(result.texture.texturePath)
+      result.texture.texturePath == Theme.TEXTURES.unknown_avatar,
+      "no class should fall back to the neutral avatar, got: " .. tostring(result.texture.texturePath)
     )
   end
 

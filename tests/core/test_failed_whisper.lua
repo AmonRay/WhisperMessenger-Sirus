@@ -71,6 +71,24 @@ return function()
     assert(state.pendingOutgoing[key] == nil, "pending consumed")
   end
 
+  -- test_failed_send_marks_the_contact_offline
+  -- The game just said the player is not there, so the contact must stop
+  -- showing "Online" even when the whisper check never answers (3.3.5a).
+  do
+    local state = newState()
+    state.availabilityByGUID = {
+      ["Player-1"] = { status = "CanWhisper", canWhisper = true, confirmedByWhisper = true, confirmedAt = 90 },
+    }
+    local changed = {}
+    state.onAvailabilityChanged = function(guid)
+      changed[#changed + 1] = guid
+    end
+    recordSend(state, "hello")
+    Router.HandleEvent(state, "CHAT_MSG_SYSTEM", { text = string.format(TEMPLATE, "Thrall-Nagrand") })
+    assert(state.availabilityByGUID["Player-1"].status == "Offline", "a failed send means the player is offline")
+    assert(changed[1] == "Player-1", "the window is told the status changed")
+  end
+
   -- test_other_system_lines_change_nothing
   do
     local state = newState()

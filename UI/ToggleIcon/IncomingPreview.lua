@@ -158,7 +158,7 @@ function IncomingPreview.Create(factory, frame, options)
     detailRow.render(detail)
 
     if not (theme.ApplyClassIcon and theme.ApplyClassIcon(previewClassIcon, classTag)) then
-      previewClassIcon:SetTexture(theme.TEXTURES.bnet_icon)
+      theme.ApplyFallbackIcon(previewClassIcon)
     end
     previewClassIconFrame:Show()
 

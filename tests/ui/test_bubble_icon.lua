@@ -30,7 +30,10 @@ return function()
     local msg = { direction = "in" }
     local result = BubbleIcon.CreateIcon(factory, parent, bubbleFrame, msg, "in", {})
     assert(result ~= nil, "expected result")
-    assert(result.texture.texturePath == Theme.TEXTURES.bnet_icon, "expected bnet_icon fallback, got " .. tostring(result.texture.texturePath))
+    assert(
+      result.texture.texturePath == Theme.TEXTURES.unknown_avatar,
+      "expected neutral avatar fallback, got " .. tostring(result.texture.texturePath)
+    )
   end
 
   -- test_creates_icon_for_incoming_with_fallback_class_tag
