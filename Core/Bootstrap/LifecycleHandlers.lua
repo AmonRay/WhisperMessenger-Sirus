@@ -26,16 +26,16 @@ function LifecycleHandlers.SyncInstancePolicy(Bootstrap, deps)
   end
   deps = deps or {}
   local enabled = RestrictedActions.BlockChatInInstances(runtime)
+  -- With the policy off the flags the game's own events set stay untouched
+  -- (ChallengeMode owns mythic, encounter/PvP own theirs): they no longer
+  -- answer the runtime checks, but a later flag reader must not see them
+  -- cleared.
   if enabled then
     local detector = deps.getContentDetector and deps.getContentDetector() or ns.ContentDetector
     Bootstrap._inMythicContent = RestrictedActions.IsMythicLockdown(runtime) or (detector ~= nil and detector.IsMythicRestricted(_G.GetInstanceInfo))
     if detector then
       Bootstrap._inCompetitiveContent = detector.IsCompetitiveContent(_G.GetInstanceInfo)
     end
-  else
-    -- Keep the flags the game's own events set (ChallengeMode owns mythic,
-    -- encounter/PvP own theirs): with the policy off they no longer answer
-    -- the runtime checks, but a later flag reader must not see them cleared.
   end
   -- The game's restriction event path suspends on its own; only the Sirus
   -- instance detection suspends here when nothing else did.

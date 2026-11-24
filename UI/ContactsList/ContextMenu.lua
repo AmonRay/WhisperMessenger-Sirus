@@ -12,7 +12,6 @@ local SectionEntries = ns.ContactsListSectionEntries or require("WhisperMessenge
 local LegacyMenu = ns.ContactsListLegacyMenu or require("WhisperMessenger.UI.ContactsList.LegacyMenu")
 
 local ExportMenuEntry = MenuEntries.Export
-local NotifyMenuEntries = MenuEntries.Notify
 local AddFriendMenuEntry = MenuEntries.AddFriend
 local BlockMenuEntry = MenuEntries.Block
 local ProfileLinksMenuEntry = MenuEntries.ProfileLinks

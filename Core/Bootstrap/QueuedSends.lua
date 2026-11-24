@@ -77,7 +77,7 @@ end
 
 -- Sends a sent message's text again as a new message; the original stays in
 -- history. `send` is the window's send path (group routing included).
-function QueuedSends.Repeat(runtime, conversationKey, message, send)
+function QueuedSends.Repeat(_runtime, conversationKey, message, send)
   if type(message) ~= "table" or conversationKey == nil or type(send) ~= "function" then
     return false
   end

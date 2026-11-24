@@ -12,7 +12,6 @@ local function L(key)
   return Localization.Text(key)
 end
 
-local RestrictedActions = ns.BootstrapRestrictedActions or require("WhisperMessenger.Core.Bootstrap.RestrictedActions")
 local MythicSuspendController = {}
 local DEFAULT_MYTHIC_PAUSE_NOTICE_KEY = "Messages are paused in Mythic content and will resume after you leave."
 

@@ -12,10 +12,10 @@ return function()
   local capturedOptions, capturedMessage
 
   -- A bubble that only records what the layout passed in.
-  BubbleFrame.CreateBubble = function(_factory, _parent, message, options)
+  BubbleFrame.CreateBubble = function(factory, parent, message, options)
     capturedMessage = message
     capturedOptions = options
-    return { frame = _factory.CreateFrame("Frame", nil, _parent), height = 18, message = message }
+    return { frame = factory.CreateFrame("Frame", nil, parent), height = 18, message = message }
   end
 
   local ok, err = pcall(function()

@@ -246,6 +246,9 @@ function SendHandler.HandleSend(runtime, payload, refreshWindow)
   end
   runtime.sendStatusByConversation[payload.conversationKey] = nil
 
+  -- The text as typed (with its |H...|h links) for history and the copy
+  -- dialog; the wire text below is serialized for the Classic protocol.
+  local richText
   local reactionControl = type(payload.reactionControl) == "table" and payload.reactionControl or nil
   if reactionControl then
     local operation = reactionControl.operation or {}
@@ -262,9 +265,6 @@ function SendHandler.HandleSend(runtime, payload, refreshWindow)
 
   local wireId
   local reactionAddonPayload
-  -- Keep the text as typed (with its |H...|h links) for history and the copy
-  -- dialog; the wire text below is serialized for the Classic protocol.
-  local richText
   if reactionControl then
     local operation = reactionControl.operation or {}
     reactionAddonPayload = MessageReactionProtocol.EncodeReaction(
