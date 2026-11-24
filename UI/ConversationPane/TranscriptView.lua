@@ -10,11 +10,13 @@ local Virtualization = ns.ConversationPaneTranscriptVirtualization or require("W
 local MessageReplies = ns.MessageReplies or require("WhisperMessenger.Model.MessageReplies")
 local TranscriptRows = ns.ConversationPaneTranscriptRows or require("WhisperMessenger.UI.ConversationPane.TranscriptRows")
 local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
+local WrathTimer = ns.WrathCompatTimer or require("WhisperMessenger.Core.WrathCompat.Timer")
 local sizeValue = UIHelpers.sizeValue
 
 local TranscriptView = {}
 
 local TRANSCRIPT_LINE_HEIGHT = 16
+local PENDING_RENDER_ATTEMPTS = 8
 TranscriptView.TRANSCRIPT_SCROLL_STEP = 24
 -- Render option that re-lays-out every bubble. Shared, never mutated.
 TranscriptView.FORCE_RENDER = { force = true }
@@ -112,6 +114,54 @@ local function updateLines(transcript, messages, useHyperlinks)
   return lines
 end
 
+-- A chat can be rendered before 3.3.5a has given its scroll frame a real
+-- width (the pane opens or a contact is picked mid-layout). Such a render is
+-- deferred; retry for a few frames so the history appears on its own instead
+-- of waiting for the first wheel or scrollbar event.
+local function schedulePendingRender(transcript)
+  if transcript._renderRetryPending then
+    return
+  end
+  local function attempt(remaining)
+    if transcript._renderPendingWidth ~= true then
+      transcript._renderRetryPending = nil
+      return
+    end
+    local scrollFrame = transcript.scrollFrame
+    if scrollFrame and scrollFrame.GetWidth and scrollFrame:GetWidth() > 0 then
+      transcript._renderRetryPending = nil
+      TranscriptView.RenderTranscript(transcript, transcript._allMessages)
+      return
+    end
+    if remaining <= 0 then
+      transcript._renderRetryPending = nil
+      return
+    end
+    WrathTimer.AfterOn(_G.C_Timer, 0, function()
+      attempt(remaining - 1)
+    end)
+  end
+  transcript._renderRetryPending = true
+  WrathTimer.AfterOn(_G.C_Timer, 0, function()
+    attempt(PENDING_RENDER_ATTEMPTS)
+  end)
+end
+
+-- 3.3.5a can reject SetVerticalScroll until the native scroll child rect has
+-- settled, leaving the bubbles bound near the bottom while the view still
+-- shows offset 0 (an empty pane above existing history). One refresh on the
+-- next frame rebinds whatever offset the client actually kept.
+local function scheduleViewportRefresh(transcript)
+  if transcript._viewportRefreshPending then
+    return
+  end
+  transcript._viewportRefreshPending = true
+  WrathTimer.AfterOn(_G.C_Timer, 0, function()
+    transcript._viewportRefreshPending = nil
+    TranscriptView.RefreshViewport(transcript)
+  end)
+end
+
 local function updateVisibleLegacyText(transcript)
   if transcript.text == nil then
     return
@@ -196,9 +246,11 @@ function TranscriptView.RenderTranscript(transcript, messages, renderOptions)
   local scrollFrame = transcript.scrollFrame
   if scrollFrame and scrollFrame.GetWidth and scrollFrame:GetWidth() <= 0 then
     transcript._renderPendingWidth = true
+    schedulePendingRender(transcript)
     return lines
   end
   transcript._renderPendingWidth = nil
+  transcript._renderRetryPending = nil
   local paneWidth = sizeValue(scrollFrame, "GetWidth", "width", 400)
   local _, _, _, relaidOut = Virtualization.Render(transcript, allMessages, paneWidth, layoutOptions(transcript), renderOptions)
   if relaidOut then
@@ -211,6 +263,7 @@ function TranscriptView.RenderTranscript(transcript, messages, renderOptions)
   transcript.point = pointValue(transcript.scrollFrame, transcript.point)
   transcript.width = sizeValue(transcript.scrollFrame, "GetWidth", "width", transcript.width or 0)
   transcript.height = sizeValue(transcript.scrollFrame, "GetHeight", "height", transcript.height or 0)
+  scheduleViewportRefresh(transcript)
   return lines
 end
 

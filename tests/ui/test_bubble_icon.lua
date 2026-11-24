@@ -47,17 +47,20 @@ return function()
     )
   end
 
-  -- test_creates_icon_for_outgoing (no UnitClass in stub, falls back to armory)
+  -- test_creates_icon_for_outgoing (no UnitClass in stub, falls back to neutral)
   do
     local bubbleFrame = makeBubbleFrame()
     local msg = { direction = "out" }
-    -- _G.UnitClass is not set in fake env, so falls back to armory icon
     _G.UnitClass = nil
     local result = BubbleIcon.CreateIcon(factory, parent, bubbleFrame, msg, "out", {})
     assert(result ~= nil, "expected result for outgoing")
     assert(
-      result.texture.texturePath == "Interface\\CHATFRAME\\UI-ChatIcon-ArmoryChat",
-      "expected armory fallback for outgoing, got " .. tostring(result.texture.texturePath)
+      result.texture.texturePath == Theme.TEXTURES.unknown_avatar,
+      "expected the neutral avatar instead of the chat icon sheet, got " .. tostring(result.texture.texturePath)
+    )
+    assert(
+      result.texture.coords == nil or (result.texture.coords[1] == 0 and result.texture.coords[4] == 1),
+      "expected the fallback to reset a stale class-icon crop"
     )
   end
 

@@ -33,7 +33,9 @@ function BubbleIcon.CreateIcon(factory, parent, bubbleFrame, message, direction,
       local _, englishClass, _, playerTag = _G.UnitClass("player")
       classTag = playerTag or englishClass
     end
-    iconPath = "Interface\\CHATFRAME\\UI-ChatIcon-ArmoryChat"
+    -- Not the ArmoryChat icon: on 3.3.5a that file is a sheet of chat icons
+    -- and renders as a grid when no crop is applied.
+    iconPath = Theme.TEXTURES.unknown_avatar
   else
     classTag = message.classTag or message.senderClassTag or options.fallbackClassTag
     iconPath = Theme.TEXTURES.unknown_avatar

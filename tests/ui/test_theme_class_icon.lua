@@ -30,6 +30,19 @@ return function()
   assert(texture.path == Textures.TEXTURES.class_icon_prefix .. "PALADIN", "expected the per-class file on modern clients")
   assert(texture.coords[1] == 0 and texture.coords[4] == 1, "expected full texture coordinates")
 
+  -- A 3.3.5a client still exposes CLASS_ICON_TCOORDS even when its build info
+  -- does not identify it as Wrath. The shared sheet must win there too.
+  _G.CLASS_ICON_TCOORDS = { PALADIN = { 0.1, 0.2, 0.3, 0.4 } }
+  assert(Textures.ApplyClassIcon(texture, "Paladin") == true, "expected the sheet from its coordinates")
+  assert(texture.path == SHEET, "expected the character-create sheet whenever class coordinates exist")
+  assert(texture.coords[1] > 0.1 and texture.coords[2] < 0.2, "expected the sheet crop from its coordinates")
+
+  -- Russian clients can hand back the localized class name.
+  _G.LOCALIZED_CLASS_NAMES_MALE = { PALADIN = "Паладин" }
+  assert(Textures.NormalizeClassTag("Паладин") == "PALADIN", "expected a localized class name to map to its token")
+  _G.LOCALIZED_CLASS_NAMES_MALE = nil
+  _G.CLASS_ICON_TCOORDS = nil
+
   FlavorCompat.isWrath335 = true
   _G.CLASS_ICON_TCOORDS = { PALADIN = { 0.1, 0.2, 0.3, 0.4 } }
   assert(Textures.ClassIcon("PALADIN") == nil, "expected no per-class file on 3.3.5")

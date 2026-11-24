@@ -71,6 +71,22 @@ return function()
     assert(enrich(staleRuntime(1000, { friendListApi = friendListApi })) == "CanWhisper", "a connected character friend is still online")
   end
 
+  -- test_failed_send_offline_does_not_hide_a_connected_friend
+  do
+    PresenceCache._reset()
+    PresenceCache._setCache({})
+    local runtime = staleRuntime(1000)
+    -- A failed send stores a bare Offline. It is not an answer from the
+    -- whisper check, so the friends list must still be able to correct it.
+    runtime.availabilityByGUID[GUID] = Availability.FromStatus("Offline")
+    runtime.friendListApi = {
+      GetFriendInfo = function(name)
+        return name == "Klera-Realm" and { connected = true } or nil
+      end,
+    }
+    assert(enrich(runtime) == "CanWhisper", "a failed send must not outrank the live friends list")
+  end
+
   -- test_friend_offline_turns_an_expired_whisper_proof_offline
   do
     PresenceCache._reset()

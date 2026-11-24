@@ -391,5 +391,6 @@ return function()
     })
     local avail = state.availabilityByGUID["Player-1084-0ABC0003"]
     assert(avail and avail.status == "CanWhisper", "availability should still be cached without a hook")
+    assert(avail.confirmedByGame == true, "the whisper check answer must be marked as confirmed by the game")
   end
 end

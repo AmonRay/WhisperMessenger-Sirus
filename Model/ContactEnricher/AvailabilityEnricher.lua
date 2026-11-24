@@ -76,7 +76,10 @@ function AvailabilityEnricher.EnrichContactsAvailability(contacts, runtime)
       cached = nil
     end
     local provenByWhisper = cached ~= nil and cached.confirmedByWhisper == true
-    local checkedByGame = cached ~= nil and cached.confirmedByWhisper ~= true
+    -- Only the game's whisper check is authoritative here. An Offline left by
+    -- a failed send used to count as "checked by game" and hid a friend who
+    -- was demonstrably online in the friends list.
+    local checkedByGame = cached ~= nil and cached.confirmedByGame == true
     if cached then
       WoWStatus.ApplyCached(item, runtime)
     elseif item.guid and item.channel ~= "BN" then

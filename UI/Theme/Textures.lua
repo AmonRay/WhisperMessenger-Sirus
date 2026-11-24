@@ -86,6 +86,24 @@ local CLASS_ID_TAGS = {
   [11] = "DRUID",
 }
 
+local function localizedClassTag(value)
+  local raw = string.upper(value)
+  local compact = string.gsub(raw, "[%s%-]", "")
+  for _, names in ipairs({ _G.LOCALIZED_CLASS_NAMES_MALE, _G.LOCALIZED_CLASS_NAMES_FEMALE }) do
+    if type(names) == "table" then
+      for tag, localized in pairs(names) do
+        if type(localized) == "string" then
+          local localizedRaw = string.upper(localized)
+          if localizedRaw == raw or string.gsub(localizedRaw, "[%s%-]", "") == compact then
+            return tag
+          end
+        end
+      end
+    end
+  end
+  return nil
+end
+
 local function NormalizeClassTag(value)
   if type(value) == "number" then
     return CLASS_ID_TAGS[value]
@@ -97,7 +115,8 @@ local function NormalizeClassTag(value)
   if KNOWN_CLASS_TAGS[tag] then
     return tag
   end
-  return nil
+  -- A Russian client names the class "Друид" or "Рыцарь смерти".
+  return localizedClassTag(value)
 end
 
 local function ClassIcon(classTag)
@@ -130,7 +149,10 @@ local function ApplyClassIcon(texture, classTag)
   if texture == nil or tag == nil then
     return false
   end
-  local coords = FlavorCompat.isWrath335 and _G.CLASS_ICON_TCOORDS and _G.CLASS_ICON_TCOORDS[tag]
+  -- The client exposing class coordinates is enough, even when its build info
+  -- does not identify it as Wrath: there the per-class files are absent and
+  -- only the shared sheet exists.
+  local coords = _G.CLASS_ICON_TCOORDS and _G.CLASS_ICON_TCOORDS[tag]
   if coords and type(texture.SetTexture) == "function" then
     texture:SetTexture(WRATH_CLASS_ICON_SHEET)
     if type(texture.SetTexCoord) == "function" then

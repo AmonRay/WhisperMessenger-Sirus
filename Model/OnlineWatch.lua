@@ -45,6 +45,14 @@ local function friendInfo(api, name)
       ok, info = pcall(api.GetFriendInfo, short)
     end
   end
+  -- Ambiguate leaves the realm on for another realm's player, but the 3.3.5a
+  -- friends list stores the bare character name.
+  if not (ok and type(info) == "table") then
+    local bare = type(name) == "string" and string.match(name, "^[^-]+") or nil
+    if bare ~= nil and bare ~= name and bare ~= Identity.ShortName(name) then
+      ok, info = pcall(api.GetFriendInfo, bare)
+    end
+  end
   return (ok and type(info) == "table") and info or nil
 end
 

@@ -36,6 +36,9 @@ local function handleAvailabilityResponse(state, payload)
 
   local avail = Availability.FromStatus(payload.status)
   avail.rawStatus = payload.rawStatus
+  -- Marks an answer from the game's own whisper check. Unlike a failed send,
+  -- this is authoritative enough to outrank the friends list.
+  avail.confirmedByGame = true
   -- A whisper exchange proves reachability, so keep it over the ambiguous
   -- WrongFaction, and over Offline for WHISPER_PROOF_SECONDS after the
   -- whisper. A guild/community roster showing them offline always wins.
