@@ -6,6 +6,7 @@ end
 local OutgoingDelivery = ns.OutgoingDelivery or require("WhisperMessenger.Model.OutgoingDelivery")
 local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
 local ChatPrint = ns.ChatPrint or require("WhisperMessenger.Util.ChatPrint")
+local Store = ns.ConversationStore or require("WhisperMessenger.Model.ConversationStore")
 
 -- Messages written during chat lockdown wait in history as "queued". They
 -- are only ever sent by a Send now click after the lock lifts.
@@ -41,15 +42,20 @@ function QueuedSends.OnLockStateChanged(runtime)
   return true
 end
 
-local function payloadFor(conversationKey, message)
+-- A sent line is compacted after storing: the chat keeps the recipient, not
+-- the line. Fall back to the conversation so Retry/Repeat still know where
+-- to send after a relog.
+local function payloadFor(runtime, conversationKey, message)
+  local conversation = Store.Find(runtime and runtime.store or nil, conversationKey)
+  local displayName = message.playerName or (conversation and conversation.displayName) or message.target
   return {
     conversationKey = conversationKey,
-    target = message.target or message.playerName,
-    displayName = message.playerName or message.target,
+    target = message.target or displayName,
+    displayName = displayName,
     channel = message.channel,
-    bnetAccountID = message.bnetAccountID,
-    guid = message.guid,
-    gameAccountName = message.gameAccountName,
+    bnetAccountID = message.bnetAccountID or (conversation and conversation.bnetAccountID),
+    guid = message.guid or (conversation and conversation.guid),
+    gameAccountName = message.gameAccountName or (conversation and conversation.gameAccountName),
     text = message.text,
     replyTo = message.replyTo,
   }
@@ -57,7 +63,11 @@ end
 
 -- Sends an unsent message's original text to its original target.
 local function resend(runtime, conversationKey, message, sendHandler, refreshWindow)
-  local payload = payloadFor(conversationKey, message)
+  local payload = payloadFor(runtime, conversationKey, message)
+  if (payload.channel == nil or payload.channel == "WOW") and (payload.target == nil or payload.target == "") then
+    refreshWindow()
+    return false
+  end
   local sent = sendHandler.HandleSend(runtime, payload, refreshWindow)
   -- A new failed record replaces this one; otherwise it stays queued.
   if sent or payload.deliveryRecorded then
@@ -77,14 +87,18 @@ end
 
 -- Sends a sent message's text again as a new message; the original stays in
 -- history. `send` is the window's send path (group routing included).
-function QueuedSends.Repeat(_runtime, conversationKey, message, send)
+function QueuedSends.Repeat(runtime, conversationKey, message, send)
   if type(message) ~= "table" or conversationKey == nil or type(send) ~= "function" then
     return false
   end
   if type(message.text) ~= "string" or message.text == "" then
     return false
   end
-  return send(payloadFor(conversationKey, message)) == true
+  local payload = payloadFor(runtime, conversationKey, message)
+  if (payload.channel == nil or payload.channel == "WOW") and (payload.target == nil or payload.target == "") then
+    return false
+  end
+  return send(payload) == true
 end
 
 -- action: "send_now" | "discard" | "retry". Retry sends a failed message

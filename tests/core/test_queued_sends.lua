@@ -130,6 +130,53 @@ return function()
     assert(conversation.draft == "brb", "typed text untouched")
   end
 
+  -- test_retry_after_relog_uses_the_conversation_target
+  -- A sent line is stored compacted: no playerName, and older saves have no
+  -- target either. Retry must still whisper the chat's recipient instead of
+  -- sending an empty target (the game then raises "missing target player").
+  do
+    local runtime, _, failed = newRuntime()
+    failed.playerName = nil
+    failed.target = nil
+    failed.guid = nil
+    runtime.store.conversations[KEY].displayName = "Thrall"
+    runtime.store.conversations[KEY].guid = "Player-1"
+    local calls = {}
+    assert(QueuedSends.HandleAction(runtime, KEY, failed, "retry", fakeSendHandler(true, calls), refresh) == true, "retried")
+    assert(#calls == 1 and calls[1].target == "Thrall", "falls back to the chat's recipient")
+    assert(calls[1].guid == "Player-1", "chat identity travels with it")
+  end
+
+  -- test_repeat_after_relog_uses_the_conversation_target
+  do
+    local runtime, _, failed = newRuntime()
+    failed.delivery = nil
+    failed.playerName = nil
+    failed.target = nil
+    runtime.store.conversations[KEY].displayName = "Thrall"
+    local calls = {}
+    local sent = QueuedSends.Repeat(runtime, KEY, failed, function(payload)
+      calls[#calls + 1] = payload
+      return true
+    end)
+    assert(sent == true and #calls == 1 and calls[1].target == "Thrall", "repeat finds the recipient")
+  end
+
+  -- test_repeat_without_any_target_does_not_call_the_chat
+  do
+    local runtime, _, failed = newRuntime()
+    failed.delivery = nil
+    failed.playerName = nil
+    failed.target = nil
+    runtime.store.conversations[KEY].displayName = nil
+    local calls = {}
+    assert(QueuedSends.Repeat(runtime, KEY, failed, function(payload)
+      calls[#calls + 1] = payload
+      return true
+    end) == false, "no target, no send")
+    assert(#calls == 0, "the game is never asked to whisper nobody")
+  end
+
   -- test_retry_that_cannot_send_keeps_the_message
   do
     local runtime, _, failed, conversation = newRuntime()

@@ -19,6 +19,11 @@ local DEFINITIONS = {
     texture = MEDIA .. "emoji_clown.tga",
     owners = { "Рэйнбоу", "Реинбоу", "Рэинбоу", "Рейнбоу" },
   },
+  {
+    key = "poop",
+    texture = MEDIA .. "emoji_poop.tga",
+    owners = { "Рэйнбоу", "Реинбоу", "Рэинбоу", "Рейнбоу" },
+  },
 }
 
 local byKey = {}

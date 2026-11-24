@@ -42,6 +42,9 @@ function MessageMetadata.Compact(message, conversation)
   if message.direction == "out" then
     -- The recipient and channel are the conversation's; a sent line shows
     -- only the character that sent it.
+    -- "Repeat message" still needs to know where to send it after a relog, so
+    -- the recipient moves into `target` before the sender fields go away.
+    message.target = message.target or message.playerName
     message.playerName = nil
     message.classTag = nil
     message.channel = nil

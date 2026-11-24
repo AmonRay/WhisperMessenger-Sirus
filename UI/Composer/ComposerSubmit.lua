@@ -12,6 +12,8 @@ local ComposerSubmit = {}
 -- parts: input, replies, limit, sendFocus, selectedContact, onSend,
 -- onDraftChanged, isDisabled(), afterClear() (runs once the input is cleared,
 -- since SetText alone may not fire OnTextChanged).
+-- Returns submit(), which sends the composer's text, and sendText(text),
+-- which sends a given line (a quick reply) and leaves the draft alone.
 function ComposerSubmit.Create(parts)
   local input, selectedContact = parts.input, parts.selectedContact
 
@@ -24,6 +26,30 @@ function ComposerSubmit.Create(parts)
     end
     parts.sendFocus.afterSend()
     parts.afterClear()
+  end
+
+  local function sendText(text)
+    if parts.isDisabled() then
+      return false
+    end
+    if type(text) ~= "string" or text == "" then
+      return false
+    end
+
+    local accepted = parts.onSend({
+      conversationKey = selectedContact.conversationKey,
+      target = selectedContact.displayName,
+      displayName = selectedContact.displayName,
+      channel = selectedContact.channel,
+      bnetAccountID = selectedContact.bnetAccountID,
+      conversationID = selectedContact.conversationID,
+      guid = selectedContact.guid,
+      gameAccountName = selectedContact.gameAccountName,
+      text = text,
+      replyTo = parts.replies.current(),
+    })
+
+    return accepted ~= false
   end
 
   return function()
@@ -45,23 +71,11 @@ function ComposerSubmit.Create(parts)
       return
     end
 
-    local accepted = parts.onSend({
-      conversationKey = selectedContact.conversationKey,
-      target = selectedContact.displayName,
-      displayName = selectedContact.displayName,
-      channel = selectedContact.channel,
-      bnetAccountID = selectedContact.bnetAccountID,
-      conversationID = selectedContact.conversationID,
-      guid = selectedContact.guid,
-      gameAccountName = selectedContact.gameAccountName,
-      text = text,
-      replyTo = parts.replies.current(),
-    })
-
-    if accepted ~= false then
+    if sendText(text) then
       clearAfterSend()
     end
-  end
+  end,
+    sendText
 end
 
 ns.ComposerSubmit = ComposerSubmit

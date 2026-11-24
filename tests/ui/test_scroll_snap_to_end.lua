@@ -268,6 +268,39 @@ return function()
     end)
   end
 
+  -- test_snap_to_end_retry_survives_our_own_settling
+  -- Regression: a layout pass of our own can move the offset a little while
+  -- the native rect settles. That must not cancel the retry; only a scroll
+  -- back up (the player reading older lines) does.
+
+  do
+    withCapturedTimer(function(getScheduled)
+      local view = ScrollView.Create(factory, factory.CreateFrame("Frame", nil, nil), {
+        width = 300,
+        height = 200,
+      })
+
+      local nativeRangeSettled = false
+      view.scrollFrame.GetVerticalScrollRange = function()
+        if nativeRangeSettled then
+          return 400
+        end
+        return 200
+      end
+
+      Metrics.RefreshMetrics(view, 600, true)
+      local scheduled = getScheduled()
+      assert(type(scheduled) == "function", "a retry is armed after a clamped snap")
+
+      -- Our own settling moved the offset slightly down from the recorded one.
+      view.scrollFrame.verticalScroll = 260
+      nativeRangeSettled = true
+      scheduled()
+
+      assert(view.scrollFrame:GetVerticalScroll() == 400, "settling must not cancel the deferred snap")
+    end)
+  end
+
   local function makeMessages(count, prefix)
     local messages = {}
     for index = 1, count do

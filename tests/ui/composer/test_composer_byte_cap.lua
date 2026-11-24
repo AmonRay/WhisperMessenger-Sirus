@@ -12,17 +12,29 @@ local function build(channel, options)
   local parent = factory.CreateFrame("Frame", "parent", nil)
   parent:SetSize(600, 50)
   local contact = { conversationKey = "me::" .. channel .. "::arthas", displayName = "Arthas", channel = channel }
-  local saved, typed = {}, {}
-  local composer = Composer.Create(factory, parent, contact, function() end, nil, nil, function(_contact, text)
-    table.insert(typed, text)
-  end, {
-    onDraftChanged = function(conversationKey, text)
-      table.insert(saved, { key = conversationKey, text = text })
+  local saved, typed, sends = {}, {}, {}
+  local composer = Composer.Create(
+    factory,
+    parent,
+    contact,
+    function(payload)
+      table.insert(sends, payload)
+      return true
     end,
-    getQuickReplies = options.getQuickReplies,
-  })
+    nil,
+    nil,
+    function(_contact, text)
+      table.insert(typed, text)
+    end,
+    {
+      onDraftChanged = function(conversationKey, text)
+        table.insert(saved, { key = conversationKey, text = text })
+      end,
+      getQuickReplies = options.getQuickReplies,
+    }
+  )
   composer.setMaxBytes(channel)
-  return composer, saved, typed
+  return composer, saved, typed, sends
 end
 
 -- WoW fires OnTextChanged from SetText; emulate that.
@@ -125,9 +137,9 @@ return function()
     assert(composer.input.maxBytes == 256, "group lowers the cap")
   end
 
-  -- test_quick_reply_respects_whisper_cap
+  -- test_quick_reply_is_sent_as_its_own_line
   do
-    local composer = build("WOW", {
+    local composer, _, _, sends = build("WOW", {
       getQuickReplies = function()
         return { "hello" }
       end,
@@ -135,12 +147,13 @@ return function()
     local long = string.rep("x", 400)
     composer.input:SetText(long)
     pickQuickReply(composer)
-    assert(composer.input:GetText() == long .. "hello", "reply fits a long whisper")
+    assert(#sends == 1 and sends[1].text == "hello", "the reply goes out immediately")
+    assert(composer.input:GetText() == long, "the typed draft is left alone")
   end
 
-  -- test_quick_reply_respects_group_cap_after_switch
+  -- test_quick_reply_is_not_limited_by_the_typed_draft
   do
-    local composer = build("WOW", {
+    local composer, _, _, sends = build("WOW", {
       getQuickReplies = function()
         return { "hello" }
       end,
@@ -149,7 +162,8 @@ return function()
     local full = string.rep("x", 252)
     composer.input:SetText(full)
     pickQuickReply(composer)
-    assert(composer.input:GetText() == full, "reply past the group cap is not inserted")
+    assert(#sends == 1 and sends[1].text == "hello", "a full draft does not block the reply")
+    assert(composer.input:GetText() == full, "the full draft is kept")
   end
 
   -- test_emoji_respects_whisper_cap

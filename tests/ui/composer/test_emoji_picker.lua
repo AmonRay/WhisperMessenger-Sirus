@@ -103,6 +103,8 @@ return function()
   assert(not tooltip.shown, "launcher leave should hide tooltip")
 
   assert(picker:open(), "picker should open before showing emoji tooltips")
+  assert(picker.frame:GetFrameStrata() == "FULLSCREEN_DIALOG", "the picker draws above the message rows")
+  assert(picker.frame:GetFrameLevel() > emojiButton:GetFrameLevel(), "the picker takes clicks above the transcript")
   for index, key in ipairs(ReactionAssets.KEYS) do
     local pickerButton = picker.buttons[index]
     pickerButton.scripts.OnEnter(pickerButton)

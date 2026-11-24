@@ -38,37 +38,41 @@ return function()
     assert(#texts == 4 and texts[1] == "One sec" and texts[4] == "Sorry, busy right now — will reply soon", "defaults listed")
   end
 
-  -- test_picking_a_reply_inserts_at_cursor_without_sending
+  -- test_picking_a_reply_sends_it_without_touching_the_draft
   do
-    local sends = 0
+    local sends = {}
     local saved = { "brb" }
     local composer = build(function()
       return saved
-    end, function()
-      sends = sends + 1
+    end, function(payload)
+      sends[#sends + 1] = payload
+      return true
     end)
     composer.input:SetText("ok  thanks")
-    composer.input:SetCursorPosition(3)
     composer.quickReplyButton.scripts.OnClick(composer.quickReplyButton)
     local row = composer.quickReplyPicker.rows[1]
     row.scripts.OnClick(row)
-    assert(composer.input:GetText() == "ok brb thanks", "reply inserted at the cursor, got " .. tostring(composer.input:GetText()))
-    assert(sends == 0, "never auto-sends")
+    assert(#sends == 1 and sends[1].text == "brb", "the reply goes out immediately")
+    assert(composer.input:GetText() == "ok  thanks", "the typed draft stays in the box")
     assert(not composer.quickReplyPicker.frame:IsShown(), "list closes after a pick")
-    assert(composer.input:HasFocus(), "input focused after a pick")
   end
 
-  -- test_reply_that_does_not_fit_leaves_text_untouched
+  -- test_reply_is_sent_even_when_the_draft_is_full
   do
+    local sends = {}
     local composer = build(function()
       return { "hello" }
+    end, function(payload)
+      sends[#sends + 1] = payload
+      return true
     end)
     local full = string.rep("x", 252)
     composer.input:SetText(full)
     composer.quickReplyButton.scripts.OnClick(composer.quickReplyButton)
     local row = composer.quickReplyPicker.rows[1]
     row.scripts.OnClick(row)
-    assert(composer.input:GetText() == full, "over-limit reply is not inserted")
+    assert(#sends == 1 and sends[1].text == "hello", "a full draft does not block the reply")
+    assert(composer.input:GetText() == full, "the full draft is kept")
   end
 
   -- test_list_reflects_changes_on_next_open

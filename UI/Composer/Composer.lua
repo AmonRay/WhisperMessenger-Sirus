@@ -137,7 +137,7 @@ function Composer.Create(factory, parent, selectedContact, onSend, onEscape, get
     PickerStyles.HideTooltip()
   end)
 
-  local submitMessage = ComposerSubmit.Create({
+  local submitMessage, sendText = ComposerSubmit.Create({
     input = input,
     replies = replies,
     limit = limit,
@@ -150,6 +150,8 @@ function Composer.Create(factory, parent, selectedContact, onSend, onEscape, get
     end,
     afterClear = relayout.refresh,
   })
+  -- A quick reply is sent as it is picked; the typed draft stays in the box.
+  launchers.setQuickReplySend(sendText)
 
   local function syncPlaceholder(text)
     if text == nil or text == "" then

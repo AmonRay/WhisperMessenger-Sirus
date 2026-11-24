@@ -12,7 +12,7 @@ local PickerPopup = ns.PickerPopup or require("WhisperMessenger.UI.Shared.Picker
 local Popover = {}
 
 function Popover.Create(factory, parent, anchorFrame)
-  local frame = PickerPopup.CreatePanel(factory, parent, nil, "DIALOG")
+  local frame = PickerPopup.CreatePanel(factory, parent, nil, "FULLSCREEN_DIALOG")
 
   local popover = { frame = frame }
 
@@ -28,6 +28,12 @@ function Popover.Create(factory, parent, anchorFrame)
     popover.refreshTheme()
     frame:ClearAllPoints()
     frame:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, 4)
+    -- On 3.3.5a the transcript's bubbles live on deeper frames than the
+    -- composer, so a panel parented to the composer can end up under them:
+    -- the emoji or quick-reply rows over the messages stop taking clicks.
+    if frame.SetFrameLevel and type(anchorFrame.GetFrameLevel) == "function" then
+      frame:SetFrameLevel((anchorFrame:GetFrameLevel() or 1) + 100)
+    end
     PickerPopup.ArmDismiss(frame)
     frame:Show()
   end

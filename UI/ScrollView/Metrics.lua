@@ -12,7 +12,7 @@ local sizeValue = UIHelpers.sizeValue
 local SCROLLBAR_WIDTH = Theme.LAYOUT.SCROLLBAR_WIDTH
 local SCROLLBAR_INSET = 0
 local MICRO_OVERFLOW_TOLERANCE = 5
-local MAX_SNAP_TO_END_RETRY_ATTEMPTS = 3
+local MAX_SNAP_TO_END_RETRY_ATTEMPTS = 8
 
 local Metrics = {}
 
@@ -170,7 +170,8 @@ local function scheduleSnapToEndRetry(view, Navigation, targetOffset, generation
   end
 
   local timer = _G.C_Timer
-  if type(timer) ~= "table" or type(timer.After) ~= "function" then
+  local clientHasTimer = type(timer) == "table" and type(timer.After) == "function"
+  if not clientHasTimer and not WrathTimer.IsWrath(_G) then
     return
   end
 
@@ -189,12 +190,21 @@ local function scheduleSnapToEndRetry(view, Navigation, targetOffset, generation
       return
     end
 
-    if Metrics.GetOffset(view) ~= actualOffset then
+    local currentOffset = Metrics.GetOffset(view)
+    -- Our own layout can move the offset a little while the native rect
+    -- settles; only a scroll back up means the player is reading older lines.
+    if currentOffset < actualOffset then
       return
     end
 
+    -- 3.3.5a only re-reads the scroll child's rect here; without it the
+    -- native range can stay stale and every retry clamps to the old bottom.
+    if type(view.scrollFrame.UpdateScrollChildRect) == "function" then
+      view.scrollFrame:UpdateScrollChildRect()
+    end
+
     local retryTarget = Metrics.GetRange(view)
-    if retryTarget <= 0 or Metrics.GetOffset(view) >= retryTarget then
+    if retryTarget <= 0 or currentOffset >= retryTarget then
       return
     end
 

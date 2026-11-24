@@ -1,7 +1,8 @@
 local Store = require("WhisperMessenger.Model.ConversationStore")
 
--- A stored whisper line keeps only the fields something still reads, so a
--- character whisper fits in eight fields. Older versions read the same
+-- A stored whisper line keeps only the fields something still reads, so an
+-- incoming character whisper fits in eight fields and a sent one in nine
+-- (it keeps the recipient for "Repeat message"). Older versions read the same
 -- fields, so a downgrade shows these lines unchanged.
 
 local function countFields(message)
@@ -75,7 +76,7 @@ return function()
     Store.AppendIncoming(store, KEY, incoming, true)
     Store.AppendOutgoing(store, KEY, outgoing)
     assert(countFields(incoming) <= 8, "incoming whisper keeps " .. countFields(incoming) .. " fields")
-    assert(countFields(outgoing) <= 8, "outgoing whisper keeps " .. countFields(outgoing) .. " fields")
+    assert(countFields(outgoing) <= 9, "outgoing whisper keeps " .. countFields(outgoing) .. " fields")
   end
 
   -- test_outgoing_whisper_drops_recipient_fields
@@ -85,6 +86,7 @@ return function()
     Store.AppendOutgoing(store, KEY, message)
     assert(store.conversations[KEY].displayName == "Somebody-Kazzak", "the conversation takes the recipient first")
     assert(message.playerName == nil and message.classTag == nil and message.guid == nil, "a sent line drops the recipient")
+    assert(message.target == "Somebody-Kazzak", "a sent line keeps where to repeat it")
     assert(message.channel == nil, "a sent line drops its channel")
     assert(message.senderName == "Myself" and message.senderClassTag == "MAGE", "a sent line keeps the character that sent it")
   end

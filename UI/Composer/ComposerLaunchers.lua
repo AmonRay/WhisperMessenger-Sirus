@@ -13,7 +13,8 @@ local QuickReplies = ns.QuickReplies or require("WhisperMessenger.Model.QuickRep
 local ComposerLayout = ns.ComposerLayout or require("WhisperMessenger.UI.Composer.ComposerLayout")
 
 -- The composer's picker buttons (quick replies, emoji) and their pickers.
--- Picks are inserted at the input's cursor; nothing is ever sent from here.
+-- Emoji keys are inserted at the input's cursor; a quick reply is sent as a
+-- line of its own without touching the draft.
 local ComposerLaunchers = {}
 
 local function quickReplyIconColor()
@@ -29,6 +30,7 @@ function ComposerLaunchers.Create(factory, pane, input, options)
     return enabled
   end
   local emojiPicker, quickReplyPicker
+  local quickReplySend
 
   local emojiButton = LauncherButton.Create(factory, pane, {
     tooltip = "Emojis",
@@ -70,7 +72,13 @@ function ComposerLaunchers.Create(factory, pane, input, options)
   end)
   quickReplyPicker = QuickReplyPicker.Create(factory, pane, quickReplyButton, function()
     return QuickReplies.List(options.getQuickReplies and options.getQuickReplies() or nil)
-  end, insertAtCursor)
+  end, function(text)
+    if quickReplySend ~= nil then
+      quickReplySend(text)
+      return
+    end
+    insertAtCursor(text)
+  end)
 
   local launchers = {
     emojiButton = emojiButton,
@@ -85,6 +93,11 @@ function ComposerLaunchers.Create(factory, pane, input, options)
     quickReplyButton.paint(false)
     emojiPicker:setEnabled(enabled)
     quickReplyPicker:setEnabled(enabled)
+  end
+
+  -- The composer hands in its own send path once it exists.
+  function launchers.setQuickReplySend(send)
+    quickReplySend = send
   end
 
   function launchers.refreshTheme()
