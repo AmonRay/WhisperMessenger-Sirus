@@ -274,8 +274,9 @@ return function()
     local label = RowElements.createPreview(row, item, 260)
     RowElements.updatePreview(row, item, 260, false)
 
+    local _, fontSize = label:GetFont()
     assert(
-      label.text == "reacted " .. ReactionAssets.GetInlineTextureMarkup("heart") .. " to: ..." and item.lastPreview == preview,
+      label.text == "reacted " .. ReactionAssets.GetInlineTextureMarkup("heart", fontSize) .. " to: ..." and item.lastPreview == preview,
       "preview should render reaction atlas markup without mutating raw preview data, got: " .. tostring(label.text)
     )
   end

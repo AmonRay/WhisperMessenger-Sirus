@@ -197,14 +197,30 @@ function RowElements.createTimestamp(row, item, ns_ref)
   return label
 end
 
+-- The preview line's own font size. Inline emoji scale with it (twice the
+-- text, as in a message) instead of the small default badge size, or a
+-- preview emoji reads as a speck next to the contact's name.
+local function previewFontSize(label)
+  if type(label) ~= "table" or type(label.GetFont) ~= "function" then
+    return nil
+  end
+  local _, size = label:GetFont()
+  if type(size) == "number" and size > 0 then
+    return size
+  end
+  return nil
+end
+
 -- Unsent text: "Draft: <text>" with the marker in the danger colour. Only
 -- the marker when previews are hidden.
-local function draftPreviewText(draft, hideMessagePreview)
+local function draftPreviewText(draft, hideMessagePreview, fontSize)
   local color = UIHelpers.colorEscape(Theme.COLORS.danger_text or Theme.COLORS.text_secondary)
   if hideMessagePreview then
     return color .. Localization.Text("Draft") .. "|r"
   end
-  return color .. Localization.Text("Draft:") .. "|r " .. ReactionAssets.FormatTextForDisplay(draft)
+  -- The draft is our own text, so the local player decides personal emoji.
+  local sender = RestrictedEmojis.LocalPlayerName()
+  return color .. Localization.Text("Draft:") .. "|r " .. ReactionAssets.FormatTextForDisplay(draft, sender, fontSize)
 end
 
 -- selectedConversationKey: the open conversation's draft is in the composer,
@@ -224,12 +240,16 @@ function RowElements.updatePreview(row, item, parentWidth, hideMessagePreview, s
   end
   setTextColor(row.preview, Theme.COLORS.text_secondary)
   if item.draft ~= nil and item.conversationKey ~= selectedConversationKey then
-    row.preview:SetText(GlyphCoverage.Apply(row.preview, draftPreviewText(item.draft, hideMessagePreview)))
+    local fontSize = previewFontSize(row.preview)
+    row.preview:SetText(GlyphCoverage.Apply(row.preview, draftPreviewText(item.draft, hideMessagePreview, fontSize)))
     return
   end
   local preview = AddonGreetingText.ForPreview(item.conversation, item.lastPreview)
   local previewSender = RestrictedEmojis.PreviewSender(item.conversation, item.lastPreview)
-  row.preview:SetText(GlyphCoverage.Apply(row.preview, hideMessagePreview and "" or ReactionAssets.FormatTextForDisplay(preview, previewSender)))
+  local fontSize = previewFontSize(row.preview)
+  row.preview:SetText(
+    GlyphCoverage.Apply(row.preview, hideMessagePreview and "" or ReactionAssets.FormatTextForDisplay(preview, previewSender, fontSize))
+  )
 end
 
 function RowElements.createPreview(row, item, parentWidth)
