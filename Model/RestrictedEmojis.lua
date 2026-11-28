@@ -114,6 +114,26 @@ function RestrictedEmojis.SenderOf(message)
   return baseName(message.playerName)
 end
 
+-- Who wrote the conversation's preview line (the row in the contact list and
+-- its hover card). The preview is the newest message's text, so that message
+-- decides whether a personal emoji in it renders. Without the sender the
+-- preview shows the literal ":clown:" and ":poop:" tokens.
+function RestrictedEmojis.PreviewSender(conversation, preview)
+  local messages = type(conversation) == "table" and conversation.messages or nil
+  if type(messages) ~= "table" or type(preview) ~= "string" or preview == "" then
+    return nil
+  end
+
+  for index = #messages, 1, -1 do
+    local message = messages[index]
+    if type(message) == "table" and message.text == preview then
+      return RestrictedEmojis.SenderOf(message)
+    end
+  end
+
+  return nil
+end
+
 function RestrictedEmojis.GetInlineTextureMarkup(key, size)
   local entry = byKey[key]
   if entry == nil then

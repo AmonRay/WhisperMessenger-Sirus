@@ -10,6 +10,7 @@ local Badge = ns.Badge or require("WhisperMessenger.UI.Badge")
 local ReactionAssets = ns.ChatBubbleReactionAssets or require("WhisperMessenger.UI.ChatBubble.ReactionAssets")
 local AddonGreetingText = ns.ChatBubbleAddonGreetingText or require("WhisperMessenger.UI.ChatBubble.AddonGreetingText")
 local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
+local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
 local RowMarkers = ns.ContactsListRowMarkers or require("WhisperMessenger.UI.ContactsList.RowMarkers")
 local DisplayName = ns.DisplayName or require("WhisperMessenger.Util.DisplayName")
 local RowTextAnchors = ns.ContactsListRowTextAnchors or require("WhisperMessenger.UI.ContactsList.RowTextAnchors")
@@ -227,7 +228,8 @@ function RowElements.updatePreview(row, item, parentWidth, hideMessagePreview, s
     return
   end
   local preview = AddonGreetingText.ForPreview(item.conversation, item.lastPreview)
-  row.preview:SetText(GlyphCoverage.Apply(row.preview, hideMessagePreview and "" or ReactionAssets.FormatTextForDisplay(preview)))
+  local previewSender = RestrictedEmojis.PreviewSender(item.conversation, item.lastPreview)
+  row.preview:SetText(GlyphCoverage.Apply(row.preview, hideMessagePreview and "" or ReactionAssets.FormatTextForDisplay(preview, previewSender)))
 end
 
 function RowElements.createPreview(row, item, parentWidth)

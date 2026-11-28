@@ -186,6 +186,16 @@ local function routeClick(frame, link, text, button)
     return
   end
 
+  -- Our URL links are an addon: link: 3.3.5a's SetItemRef has no branch for
+  -- that type and falls through to ItemRefTooltip:SetHyperlink, which throws
+  -- "Unknown link type". They only need the copy popup, so they never reach
+  -- Blizzard's chat handler.
+  local externalUrl = UrlFormatter.ExtractExternalUrlFromLink(link)
+  if externalUrl ~= nil then
+    copyExternalUrl(externalUrl)
+    return
+  end
+
   local chatClickHandler = blizzardChatClickHandler()
   if chatClickHandler == nil then
     LinkClicks.HandleClick(link, text, button, frame)
@@ -193,10 +203,6 @@ local function routeClick(frame, link, text, button)
   end
 
   chatClickHandler(frame, link, text, button)
-  local externalUrl = UrlFormatter.ExtractExternalUrlFromLink(link)
-  if externalUrl ~= nil then
-    copyExternalUrl(externalUrl)
-  end
 end
 
 -- After the template's own click (Blizzard code calling SetItemRef), handles

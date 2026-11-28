@@ -186,4 +186,18 @@ return function()
     assert(#calls.mixin == 1 and calls.mixin[1].link == DECODED_LINK, "Blizzard's chat handler should get the decoded link")
     assert(calls.mixin[1].text == DECODED_TEXT, "expected the decoded text, got " .. tostring(calls.mixin[1].text))
   end)
+
+  -- test_untemplated_url_click_copies_without_reaching_blizzard
+  -- 3.3.5a's SetItemRef has no branch for addon: links and throws "Unknown
+  -- link type" from ItemRefTooltip, so a URL click must stop at the copy popup.
+  ManualCopyCapture.With(function(copied)
+    withStubs(false, function(calls)
+      local frame = factory.CreateFrame("Frame", nil, nil)
+      LinkClicks.BindClick(frame)
+      frame:GetScript("OnHyperlinkClick")(frame, URL_LINK, "[https://example.com/help]", "LeftButton")
+      assert(copied.count == 1 and copied.text == "https://example.com/help", "the URL should be copied, got " .. tostring(copied.text))
+      assert(#calls.mixin == 0, "Blizzard's chat handler must not see our URL link, ran " .. #calls.mixin)
+      assert(#calls.setItemRef == 0, "SetItemRef must not see our URL link, ran " .. #calls.setItemRef)
+    end)
+  end)
 end

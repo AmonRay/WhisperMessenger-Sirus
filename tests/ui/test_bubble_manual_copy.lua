@@ -317,6 +317,10 @@ return function()
     assert(s.borders.mid.shown == false, "InputBoxTemplate Middle border must be hidden")
     assert(s.borders.right.shown == false, "InputBoxTemplate Right border must be hidden")
     assert(s.editBox._wmManualCopyBackground ~= nil, "editbox should get a flat rounded background")
+    assert(
+      s.editBox._wmManualCopyBackground.fills[1].drawLayer == "BACKGROUND",
+      "the input fill must sit under the selection highlight, or a selection is invisible on 3.3.5a"
+    )
     assert(s.editBox._wmManualCopyBackground.fills[1].shown == true, "editbox background should be active while shown")
     assert(s.editBox._wmManualCopyBorder == nil, "editbox must NOT draw a separate border")
     assert(

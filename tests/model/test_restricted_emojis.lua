@@ -51,6 +51,18 @@ return function()
   )
   assert(RestrictedEmojis.SenderOf(nil) == nil, "nil message has no sender")
 
+  -- the contact list preview is the newest line, so its sender decides
+  local conversation = {
+    messages = {
+      { direction = "in", playerName = "Артас-Сирус", text = "привет" },
+      { direction = "in", playerName = "Рэинбоу-Сирус", text = "лови :clown:" },
+    },
+  }
+  assert(RestrictedEmojis.PreviewSender(conversation, "лови :clown:") == "Рэинбоу", "the preview line belongs to the player who wrote it")
+  assert(RestrictedEmojis.PreviewSender(conversation, "привет") == "Артас", "an older line keeps its own sender")
+  assert(RestrictedEmojis.PreviewSender(conversation, "нет такой строки") == nil, "unknown preview has no sender")
+  assert(RestrictedEmojis.PreviewSender(nil, "лови :clown:") == nil, "no conversation, no sender")
+
   -- rendering
   local texture = RestrictedEmojis.GetTexture("clown")
   assert(type(texture) == "string" and texture:find("emoji_clown", 1, true), "clown texture path")

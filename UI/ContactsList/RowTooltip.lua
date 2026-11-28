@@ -7,6 +7,7 @@ local Theme = ns.Theme or require("WhisperMessenger.UI.Theme")
 local Localization = ns.Localization or require("WhisperMessenger.Locale.Localization")
 local DisplayName = ns.DisplayName or require("WhisperMessenger.Util.DisplayName")
 local ReactionAssets = ns.ChatBubbleReactionAssets or require("WhisperMessenger.UI.ChatBubble.ReactionAssets")
+local RestrictedEmojis = ns.RestrictedEmojis or require("WhisperMessenger.Model.RestrictedEmojis")
 local AddonGreetingText = ns.ChatBubbleAddonGreetingText or require("WhisperMessenger.UI.ChatBubble.AddonGreetingText")
 local StatusLine = ns.ConversationPaneStatusLine or require("WhisperMessenger.UI.ConversationPane.StatusLine")
 local GroupLabel = ns.ContactsListGroupLabel or require("WhisperMessenger.UI.ContactsList.GroupLabel")
@@ -81,7 +82,9 @@ function RowTooltip.Lines(item, hideMessagePreview)
     personLines(lines, item)
   end
   if not hideMessagePreview then
-    add(lines, ReactionAssets.FormatTextForDisplay(AddonGreetingText.ForPreview(item.conversation, item.lastPreview)), MESSAGE_COLOR)
+    local preview = AddonGreetingText.ForPreview(item.conversation, item.lastPreview)
+    local previewSender = RestrictedEmojis.PreviewSender(item.conversation, item.lastPreview)
+    add(lines, ReactionAssets.FormatTextForDisplay(preview, previewSender), MESSAGE_COLOR)
   end
   local unread = tonumber(item.unreadCount) or 0
   if not isGroup and unread > 0 then

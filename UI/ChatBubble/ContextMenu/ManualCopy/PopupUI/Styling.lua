@@ -14,10 +14,13 @@ local ButtonStyling = ns.ChatBubbleContextMenuManualCopyPopupUIButtonStyling
 
 local Styling = {}
 local MANUAL_COPY_DIALOG_NAME = "WHISPER_MESSENGER_BUBBLE_COPY_TEXT"
--- Sublayer 7 (max within BORDER) keeps our fill above InputBoxTemplate border
--- textures so they stay covered even on clients where Hide/SetAlpha isn't enough.
--- Selection highlight renders between BORDER and ARTWORK — still visible above us.
-local INPUT_FILL_SUBLAYER = 7
+-- The fill stays on the BACKGROUND layer, under the text and under the
+-- selection highlight. A fill on BORDER (where this started) covered the
+-- highlight on 3.3.5a: dragging a selection in the copy window showed nothing,
+-- so the text looked unselectable. The InputBoxTemplate borders it used to
+-- cover are hidden explicitly below.
+local INPUT_FILL_LAYER = "BACKGROUND"
+local INPUT_FILL_SUBLAYER = -8
 
 -- Blizzard's `InputBoxTemplate` ships three border textures (Left / Middle /
 -- Right). In some Retail clients they are not returned by `frame:GetRegions()`
@@ -136,7 +139,7 @@ local function styleManualCopyEditBox(editBox)
     and type(editBox.CreateTexture) == "function"
     and type(UIHelpers.createRoundedBackground) == "function"
   then
-    editBox._wmManualCopyBackground = UIHelpers.createRoundedBackground(editBox, 6, "BORDER", INPUT_FILL_SUBLAYER)
+    editBox._wmManualCopyBackground = UIHelpers.createRoundedBackground(editBox, 6, INPUT_FILL_LAYER, INPUT_FILL_SUBLAYER)
     StylingCommon.setPartsShown(editBox._wmManualCopyBackground, false)
   end
 

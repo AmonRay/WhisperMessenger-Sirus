@@ -74,15 +74,17 @@ return function()
     end)
   end
 
-  -- test_url_click_copies_after_blizzard_handler
+  -- test_url_click_copies_without_reaching_blizzard_handler
+  -- 3.3.5a's SetItemRef has no branch for addon: links and throws "Unknown
+  -- link type" from ItemRefTooltip, so our URL links stop at the copy popup.
   ManualCopyCapture.With(function(copied)
     withChatHandler(nil, function(calls)
       rawset(_G, "ChatFrameMixin", newChatMixin(calls))
       local frame = factory.CreateFrame("Frame", nil, nil)
       Hyperlinks.EnableOn(frame)
       fireClick(frame, URL_LINK)
-      assert(calls[1] == "blizzard " .. URL_LINK, "Blizzard's handler should get the click first, got " .. tostring(calls[1]))
-      assert(copied.count == 1 and copied.text == "https://example.com/help", "a URL click should still copy the URL, got " .. tostring(copied.text))
+      assert(#calls == 0, "our URL link must not reach Blizzard's handler, got " .. tostring(calls[1]))
+      assert(copied.count == 1 and copied.text == "https://example.com/help", "a URL click should copy the URL, got " .. tostring(copied.text))
     end)
   end)
 
